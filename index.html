@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-motion="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UNDERSTORY — CANOPY 01 · Grown, not manufactured</title>
+<meta name="description" content="CANOPY 01 is a CoreXY 3D printer that builds the way a forest does — quietly, in layers. 300°C hotend, 20 000 mm/s² acceleration, sealed chamber.">
+<meta name="theme-color" content="#040705">
+<link rel="preload" href="assets/css/main.css" as="style">
+<link rel="stylesheet" href="assets/css/main.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23040705'/%3E%3Cpath d='M16 5v22M16 11l6-4M16 17l-6-4M16 23l6-4' stroke='%23A6CC5C' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+<script>
+  /* Runs before first paint. Everything that would leave the page
+     unusable if the scripts never arrive — the boot overlay and the
+     hidden-until-revealed sections — is gated on these classes, so
+     without JS the page is simply a static version of itself. */
+  document.documentElement.classList.add('js', 'is-booting');
+</script>
+</head>
+<body>
+
+<!-- ══════════ BOOT / BED CALIBRATION ══════════ -->
+<div class="boot" id="boot" aria-hidden="true">
+  <div class="boot__inner">
+    <div class="boot__grid">
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </div>
+    <p class="boot__label mono" id="bootLabel">CALIBRATING BED</p>
+  </div>
+</div>
+
+<!-- ══════════ ATMOSPHERE (fixed, behind everything) ══════════ -->
+<div class="atmos" aria-hidden="true">
+  <div class="atmos__cone" data-par="0.04"></div>
+  <div class="atmos__haze"></div>
+  <div class="grove grove--far"  data-par="0.06" data-culms="9"  data-mouse="6"></div>
+  <div class="grove grove--mid"  data-par="0.14" data-culms="7"  data-mouse="14"></div>
+  <canvas class="atmos__spores" id="spores"></canvas>
+  <div class="grove grove--near" data-par="0.30" data-culms="4"  data-mouse="30"></div>
+  <div class="atmos__vignette"></div>
+  <div class="atmos__grain"></div>
+</div>
+
+<!-- ══════════ NAV ══════════ -->
+<header class="nav" id="nav">
+  <a class="nav__brand" href="#top">
+    <svg class="nav__mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4v24M16 10.5l7-4.5M16 17l-7-4.5M16 23.5l7-4.5"/></svg>
+    <span>UNDERSTORY</span>
+  </a>
+  <nav class="nav__links mono" aria-label="Primary">
+    <a href="#machine">MACHINE</a>
+    <a href="#print">THE PRINT</a>
+    <a href="#specs">SPECS</a>
+    <a href="#materials">MATERIALS</a>
+  </nav>
+  <a class="nav__cta mono" href="#reserve">RESERVE</a>
+</header>
+
+<main id="top">
+
+<!-- ══════════ 1 · HERO ══════════ -->
+<section class="hero" id="hero">
+  <div class="hero__stage">
+
+    <div class="pill mono" data-reveal>
+      <span class="pill__dot"></span>
+      <span class="pill__text">CANOPY 01 — <em id="pillLive">live print · layer 0142</em></span>
+    </div>
+
+    <h1 class="hero__title" data-reveal data-reveal-delay="1">
+      <span class="line"><span>Grown,</span></span>
+      <span class="line"><span>not manufactured.</span></span>
+    </h1>
+
+    <p class="hero__sub" data-reveal data-reveal-delay="2">
+      CANOPY 01 builds the way a forest does — quietly, in layers, without waste.
+      A sealed-chamber CoreXY machine that hits 20 000 mm/s² and never raises its voice.
+    </p>
+
+    <div class="hero__actions" data-reveal data-reveal-delay="3">
+      <a class="btn btn--solid mono" href="#reserve">RESERVE A UNIT</a>
+      <a class="btn btn--ghost mono" href="#print">WATCH IT PRINT</a>
+    </div>
+
+    <!-- the machine -->
+    <div class="hero__machine" id="heroMachine" data-printer data-scale="1"></div>
+
+    <div class="hero__floor" aria-hidden="true">
+      <span class="ripple"></span><span class="ripple"></span><span class="ripple"></span>
+    </div>
+  </div>
+
+  <div class="marks" aria-hidden="true">
+    <span class="mono">EST. 2019 · PORTLAND</span>
+    <span class="mono">↓ SCROLL TO PRINT</span>
+    <span class="mono">CHAMBER 60°C</span>
+  </div>
+
+  <!-- no data-reveal: this sits in the bottom slice of the first
+       viewport, where the reveal observer's negative bottom margin
+       means it would never trigger until the user scrolled past it -->
+  <div class="strip">
+    <ul class="strip__list mono">
+      <li>FERNWORKS</li><li>MYCELIA</li><li>TERRA9</li>
+      <li>LOAMLAB</li><li>KOMOREBI</li><li>SPOREHAUS</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════ 2 · ORBIT (sticky 3D rotation) ══════════ -->
+<section class="orbit" id="machine" data-scroll-scene="orbit">
+  <div class="orbit__rail">
+    <div class="orbit__pin">
+      <p class="eyebrow mono" data-reveal>01 — THE MACHINE</p>
+      <div class="orbit__machine" id="orbitMachine" data-printer data-scale="1.55"></div>
+
+      <ul class="calls">
+        <li class="call" data-at="0.10" style="--x:16%;--y:26%">
+          <b class="mono">300°C HOTEND</b>
+          <span>Hardened steel, all-metal path. Carbon-filled, glass-filled, whatever you feed it.</span>
+        </li>
+        <li class="call" data-at="0.32" style="--x:70%;--y:20%">
+          <b class="mono">20 000 mm/s²</b>
+          <span>CoreXY on linear rails. Input shaping cancels the ringing before it starts.</span>
+        </li>
+        <li class="call" data-at="0.54" style="--x:74%;--y:66%">
+          <b class="mono">SEALED CHAMBER</b>
+          <span>Held at 60°C with HEPA + activated carbon. 42 dB — quieter than the room.</span>
+        </li>
+        <li class="call" data-at="0.76" style="--x:14%;--y:70%">
+          <b class="mono">LIDAR FIRST LAYER</b>
+          <span>Scans the bed at 7 µm, then scans what it laid down. It knows when it's wrong.</span>
+        </li>
+      </ul>
+
+      <div class="orbit__readout mono" aria-hidden="true">
+        <span>ROT <i id="orbitDeg">000</i>°</span>
+        <span class="sep"></span>
+        <span>VIEW ISO</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 3 · THE PRINT (scroll = the print job) ══════════ -->
+<section class="print" id="print" data-scroll-scene="print">
+  <div class="print__rail">
+    <div class="print__pin">
+      <div class="print__head">
+        <p class="eyebrow mono" data-reveal>02 — SCROLL IS THE PRINT JOB</p>
+        <h2 class="h2" data-reveal data-reveal-delay="1">480 layers.<br>One gesture.</h2>
+      </div>
+
+      <div class="print__viewport">
+        <canvas id="layerCanvas" aria-label="A vase being printed layer by layer, driven by scroll position"></canvas>
+        <div class="print__scanline" aria-hidden="true"></div>
+      </div>
+
+      <aside class="hud mono" aria-hidden="true">
+        <div class="hud__row hud__row--head"><span>CANOPY 01</span><span class="hud__live">● PRINTING</span></div>
+        <div class="hud__row"><span>LAYER</span><b id="hudLayer">0000 / 0480</b></div>
+        <div class="hud__row"><span>Z HEIGHT</span><b id="hudZ">0.00 mm</b></div>
+        <div class="hud__row"><span>NOZZLE</span><b id="hudNozzle">268 °C</b></div>
+        <div class="hud__row"><span>SPEED</span><b id="hudSpeed">0 mm/s</b></div>
+        <div class="hud__row"><span>MATERIAL</span><b>BAMBOO PLA</b></div>
+        <div class="hud__bar"><i id="hudBar"></i></div>
+        <div class="hud__row hud__row--foot">
+          <span>FRAME</span><b><i id="fps">—</i> fps · <i id="ms">—</i> ms</b>
+        </div>
+        <div class="hud__spark"><canvas id="fpsSpark"></canvas></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 4 · SPECS ══════════ -->
+<section class="specs" id="specs">
+  <p class="eyebrow mono" data-reveal>03 — NUMBERS, NO ADJECTIVES</p>
+  <div class="specs__grid">
+    <div class="spec" data-reveal>
+      <b class="spec__n"><i data-count="20000" data-sep>0</i></b>
+      <span class="spec__u mono">mm/s² ACCELERATION</span>
+      <p>Motion solved in firmware, not in marketing.</p>
+    </div>
+    <div class="spec" data-reveal data-reveal-delay="1">
+      <b class="spec__n"><i data-count="300">0</i><em>°C</em></b>
+      <span class="spec__u mono">HOTEND CEILING</span>
+      <p>PA-CF, PPS, PC. The difficult half of the catalogue.</p>
+    </div>
+    <div class="spec" data-reveal data-reveal-delay="2">
+      <b class="spec__n"><i data-count="7">0</i><em>µm</em></b>
+      <span class="spec__u mono">LIDAR RESOLUTION</span>
+      <p>First-layer inspection before the second one commits.</p>
+    </div>
+    <div class="spec" data-reveal data-reveal-delay="3">
+      <b class="spec__n"><i data-count="42">0</i><em>dB</em></b>
+      <span class="spec__u mono">AT FULL SPEED</span>
+      <p>Rain on leaves is 50 dB. This is quieter than that.</p>
+    </div>
+    <div class="spec" data-reveal data-reveal-delay="4">
+      <b class="spec__n"><i data-count="256">0</i><em>³</em></b>
+      <span class="spec__u mono">BUILD VOLUME, mm</span>
+      <p>Big enough for a chair leg. Small enough for a desk.</p>
+    </div>
+    <div class="spec" data-reveal data-reveal-delay="5">
+      <b class="spec__n"><i data-count="94">0</i><em>%</em></b>
+      <span class="spec__u mono">RECYCLED HOUSING</span>
+      <p>Post-industrial aluminium and reclaimed bamboo ply.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 5 · MATERIALS ══════════ -->
+<section class="mats" id="materials" data-scroll-scene="mats">
+  <header class="mats__head">
+    <p class="eyebrow mono" data-reveal>04 — WHAT IT EATS</p>
+    <h2 class="h2" data-reveal data-reveal-delay="1">Four spools.<br>All of them compost or return.</h2>
+  </header>
+  <ul class="spools" id="spools">
+    <li class="spool" data-spool data-reveal>
+      <div class="spool__3d"></div>
+      <div class="spool__meta">
+        <b class="mono">BAMBOO PLA</b>
+        <span class="mono">210–230°C · 1.75mm</span>
+        <p>Culm flour in a PLA matrix. Matte, warm, and it will break down in an industrial digester in 90 days.</p>
+      </div>
+    </li>
+    <li class="spool" data-spool data-reveal data-reveal-delay="1">
+      <div class="spool__3d"></div>
+      <div class="spool__meta">
+        <b class="mono">RECYCLED PETG</b>
+        <span class="mono">240–255°C · 1.75mm</span>
+        <p>Reground from our own failed prints and bottle stock. Tough, slightly translucent, endlessly re-runnable.</p>
+      </div>
+    </li>
+    <li class="spool" data-spool data-reveal data-reveal-delay="2">
+      <div class="spool__3d"></div>
+      <div class="spool__meta">
+        <b class="mono">PINE RESIN CO-PE</b>
+        <span class="mono">225–245°C · 1.75mm</span>
+        <p>Rosin-toughened copolymer. Smells like the reference photo. Layer adhesion you can't tear by hand.</p>
+      </div>
+    </li>
+    <li class="spool" data-spool data-reveal data-reveal-delay="3">
+      <div class="spool__3d"></div>
+      <div class="spool__meta">
+        <b class="mono">HEMP CARBON</b>
+        <span class="mono">260–285°C · 1.75mm</span>
+        <p>Bast fibre standing in for half the carbon. Stiff, dimensionally quiet, needs the hardened nozzle.</p>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<!-- ══════════ 6 · GROWTH / CTA ══════════ -->
+<section class="reserve" id="reserve" data-scroll-scene="grow">
+  <svg class="growth" id="growth" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+  <div class="reserve__inner">
+    <p class="eyebrow mono" data-reveal>05 — FIRST LAYER</p>
+    <h2 class="reserve__title" data-reveal data-reveal-delay="1">Your first layer<br>starts here.</h2>
+    <p class="reserve__sub" data-reveal data-reveal-delay="2">
+      First run is 800 units. Reserve now, pay on ship, cancel whenever.
+      Every unit arrives calibrated against the machine that printed its own bracket.
+    </p>
+    <form class="reserve__form" data-reveal data-reveal-delay="3" novalidate>
+      <label class="sr-only" for="email">Email address</label>
+      <input id="email" name="email" type="email" placeholder="you@studio.com" autocomplete="email" required>
+      <button class="btn btn--solid mono" type="submit">HOLD MY UNIT</button>
+      <p class="reserve__note mono" id="formNote" role="status"></p>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot__top">
+    <a class="nav__brand" href="#top">
+      <svg class="nav__mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4v24M16 10.5l7-4.5M16 17l-7-4.5M16 23.5l7-4.5"/></svg>
+      <span>UNDERSTORY</span>
+    </a>
+    <nav class="foot__cols mono" aria-label="Footer">
+      <div><b>MACHINE</b><a href="#machine">CANOPY 01</a><a href="#specs">Specifications</a><a href="#print">Print quality</a></div>
+      <div><b>MATERIALS</b><a href="#materials">Bamboo PLA</a><a href="#materials">Recycled PETG</a><a href="#materials">Return program</a></div>
+      <div><b>STUDIO</b><a href="#top">About</a><a href="#top">Repairability</a><a href="#top">Press kit</a></div>
+    </nav>
+  </div>
+  <div class="foot__bot mono">
+    <span>© 2026 UNDERSTORY MACHINE CO.</span>
+    <span>ONE HUE · ZERO PHOTOGRAPHS · EVERY PIXEL VECTOR</span>
+  </div>
+</footer>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/scene.js"></script>
+<script src="assets/js/printjob.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
