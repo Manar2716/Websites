@@ -80,6 +80,57 @@
     layer.appendChild(frag);
   }
 
+  /* ── 1b · UNDERGROWTH ─────────────────────────────────────
+     Ferns crowding the jungle floor. These live in their own band
+     pinned to the bottom of the viewport rather than in the grove
+     planes — those travel up to three viewport heights on scroll,
+     which would lift ground cover into the canopy. */
+  function buildUnderstory(layer) {
+    var rand = rng(20260730);
+    var narrow = S.vw < 820;
+    var count = narrow ? 8 : 20;
+    var frag = global.document.createDocumentFragment();
+
+    for (var i = 0; i < count; i++) {
+      var fern = global.document.createElement('div');
+      fern.className = 'fern';
+
+      var x = ((i + 0.5) / count) + (rand() - 0.5) * (0.9 / count);
+      /* depth: the big ones sit forward, and forward means brighter
+         and lower in frame */
+      var depth = rand();
+      var fs = U.lerp(0.65, 1.75, depth) * (narrow ? 0.65 : 1);
+
+      fern.style.cssText =
+        'left:' + (x * 100).toFixed(2) + '%;' +
+        'bottom:' + (-6 + (1 - depth) * 9).toFixed(1) + '%;' +
+        '--fs:' + fs.toFixed(2) + ';' +
+        '--flip:' + (rand() > 0.5 ? 1 : -1) + ';' +
+        '--fr:' + ((rand() - 0.5) * 30).toFixed(1) + 'deg;' +
+        'opacity:' + U.lerp(0.34, 0.88, depth).toFixed(2) + ';' +
+        'z-index:' + Math.round(depth * 10) + ';' +
+        '--sway:' + U.lerp(7, 14, rand()).toFixed(1) + 's;' +
+        'animation-delay:-' + (rand() * 10).toFixed(1) + 's;';
+
+      /* pinnae alternate down the spine, shortening toward the tip */
+      var pin = 9 + Math.round(rand() * 5);
+      for (var q = 0; q < pin; q++) {
+        var f = q / pin;
+        var leaflet = global.document.createElement('i');
+        leaflet.className = 'pinna';
+        leaflet.style.cssText =
+          'bottom:' + (8 + f * 84).toFixed(1) + '%;' +
+          '--len:' + (1 - f * 0.62).toFixed(2) + ';' +
+          '--side:' + (q % 2 ? 1 : -1) + ';' +
+          '--pd:' + U.lerp(20, 46, rand()).toFixed(0) + 'deg;';
+        fern.appendChild(leaflet);
+      }
+      frag.appendChild(fern);
+    }
+    layer.textContent = '';
+    layer.appendChild(frag);
+  }
+
   /* ── 2 · SPORE FIELD ──────────────────────────────────────
      Motes drifting up through the light cone. Drawn additively
      so overlaps bloom instead of flattening. */
@@ -157,18 +208,27 @@
     var pr = global.document.createElement('div');
     pr.className = 'pr';
 
-    /* order matters: opaque shell first, internals next, front
-       glass last, so the browser's depth sort has the best chance
-       of compositing the translucent walls in the right order */
+    /* Modelled on the enclosed CoreXY machines this page is about:
+       a sheet-metal cube with one glass door, the control unit at
+       the top left of that door, a nameplate top right and the mark
+       embossed on the right flank. Painted back-to-front so the
+       depth sort has the best chance with the translucent door. */
     var html =
       '<div class="pr__3d">' +
         '<div class="pr__glow"></div>' +
         '<div class="pr__base"></div>' +
-        '<div class="pr__face pr__face--top"></div>' +
-        '<div class="pr__face pr__face--bottom"></div>' +
-        '<div class="pr__face pr__glass pr__glass--back"></div>' +
-        '<div class="pr__face pr__glass pr__glass--left"></div>' +
-        '<div class="pr__face pr__glass pr__glass--right"></div>' +
+        '<div class="pr__face pr__shell pr__face--back"></div>' +
+        '<div class="pr__face pr__shell pr__face--left"></div>' +
+        '<div class="pr__face pr__shell pr__face--right"></div>' +
+        '<div class="pr__face pr__shell pr__face--top"></div>' +
+        '<div class="pr__face pr__shell pr__face--bottom"></div>' +
+        '<div class="pr__mark">' +
+          '<svg viewBox="0 0 32 32" aria-hidden="true">' +
+            '<path d="M16 3v26M16 10l8-5M16 18l-8-5M16 26l8-5"/>' +
+          '</svg>' +
+        '</div>' +
+        '<div class="pr__zrail pr__zrail--l"></div>' +
+        '<div class="pr__zrail pr__zrail--r"></div>' +
         '<div class="pr__bed"><div class="pr__part">';
 
     for (var i = 0; i < SLABS; i++) {
@@ -178,16 +238,23 @@
     html +=
         '</div></div>' +
         '<div class="pr__gantry">' +
-          '<div class="pr__rail"></div>' +
-          '<div class="pr__head"><span class="pr__nozzle"></span></div>' +
+          '<div class="pr__rail pr__rail--a"></div>' +
+          '<div class="pr__rail pr__rail--b"></div>' +
+          '<div class="pr__beam">' +
+            '<div class="pr__head"><span class="pr__nozzle"></span></div>' +
+          '</div>' +
         '</div>' +
-        '<div class="pr__post pr__post--a"></div>' +
-        '<div class="pr__post pr__post--b"></div>' +
-        '<div class="pr__post pr__post--c"></div>' +
-        '<div class="pr__post pr__post--d"></div>' +
-        '<div class="pr__face pr__glass pr__glass--front"><span class="pr__sheen"></span></div>' +
-        '<div class="pr__screen mono"><span data-screen>READY</span></div>' +
-        '<div class="pr__badge mono">CANOPY 01</div>' +
+        '<div class="pr__foot pr__foot--a"></div>' +
+        '<div class="pr__foot pr__foot--b"></div>' +
+        '<div class="pr__foot pr__foot--c"></div>' +
+        '<div class="pr__foot pr__foot--d"></div>' +
+        '<div class="pr__face pr__glass"><span class="pr__sheen"></span></div>' +
+        '<div class="pr__ui">' +
+          '<span class="pr__screen"><span data-screen>READY</span></span>' +
+          '<span class="pr__dial"></span>' +
+        '</div>' +
+        '<div class="pr__badge">UNDERSTORY<b>CANOPY 01</b></div>' +
+        '<div class="pr__oval">UNDERSTORY</div>' +
       '</div>';
 
     pr.innerHTML = html;
@@ -197,15 +264,24 @@
       el: pr,
       slabs: pr.querySelectorAll('.pr__slab'),
       screen: pr.querySelector('[data-screen]'),
-      /* rx/ry in degrees, gy 0..1, hx -1..1, grow 0..1 */
-      set: function (rx, ry, gy, hx, grow) {
+      /* rx/ry in degrees, gy 0..1, hx/hz -1..1, grow 0..1 */
+      set: function (rx, ry, gy, hx, grow, hz) {
         var st = pr.style;
         st.setProperty('--rx', rx.toFixed(2) + 'deg');
         st.setProperty('--ry', ry.toFixed(2) + 'deg');
         st.setProperty('--gy', gy.toFixed(4));
         st.setProperty('--hx', hx.toFixed(4));
+        st.setProperty('--hz', (hz || 0).toFixed(4));
         st.setProperty('--grow', grow.toFixed(4));
       },
+      /* 1 = solid housing as it ships, 0 = panels dissolved so the
+         mechanism underneath can be pointed at */
+      shell: function (v) {
+        if (v === this._shell) return;
+        this._shell = v;
+        pr.style.setProperty('--shell', v.toFixed(3));
+      },
+      _shell: 1,
       /* light up slabs up to `grow` — one class toggle per slab,
          only when it actually changes */
       layers: function (grow) {
@@ -292,6 +368,7 @@
 
   global.SCENE = {
     buildGrove: buildGrove,
+    buildUnderstory: buildUnderstory,
     Spores: Spores,
     buildPrinter: buildPrinter,
     buildSpools: buildSpools,

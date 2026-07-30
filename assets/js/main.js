@@ -104,10 +104,13 @@
   /* ── ATMOSPHERE ───────────────────────────────────────── */
   (function atmosphere() {
     var groves = $$('.grove');
-    groves.forEach(function (g, i) { SCENE.buildGrove(g, i); });
-    CORE.onResize(function () {
+    var under = $('#understory');
+    function grow() {
       groves.forEach(function (g, i) { SCENE.buildGrove(g, i); });
-    });
+      if (under) SCENE.buildUnderstory(under);
+    }
+    grow();
+    CORE.onResize(grow);
 
     var parLayers = $$('[data-par]');
     var cone = $('.atmos__cone');
@@ -178,8 +181,11 @@
       var loop = (t % 14) / 14;               /* a 14s print cycle */
       var ry = -26 + Math.sin(t * 0.16) * 9 + mNow.x * 13;
       var rx = -14 + mNow.y * 6;
+      /* the head sweeps in X while the beam creeps in Y — the
+         actual motion pattern of a CoreXY laying a perimeter */
       var hx = Math.sin(t * 2.1);
-      heroPr.set(rx, ry, loop, hx, loop);
+      var hz = Math.sin(t * 0.62);
+      heroPr.set(rx, ry, loop, hx, loop, hz);
       heroPr.layers(loop);
       if (heroPr.screen) {
         heroPr.screen.textContent = 'L' + U.pad(loop * 480, 4) + ' · ' +
@@ -208,9 +214,19 @@
          that dips as we pass the midpoint */
       var ry = -30 + p * 360;
       var rx = -16 + Math.sin(p * Math.PI) * 12;
-      var hx = Math.sin(now / 1000 * 1.7);
-      orbitPr.set(rx, ry, p, hx, p);
+      /* not `t` — that name is the scroll track in this closure, and
+         `var` hoisting would leave it undefined at the guard above */
+      var clock = now / 1000;
+      var hx = Math.sin(clock * 1.7);
+      var hz = Math.sin(clock * 0.55);
+      orbitPr.set(rx, ry, p, hx, p, hz);
       orbitPr.layers(p);
+
+      /* The housing dissolves once we start talking about what's
+         inside it, and closes again at the end — the machine ships
+         solid, so it should end the section that way. */
+      var open = U.clamp((p - 0.10) / 0.12, 0, 1) * (1 - U.clamp((p - 0.82) / 0.12, 0, 1));
+      orbitPr.shell(1 - open * 0.88);
       if (orbitPr.screen) {
         orbitPr.screen.textContent = 'L' + U.pad(p * 480, 4) + ' · ' + (p * 96).toFixed(1) + 'mm';
       }
@@ -239,7 +255,7 @@
     var job = PRINTJOB.PrintJob(canvas);
 
     var elLayer = $('#hudLayer'), elZ = $('#hudZ'), elNozzle = $('#hudNozzle'),
-        elSpeed = $('#hudSpeed'), elBar = $('#hudBar');
+        elSpeed = $('#hudSpeed'), elBar = $('#hudBar'), elZoom = $('#hudZoom');
 
     var phase = 0;
     var shownSpeed = 0;
@@ -267,6 +283,7 @@
         elSpeed.textContent = Math.round(shownSpeed) + ' mm/s';
       }
       if (elBar) elBar.style.width = (p * 100).toFixed(2) + '%';
+      if (elZoom) elZoom.textContent = job.zoom().toFixed(1) + ' ×';
     }, { name: 'print' });
   })();
 

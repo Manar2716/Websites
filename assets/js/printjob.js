@@ -33,6 +33,9 @@
     var ctx = canvas.getContext('2d', { alpha: true });
     var dpr = 1, w = 0, h = 0, scale = 1, cx = 0, cy = 0;
     var lastDrawn = -1, lastPhase = -1;
+    /* camera state: current zoom, and the damped point it orbits */
+    var lastZoom = 1;
+    var focus = { x: null, y: null };
 
     /* precompute the unit circle once — the hot loop is pure
        multiplication after this */
@@ -89,7 +92,7 @@
     /* the build plate: an isometric grid diamond */
     function plate() {
       var e = 1.05;
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1 / lastZoom;
       ctx.strokeStyle = 'rgba(166,204,92,0.10)';
       var n = 8;
       var p = new Path2D();
@@ -141,8 +144,12 @@
         }
       }
 
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = 'rgba(74,122,46,0.20)';
+      ctx.lineWidth = 1 / lastZoom;
+      /* the slicer preview is context, and context is exactly what a
+         close-up is not about — fade it as the camera pushes in */
+      var a = 0.20 * U.clamp((3.2 - lastZoom) / 2.0, 0, 1);
+      if (a <= 0.005) return;
+      ctx.strokeStyle = 'rgba(74,122,46,' + a.toFixed(3) + ')';
       ctx.stroke(p);
     }
 
@@ -164,7 +171,7 @@
       g.addColorStop(0, 'rgba(216,239,160,0)');
       g.addColorStop(1, 'rgba(216,239,160,0.55)');
       ctx.strokeStyle = g;
-      ctx.lineWidth = 1.4;
+      ctx.lineWidth = 1.4 / lastZoom;
       ctx.beginPath();
       ctx.moveTo(sx, sy - scale * 0.9);
       ctx.lineTo(sx, sy);
@@ -172,20 +179,48 @@
 
       /* hot tip */
       ctx.globalCompositeOperation = 'lighter';
-      var glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, 16);
+      var gr = 16 / lastZoom;
+      var glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, gr);
       glow.addColorStop(0, 'rgba(216,239,160,0.85)');
       glow.addColorStop(0.35, 'rgba(166,204,92,0.35)');
       glow.addColorStop(1, 'rgba(166,204,92,0)');
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.arc(sx, sy, 16, 0, 6.2832);
+      ctx.arc(sx, sy, gr, 0, 6.2832);
       ctx.fill();
       ctx.globalCompositeOperation = 'source-over';
 
       ctx.fillStyle = '#d8efa0';
       ctx.beginPath();
-      ctx.arc(sx, sy, 1.9, 0, 6.2832);
+      ctx.arc(sx, sy, 1.9 / lastZoom, 0, 6.2832);
       ctx.fill();
+    }
+
+    /* ── the camera ──
+       Scroll doesn't just print the object, it moves the view: the
+       shot pushes in until the nozzle fills the frame while the
+       first layers go down, holds there through the detail, then
+       pulls back out as the part gets tall enough to need the room.
+       Returns a zoom factor; the focus point is the nozzle itself. */
+    function camera(p) {
+      if (p < 0.08) return U.lerp(1, 1.3, U.ease(p / 0.08));            /* ease off the wide */
+      if (p < 0.24) return U.lerp(1.3, 3.0, U.ease((p - 0.08) / 0.16));  /* push in */
+      if (p < 0.44) return 3.0;                                          /* hold the close-up */
+      if (p < 0.72) return U.lerp(3.0, 1.12, U.ease((p - 0.44) / 0.28)); /* pull out */
+      return U.lerp(1.12, 0.98, U.ease((p - 0.72) / 0.28));              /* settle wide */
+    }
+
+    /* where the nozzle is right now, in screen space */
+    function nozzlePoint(layer, phase) {
+      var z = layer / (LAYERS - 1);
+      var R = profile(z);
+      var twist = z * TWIST;
+      var ang = phase * Math.PI * 2;
+      var r = R * (1 + 0.10 * Math.cos(FLUTES * (ang + twist)));
+      var x = r * Math.cos(ang), y = r * Math.sin(ang);
+      var cw = Math.cos(twist), sw = Math.sin(twist);
+      var rx = x * cw - y * sw, ry = x * sw + y * cw;
+      return { x: px(rx, ry), y: py(rx, ry, z * Z_TOTAL) };
     }
 
     /* ── main draw ──
@@ -195,11 +230,39 @@
       var done = Math.floor(progress * (LAYERS - 1));
 
       ctx.clearRect(0, 0, w, h);
-      plate();
-      ghost(done);
+
+      /* Scale about the nozzle so it stays pinned in frame while
+         the world grows around it. Damped, or the focus point jumps
+         every time the nozzle crosses the seam of a layer. */
+      var zoom = camera(progress);
+      var np = nozzlePoint(done, phase);
+      if (focus.x === null) { focus.x = np.x; focus.y = np.y; }
+      else {
+        focus.x = U.lerp(focus.x, np.x, 0.12);
+        focus.y = U.lerp(focus.y, np.y, 0.12);
+      }
+
+      ctx.save();
+      if (zoom !== 1) {
+        var ax = w / 2 + (focus.x - w / 2) * 0.85;
+        var ay = h / 2 + (focus.y - h / 2) * 0.85;
+        ctx.translate(ax, ay);
+        ctx.scale(zoom, zoom);
+        ctx.translate(-ax, -ay);
+      }
+      lastZoom = zoom;
+
+      /* Zoomed in, the frame should be the build front: the last
+         few millimetres of wall, the bead, the nozzle. Rendering the
+         whole body at 3x just fills the canvas with solid mass, so
+         cull to the active zone and drop the plate and the preview. */
+      var close = lastZoom > 1.9;
+      var floor = close ? Math.max(0, done - 88) : 0;
+
+      if (!close) { plate(); ghost(done); }
 
       /* bands, bottom to top — painter's order gives free occlusion */
-      for (var b = 0; b <= done; b += BAND) {
+      for (var b = floor; b <= done; b += BAND) {
         var top = Math.min(b + BAND - 1, done);
         var mid = (top / (LAYERS - 1));
 
@@ -213,23 +276,29 @@
         ctx.fill(path);
       }
 
-      /* layer lines, batched into a single stroke */
+      /* Layer lines, batched into a single stroke. Zoomed in, every
+         layer is drawn and the stroke is scaled back down so it
+         stays a hairline instead of thickening with the camera —
+         that's what sells the close-up as real detail. */
       if (done > 0) {
+        var step = close ? 1 : LINE_EVERY;
         var lines = new Path2D();
-        for (var l2 = 0; l2 <= done; l2 += LINE_EVERY) contour(lines, l2);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(127,168,63,0.42)';
+        for (var l2 = floor; l2 <= done; l2 += step) contour(lines, l2);
+        ctx.lineWidth = 1 / lastZoom;
+        ctx.strokeStyle = 'rgba(127,168,63,' + (close ? 0.5 : 0.42) + ')';
         ctx.stroke(lines);
       }
 
       /* the freshly-laid bead reads hottest */
       var recent = new Path2D();
       for (var l3 = Math.max(0, done - 3); l3 <= done; l3++) contour(recent, l3);
-      ctx.lineWidth = 1.4;
+      ctx.lineWidth = 1.4 / lastZoom;
       ctx.strokeStyle = 'rgba(216,239,160,0.85)';
       ctx.stroke(recent);
 
       if (progress > 0.002 && progress < 0.999) nozzle(done, phase);
+
+      ctx.restore();
 
       lastDrawn = done;
       lastPhase = phase;
@@ -242,6 +311,7 @@
       layers: LAYERS,
       resize: resize,
       draw: draw,
+      zoom: function () { return lastZoom; },
       /* skip the frame entirely if nothing moved */
       needsDraw: function (progress, phase) {
         var done = Math.floor(progress * (LAYERS - 1));

@@ -17,13 +17,17 @@ Every pixel is black or chlorophyll green. The palette is a single ramp from
 is no white, no second accent, and no photograph anywhere in the project. Hue
 stays inside 82–96° throughout.
 
-That rule is also why there are no image assets. The bamboo grove, the machine,
-the spore field, the filament spools and the printed vase are all generated at
-runtime from gradients, CSS 3D transforms and canvas paths. Vectors stay sharp on
-a 4K panel, weigh nothing, and can be animated without touching layout.
+That rule is also why there are no image assets. The jungle — bamboo culms in
+three depth planes, fern undergrowth, canopy light shafts, drifting spores — plus
+the machine, the filament spools and the printed vase are all generated at runtime
+from gradients, CSS 3D transforms and canvas paths. Vectors stay sharp on a 4K
+panel, weigh nothing, and can be animated without touching layout.
 
-The brand is invented. It deliberately does not reuse the trade dress of any real
-printer manufacturer.
+The machine's industrial design follows the enclosed CoreXY printers this page is
+about: sheet-metal cube, single glass door, control unit at the top left of that
+door, nameplate top right, mark on the right flank, feet. The brand on it is
+invented, and deliberately does not reuse the trade dress of any real
+manufacturer.
 
 ## The scroll animation
 
@@ -61,7 +65,7 @@ object costs roughly 40 fill operations per frame instead of 480.
 index.html
 assets/css/main.css     cascade layers: tokens → base → … → responsive
 assets/js/core.js       the shared clock, scroll store, scroll-track helper
-assets/js/scene.js      grove, spore field, the CSS-3D machine, spools, growth
+assets/js/scene.js      grove, undergrowth, spores, the CSS-3D machine, spools
 assets/js/printjob.js   the layer-by-layer canvas print
 assets/js/main.js       wiring, reveals, counters, telemetry
 ```

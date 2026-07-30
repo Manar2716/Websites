@@ -35,10 +35,12 @@
 <div class="atmos" aria-hidden="true">
   <div class="atmos__cone" data-par="0.04"></div>
   <div class="atmos__haze"></div>
-  <div class="grove grove--far"  data-par="0.06" data-culms="9"  data-mouse="6"></div>
-  <div class="grove grove--mid"  data-par="0.14" data-culms="7"  data-mouse="14"></div>
+  <div class="grove grove--far"  data-par="0.06" data-culms="14" data-mouse="6"></div>
+  <div class="grove grove--mid"  data-par="0.14" data-culms="10" data-mouse="14"></div>
   <canvas class="atmos__spores" id="spores"></canvas>
-  <div class="grove grove--near" data-par="0.30" data-culms="4"  data-mouse="30"></div>
+  <div class="grove grove--near" data-par="0.30" data-culms="6"  data-mouse="30"></div>
+  <div class="understory" id="understory" data-par="0.03" data-mouse="10"></div>
+  <div class="canopy" aria-hidden="true"></div>
   <div class="atmos__vignette"></div>
   <div class="atmos__grain"></div>
 </div>
@@ -50,10 +52,11 @@
     <span>UNDERSTORY</span>
   </a>
   <nav class="nav__links mono" aria-label="Primary">
-    <a href="#machine">MACHINE</a>
+    <a href="#machine">HOW IT WORKS</a>
     <a href="#print">THE PRINT</a>
+    <a href="#built">MADE OF</a>
     <a href="#specs">SPECS</a>
-    <a href="#materials">MATERIALS</a>
+    <a href="#materials">FILAMENT</a>
   </nav>
   <a class="nav__cta mono" href="#reserve">RESERVE</a>
 </header>
@@ -113,27 +116,49 @@
 <section class="orbit" id="machine" data-scroll-scene="orbit">
   <div class="orbit__rail">
     <div class="orbit__pin">
-      <p class="eyebrow mono" data-reveal>01 — THE MACHINE</p>
-      <div class="orbit__machine" id="orbitMachine" data-printer data-scale="1.55"></div>
+      <div class="orbit__head">
+        <p class="eyebrow mono" data-reveal>HOW IT WORKS</p>
+        <h2 class="orbit__title" data-reveal data-reveal-delay="1">Four things<br>happen at once.</h2>
+        <p class="orbit__lede" data-reveal data-reveal-delay="2">
+          The housing comes off as you scroll. Everything below is what's under it.
+        </p>
+      </div>
 
-      <ul class="calls">
-        <li class="call" data-at="0.10" style="--x:16%;--y:26%">
-          <b class="mono">300°C HOTEND</b>
-          <span>Hardened steel, all-metal path. Carbon-filled, glass-filled, whatever you feed it.</span>
+      <div class="orbit__machine" id="orbitMachine" data-printer></div>
+
+      <!-- numbered because this genuinely is a sequence: each step
+           depends on the one before it completing -->
+      <ol class="calls">
+        <li class="call" data-at="0.14" style="--x:9%;--y:40%">
+          <i class="call__n mono">STEP 01</i>
+          <b class="mono">TWO MOTORS MOVE THE HEAD</b>
+          <span>CoreXY: both motors are bolted to the frame and drive one continuous belt loop.
+            Turn them together and the head goes left; turn them opposite and it goes forward.
+            Because neither motor rides along, there is almost nothing to accelerate — that's
+            where 20 000 mm/s² comes from.</span>
         </li>
-        <li class="call" data-at="0.32" style="--x:70%;--y:20%">
-          <b class="mono">20 000 mm/s²</b>
-          <span>CoreXY on linear rails. Input shaping cancels the ringing before it starts.</span>
+        <li class="call" data-at="0.36" style="--x:66%;--y:22%">
+          <i class="call__n mono">STEP 02</i>
+          <b class="mono">THE FILAMENT MELTS</b>
+          <span>A gear pulls 1.75 mm filament into an all-metal hotend held at up to 300 °C.
+            It leaves the hardened nozzle as a bead about 0.4 mm across and fuses into the
+            layer below while it's still soft. That fusing is the whole part's strength.</span>
         </li>
-        <li class="call" data-at="0.54" style="--x:74%;--y:66%">
-          <b class="mono">SEALED CHAMBER</b>
-          <span>Held at 60°C with HEPA + activated carbon. 42 dB — quieter than the room.</span>
+        <li class="call" data-at="0.58" style="--x:68%;--y:66%">
+          <i class="call__n mono">STEP 03</i>
+          <b class="mono">THE PLATE DROPS 0.08 mm</b>
+          <span>When a layer closes, three lead screws lower the build plate by exactly one
+            layer height and the head starts the next outline. The part never moves up —
+            the floor moves down, 480 times.</span>
         </li>
-        <li class="call" data-at="0.76" style="--x:14%;--y:70%">
-          <b class="mono">LIDAR FIRST LAYER</b>
-          <span>Scans the bed at 7 µm, then scans what it laid down. It knows when it's wrong.</span>
+        <li class="call" data-at="0.78" style="--x:9%;--y:68%">
+          <i class="call__n mono">STEP 04</i>
+          <b class="mono">IT CHECKS ITS OWN WORK</b>
+          <span>A lidar module reads the plate at 7 µm before anything is laid, then reads back
+            the first layer it printed. If the bead is thin or lifting, it re-lays it — before
+            the second layer commits the mistake to the whole part.</span>
         </li>
-      </ul>
+      </ol>
 
       <div class="orbit__readout mono" aria-hidden="true">
         <span>ROT <i id="orbitDeg">000</i>°</span>
@@ -149,7 +174,7 @@
   <div class="print__rail">
     <div class="print__pin">
       <div class="print__head">
-        <p class="eyebrow mono" data-reveal>02 — SCROLL IS THE PRINT JOB</p>
+        <p class="eyebrow mono" data-reveal>THE PRINT</p>
         <h2 class="h2" data-reveal data-reveal-delay="1">480 layers.<br>One gesture.</h2>
       </div>
 
@@ -165,6 +190,7 @@
         <div class="hud__row"><span>NOZZLE</span><b id="hudNozzle">268 °C</b></div>
         <div class="hud__row"><span>SPEED</span><b id="hudSpeed">0 mm/s</b></div>
         <div class="hud__row"><span>MATERIAL</span><b>BAMBOO PLA</b></div>
+        <div class="hud__row"><span>VIEW</span><b id="hudZoom">1.0 ×</b></div>
         <div class="hud__bar"><i id="hudBar"></i></div>
         <div class="hud__row hud__row--foot">
           <span>FRAME</span><b><i id="fps">—</i> fps · <i id="ms">—</i> ms</b>
@@ -175,9 +201,78 @@
   </div>
 </section>
 
+<!-- ══════════ 3.5 · WHAT IT'S MADE OF ══════════ -->
+<section class="built" id="built">
+  <header class="built__head">
+    <p class="eyebrow mono" data-reveal>WHAT IT'S MADE OF</p>
+    <h2 class="h2" data-reveal data-reveal-delay="1">Six materials.<br>All of them nameable.</h2>
+    <p class="built__lede" data-reveal data-reveal-delay="2">
+      Nothing in this machine is a mystery composite. If a part wears out you can identify it,
+      buy it, and fit it with hex keys — which is the only honest definition of repairable.
+    </p>
+  </header>
+
+  <ul class="built__list">
+    <li class="mat" data-reveal>
+      <span class="mat__swatch mat__swatch--alu" aria-hidden="true"></span>
+      <div>
+        <b class="mono">EXTRUDED ALUMINIUM</b>
+        <i class="mono">Frame · 94% post-industrial</i>
+        <p>Four uprights and eight cross members in 2020 profile. The whole chassis is bolted,
+          never welded, so a bent member is a ten-minute swap rather than a write-off.</p>
+      </div>
+    </li>
+    <li class="mat" data-reveal data-reveal-delay="1">
+      <span class="mat__swatch mat__swatch--steel" aria-hidden="true"></span>
+      <div>
+        <b class="mono">HARDENED STEEL</b>
+        <i class="mono">Linear rails · nozzle · lead screws</i>
+        <p>Ground rails on all three axes instead of wheels on extrusion. They cost more and
+          they are the reason the machine still holds tolerance after a thousand hours.</p>
+      </div>
+    </li>
+    <li class="mat" data-reveal data-reveal-delay="2">
+      <span class="mat__swatch mat__swatch--glass" aria-hidden="true"></span>
+      <div>
+        <b class="mono">BOROSILICATE GLASS</b>
+        <i class="mono">Door · lid · 4 mm tempered</i>
+        <p>Holds the chamber at 60 °C without hazing or bowing, and lets you watch the thing
+          work. A printer you can't see into is a printer you stop trusting.</p>
+      </div>
+    </li>
+    <li class="mat" data-reveal data-reveal-delay="3">
+      <span class="mat__swatch mat__swatch--bamboo" aria-hidden="true"></span>
+      <div>
+        <b class="mono">RECLAIMED BAMBOO PLY</b>
+        <i class="mono">Side panels · 6 mm laminate</i>
+        <p>Offcuts from flooring production, pressed into panels. Bamboo reaches structural
+          density in five years where hardwood needs sixty.</p>
+      </div>
+    </li>
+    <li class="mat" data-reveal data-reveal-delay="4">
+      <span class="mat__swatch mat__swatch--pei" aria-hidden="true"></span>
+      <div>
+        <b class="mono">PEI ON SPRING STEEL</b>
+        <i class="mono">Build plate · textured both faces</i>
+        <p>Parts stick when the plate is hot and release when it isn't. Flex it once and the
+          print pops off — no scraper, no chisel, no gouged bed.</p>
+      </div>
+    </li>
+    <li class="mat" data-reveal data-reveal-delay="5">
+      <span class="mat__swatch mat__swatch--carbon" aria-hidden="true"></span>
+      <div>
+        <b class="mono">ACTIVATED CARBON + HEPA</b>
+        <i class="mono">Filtration · replaceable cartridge</i>
+        <p>Catches the ultrafine particles and the styrene smell before they reach the room.
+          The cartridge is a consumable, and it is the only one.</p>
+      </div>
+    </li>
+  </ul>
+</section>
+
 <!-- ══════════ 4 · SPECS ══════════ -->
 <section class="specs" id="specs">
-  <p class="eyebrow mono" data-reveal>03 — NUMBERS, NO ADJECTIVES</p>
+  <p class="eyebrow mono" data-reveal>NUMBERS, NO ADJECTIVES</p>
   <div class="specs__grid">
     <div class="spec" data-reveal>
       <b class="spec__n"><i data-count="20000" data-sep>0</i></b>
@@ -215,7 +310,7 @@
 <!-- ══════════ 5 · MATERIALS ══════════ -->
 <section class="mats" id="materials" data-scroll-scene="mats">
   <header class="mats__head">
-    <p class="eyebrow mono" data-reveal>04 — WHAT IT EATS</p>
+    <p class="eyebrow mono" data-reveal>WHAT IT EATS</p>
     <h2 class="h2" data-reveal data-reveal-delay="1">Four spools.<br>All of them compost or return.</h2>
   </header>
   <ul class="spools" id="spools">
@@ -258,7 +353,7 @@
 <section class="reserve" id="reserve" data-scroll-scene="grow">
   <svg class="growth" id="growth" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="reserve__inner">
-    <p class="eyebrow mono" data-reveal>05 — FIRST LAYER</p>
+    <p class="eyebrow mono" data-reveal>FIRST LAYER</p>
     <h2 class="reserve__title" data-reveal data-reveal-delay="1">Your first layer<br>starts here.</h2>
     <p class="reserve__sub" data-reveal data-reveal-delay="2">
       First run is 800 units. Reserve now, pay on ship, cancel whenever.
