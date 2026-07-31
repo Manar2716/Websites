@@ -1,0 +1,49 @@
+# Publishes the repository to GitHub Pages.
+#
+# There is no build step: every site in this repo is static, with no
+# dependencies and no network calls, so the artifact is the checkout.
+# The repo root is published, which keeps both sites reachable —
+# `/` is the printer page and `/peets/` is the coffee one.
+#
+# `enablement: true` turns Pages on the first time this runs, so the
+# repository does not have to be configured by hand beforehand.
+name: Pages
+
+on:
+  push:
+    branches: [claude/peets-coffee-website-sfihui]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pages strips paths that look like Jekyll internals unless this
+      # file is present. Nothing here starts with an underscore today,
+      # but the cost of being wrong later is a silently missing asset.
+      - run: touch .nojekyll
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
