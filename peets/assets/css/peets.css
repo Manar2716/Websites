@@ -1,0 +1,1159 @@
+/* ═══════════════════════════════════════════════════════════
+   PEET'S COFFEE — a design concept
+
+   ONE CONSTRAINT: every colour that emits or reflects light in
+   this project is a coffee colour. The ramp runs from unroasted
+   green through cinnamon, crema and roast to the near-black of a
+   dark-roasted bean, with cream at the top of it. The single
+   exception is the daylight through the café window, which is
+   neutral-cool and exists so the warm side has something to be
+   warm against.
+
+   There is no photograph anywhere in this project, and no image
+   file of any kind. The film is WebGL; the poster fallback is
+   gradients; the wood, the pinstripe and the seal are gradients
+   and one inline SVG; and all thirty-four products in the menu
+   are drawn on a canvas at runtime by art.js.
+
+   Cascade layers below run in the order declared, so a later
+   layer can restate an earlier one without a specificity fight.
+   ═══════════════════════════════════════════════════════════ */
+
+@layer tokens, base, boot, nav, film, caption, rail, page, sections,
+       cards, rewards, locate, foot, motion, responsive;
+
+/* ── TOKENS ───────────────────────────────────────────────── */
+@layer tokens {
+  :root {
+    /* the roast ramp */
+    --void:    #050403;
+    --ground:  #0b0705;
+    --panel:   #100a07;
+    --card:    #170f0a;
+    --card-hi: #1f1510;
+    --char:    #120b06;
+    --roast:   #2a1509;
+    --shell:   #5c2f14;
+    --cinnamon:#8a4a1e;
+    --crema:   #c98a4b;
+    --foam:    #e8d6bd;
+    --milk:    #f4ece1;
+
+    /* the window: the one cool value in the project */
+    --day:     #b9c6cf;
+
+    /* Text colour is set from measured contrast against the
+       lightest ground it is ever set on (--card, #170f0a), not
+       chosen by eye. The film's captions sit over a moving image,
+       so they carry their own scrim as well — see .cap::before. */
+    --ink:      #f4ece1;                     /* ~16.8:1  headings */
+    --ink-dim:  rgba(244, 236, 225, .86);    /* ~13.4:1  body */
+    --ink-mute: rgba(226, 200, 168, .76);    /*  ~7.2:1  labels */
+    --ink-faint:rgba(232, 208, 178, .70);    /*  ~6.7:1  fine print, 13px floor */
+
+    --line:     rgba(201, 138, 75, .20);
+    --line-hi:  rgba(201, 138, 75, .44);
+
+    --sans: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --film-length: 950vh;
+    --gutter: clamp(1.25rem, 5vw, 5rem);
+    --measure: 34rem;
+    --nav-h: 4.6rem;
+
+    /* Oiled walnut, built from three gradients that never animate.
+       It is the only "texture" in the project and it is used at
+       low contrast, under content, as a ground rather than a
+       surface — a loud wood grain behind small type is unreadable
+       at any contrast ratio. */
+    --wood:
+      repeating-linear-gradient(94deg,
+        rgba(90, 48, 22, .13) 0 3px,
+        rgba(38, 20, 10, .13) 3px 7px,
+        rgba(74, 38, 18, .10) 7px 12px),
+      repeating-linear-gradient(88deg,
+        rgba(120, 66, 30, .07) 0 40px,
+        rgba(20, 10, 5, .09) 40px 96px),
+      linear-gradient(180deg, #1a0f08 0%, #120a06 100%);
+  }
+}
+
+/* ── BASE ─────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    background: var(--ground);
+    color: var(--ink-dim);
+    font-family: var(--sans);
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: auto;
+    /* the nav is fixed, so an in-page jump has to clear it */
+    scroll-padding-top: calc(var(--nav-h) + 1rem);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100%;
+    font-size: clamp(1rem, .55vw + .86rem, 1.075rem);
+    line-height: 1.62;
+    overflow-x: hidden;
+    /* a flat black page would band on an OLED panel; this is the
+       same near-black with a barely-there warm floor under it */
+    background:
+      radial-gradient(120vw 80vh at 50% 0%, #100a06 0%, transparent 70%),
+      var(--ground);
+  }
+
+  h1, h2, h3, h4 { color: var(--ink); font-weight: 300; line-height: 1.1; margin: 0; }
+  p, ul, ol { margin: 0; }
+  ul, ol { padding: 0; list-style: none; }
+  a { color: inherit; }
+  canvas { display: block; }
+
+  .mono {
+    font-family: var(--mono);
+    /* micro labels were the accessibility failure in the sibling
+       project on this repo: 9.6px at 34% alpha. The floor here is
+       13px and the lightest label token measures 6.7:1. */
+    font-size: .8125rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .brow { margin-bottom: 1.2rem; color: var(--crema); }
+
+  .anchor { position: absolute; top: 0; }
+
+  .sr {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+
+  .skip {
+    position: fixed; top: -100%; left: var(--gutter); z-index: 300;
+    padding: .7rem 1.1rem; background: var(--roast); color: var(--ink);
+    border: 1px solid var(--line-hi); border-radius: 2px;
+    font-family: var(--mono); font-size: .8125rem; letter-spacing: .12em;
+    text-transform: uppercase; text-decoration: none;
+  }
+  .skip:focus-visible { top: 1rem; }
+
+  :focus-visible { outline: 2px solid var(--crema); outline-offset: 3px; }
+
+  .cta {
+    display: inline-block;
+    padding: .85rem 1.9rem;
+    border: 1px solid var(--line-hi);
+    border-radius: 2px;
+    font-family: var(--mono); font-size: .8125rem;
+    letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink); text-decoration: none;
+    background: rgba(42, 21, 9, .5);
+    transition: background .45s ease, border-color .45s ease,
+                transform .45s cubic-bezier(.2,.9,.2,1), box-shadow .45s ease;
+  }
+  .cta:hover {
+    background: rgba(138, 74, 30, .42); border-color: var(--crema);
+    transform: translateY(-2px);
+  }
+  .cta--solid {
+    background: var(--shell); border-color: var(--shell);
+    box-shadow: 0 .6rem 2rem rgba(92, 47, 20, .34);
+  }
+  .cta--solid:hover {
+    background: var(--cinnamon); border-color: var(--cinnamon);
+    box-shadow: 0 1rem 2.6rem rgba(138, 74, 30, .46);
+  }
+  .cta--ghost { background: transparent; }
+  .cta--big { padding: 1.05rem 2.6rem; font-size: .875rem; }
+}
+
+/* ── BOOT ─────────────────────────────────────────────────── */
+@layer boot {
+  .boot { display: none; }
+
+  .js .boot {
+    display: grid; place-items: center;
+    position: fixed; inset: 0; z-index: 220;
+    background: var(--void);
+    transition: opacity .9s ease .1s, visibility 0s linear 1s;
+  }
+  .boot.is-done { opacity: 0; visibility: hidden; }
+
+  .boot__inner { display: grid; justify-items: center; gap: 1.5rem; }
+
+  /* the bean, turning, before there is a renderer to turn it */
+  .boot__bean {
+    width: 42px; height: 58px; border-radius: 50% / 46%;
+    background:
+      linear-gradient(100deg, #100804 0 46%, transparent 46% 54%, #100804 54% 100%),
+      radial-gradient(120% 90% at 32% 26%, rgba(232, 214, 189, .28) 0%, transparent 46%),
+      linear-gradient(140deg, #7c3a17 0%, #47200c 46%, #1d0d05 100%);
+    box-shadow: 0 0 42px rgba(201, 138, 75, .18);
+    animation: bean-turn 3.4s cubic-bezier(.5, 0, .5, 1) infinite;
+  }
+  @keyframes bean-turn {
+    0%   { transform: rotateY(0deg) rotate(-8deg); }
+    100% { transform: rotateY(360deg) rotate(-8deg); }
+  }
+
+  .boot__word {
+    font-size: 1.05rem; letter-spacing: .62em; text-indent: .62em;
+    color: var(--milk); font-weight: 300;
+  }
+  .boot__sub { font-size: .6875rem; letter-spacing: .34em; color: var(--ink-faint); }
+}
+
+/* ── NAV ──────────────────────────────────────────────────────
+   Fixed, and transparent over the opening of the film — there is
+   nothing behind it there but black. It takes a ground the moment
+   the page starts to light up, which JS marks with .is-solid. */
+@layer nav {
+  .nav {
+    position: fixed; inset: 0 0 auto; z-index: 180;
+    height: var(--nav-h);
+    display: flex; align-items: center; gap: 1.5rem;
+    padding: 0 var(--gutter);
+    border-bottom: 1px solid transparent;
+    transition:
+      transform .5s cubic-bezier(.2, .9, .2, 1),
+      background .6s ease,
+      border-color .6s ease;
+  }
+  .nav.is-solid {
+    background: rgba(11, 7, 5, .82);
+    backdrop-filter: blur(18px) saturate(1.2);
+    border-bottom-color: var(--line);
+  }
+  /* it hides on the way down and comes back on the way up, which
+     is the only nav behaviour that does not fight a long film */
+  .nav.is-away { transform: translateY(-102%); }
+
+  .nav__brand {
+    display: flex; align-items: center; gap: .75rem;
+    text-decoration: none; color: var(--crema);
+    flex: 0 0 auto;
+  }
+  .nav__seal { display: block; width: 34px; height: 34px; }
+  .nav__seal svg { width: 100%; height: 100%; }
+  .nav__word { display: grid; line-height: 1.1; }
+  .nav__name {
+    font-size: 1.02rem; letter-spacing: .30em; text-indent: .30em;
+    color: var(--milk); font-weight: 400;
+  }
+  .nav__since { font-size: .625rem; letter-spacing: .26em; color: var(--ink-faint); }
+
+  .nav__links {
+    margin-left: auto;
+    display: flex; align-items: center; gap: clamp(.6rem, 1.6vw, 1.55rem);
+  }
+  .nav__link {
+    position: relative;
+    font-family: var(--mono); font-size: .75rem; letter-spacing: .14em;
+    text-transform: uppercase; text-decoration: none;
+    color: var(--ink-mute);
+    padding: .5rem 0;
+    transition: color .4s ease;
+    white-space: nowrap;
+  }
+  .nav__link::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: .1rem; height: 1px;
+    background: var(--crema);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .5s cubic-bezier(.2,.9,.2,1);
+  }
+  .nav__link:hover, .nav__link.is-on { color: var(--ink); }
+  .nav__link:hover::after, .nav__link.is-on::after { transform: scaleX(1); }
+
+  .nav__order {
+    margin-left: .6rem;
+    padding: .62rem 1.35rem;
+    background: var(--shell); border: 1px solid var(--shell); border-radius: 2px;
+    font-family: var(--mono); font-size: .75rem; letter-spacing: .16em;
+    text-transform: uppercase; text-decoration: none; color: var(--milk);
+    white-space: nowrap;
+    transition: background .4s ease, border-color .4s ease, transform .4s cubic-bezier(.2,.9,.2,1);
+  }
+  .nav__order:hover {
+    background: var(--cinnamon); border-color: var(--cinnamon);
+    transform: translateY(-1px);
+  }
+
+  .nav__toggle {
+    display: none;
+    margin-left: auto;
+    width: 2.75rem; height: 2.75rem;
+    background: none; border: 1px solid var(--line); border-radius: 2px;
+    color: var(--ink); cursor: pointer;
+    place-items: center;
+  }
+  .nav__bars, .nav__bars::before, .nav__bars::after {
+    display: block; width: 18px; height: 1px; background: currentColor;
+    transition: transform .4s cubic-bezier(.2,.9,.2,1), opacity .3s ease;
+  }
+  .nav__bars::before, .nav__bars::after { content: ""; position: absolute; }
+  .nav__bars::before { transform: translateY(-6px); }
+  .nav__bars::after { transform: translateY(6px); }
+  .nav.is-open .nav__bars { background: transparent; }
+  .nav.is-open .nav__bars::before { transform: rotate(45deg); }
+  .nav.is-open .nav__bars::after { transform: rotate(-45deg); }
+}
+
+/* ── FILM ─────────────────────────────────────────────────── */
+@layer film {
+  .film { position: relative; }
+  .js .film { height: var(--film-length); }
+
+  .stage {
+    position: relative;
+    height: 100vh; height: 100svh;
+    overflow: hidden;
+    background: var(--void);
+  }
+  .js .stage { position: sticky; top: 0; }
+
+  .stage__canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    display: block;
+  }
+  .has-gl .poster { opacity: 0; }
+
+  /* ── poster ──
+     What the stage looks like with no WebGL and no JavaScript: a
+     cup of coffee built from four gradients. It is also what sits
+     under the canvas during boot, so the first paint is never a
+     black rectangle. */
+  .poster {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(70vw 60vh at 50% 118%, #2a1509 0%, transparent 62%),
+      radial-gradient(50vw 46vh at 62% -6%, #3a1d0b 0%, transparent 60%),
+      var(--void);
+    transition: opacity 1.2s ease;
+  }
+  /* A cup seen from above, in three ellipses: the saucer, the
+     crema, and one bean resting on the rim. The first version of
+     this was a single 480px disc, which at any width above a
+     phone stopped reading as coffee and started reading as a
+     planet — the saucer ring under it is what puts it on a table. */
+  .poster__saucer {
+    position: absolute; left: 50%; top: 60%;
+    width: min(34vw, 25rem); aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 40% 32%, rgba(244, 236, 225, .16) 0%, transparent 52%),
+      radial-gradient(circle at 60% 70%, #6a4a34 0%, #2e1d12 62%, #150d08 100%);
+    box-shadow: 0 3rem 8rem rgba(0, 0, 0, .7);
+  }
+  .poster__pool {
+    position: absolute; left: 50%; top: 60%;
+    width: min(23vw, 17rem); aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 38% 34%, rgba(232, 214, 189, .42) 0%, transparent 38%),
+      radial-gradient(circle at 62% 66%, #c98a4b 0%, #8a4a1e 44%, #3a1d0b 76%, #180d06 100%);
+    box-shadow:
+      0 0 0 .55rem rgba(232, 222, 205, .92),
+      0 0 9rem rgba(201, 138, 75, .22);
+  }
+  .poster__bean {
+    position: absolute; left: 62%; top: 42%;
+    width: min(4.5vw, 2.6rem); aspect-ratio: .72;
+    transform: translate(-50%, -50%) rotate(-18deg);
+    border-radius: 50% / 46%;
+    background:
+      linear-gradient(100deg, #150a05 0 47%, transparent 47% 53%, #150a05 53% 100%),
+      linear-gradient(140deg, #8a4a1e 0%, #4a220d 50%, #1a0c05 100%);
+  }
+  .poster__steam {
+    position: absolute; left: 50%; top: 8%;
+    width: min(28vw, 18rem); height: 40vh;
+    transform: translateX(-50%);
+    background:
+      radial-gradient(closest-side, rgba(244, 236, 225, .10) 0%, transparent 70%),
+      radial-gradient(closest-side at 62% 30%, rgba(244, 236, 225, .07) 0%, transparent 66%);
+    filter: blur(6px);
+  }
+
+  /* shown only when the scripts never arrived */
+  .hero-static { display: none; }
+  html:not(.js) .hero-static {
+    display: block;
+    position: absolute; left: var(--gutter); bottom: 12vh;
+    width: min(28rem, calc(100vw - var(--gutter) * 2));
+  }
+  .hero-static__line {
+    font-size: clamp(2.2rem, 5.4vw, 4rem);
+    font-weight: 250; color: var(--ink);
+    letter-spacing: -.01em; margin-bottom: 1rem;
+    text-shadow: 0 2px 28px rgba(5, 4, 3, .92);
+  }
+  .hero-static__sub {
+    font-family: var(--serif); color: var(--foam);
+    font-size: clamp(1.05rem, .8vw + .9rem, 1.35rem);
+    margin-bottom: 1.9rem;
+    text-shadow: 0 1px 18px rgba(5, 4, 3, .85);
+  }
+
+  .scrim {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to top, rgba(5, 4, 3, .82) 0%, rgba(5, 4, 3, .34) 9%, transparent 22%),
+      linear-gradient(to bottom, rgba(5, 4, 3, .52) 0%, transparent 16%);
+  }
+
+  /* ── scroll hint ── */
+  .hint {
+    position: absolute; left: 50%; bottom: 2.2rem;
+    transform: translateX(-50%);
+    display: grid; justify-items: center; gap: .7rem;
+    font-size: .6875rem; letter-spacing: .42em; color: var(--ink-faint);
+    transition: opacity .7s ease;
+  }
+  .hint::after {
+    content: ""; width: 1px; height: 3.2rem;
+    background: linear-gradient(var(--line-hi), transparent);
+    animation: hint-fall 2.6s ease-in-out infinite;
+    transform-origin: top;
+  }
+  @keyframes hint-fall {
+    0%, 100% { transform: scaleY(.3); opacity: .3; }
+    45%      { transform: scaleY(1);  opacity: 1; }
+  }
+  .hint.is-gone { opacity: 0; }
+  html:not(.js) .hint { display: none; }
+}
+
+/* ── CAPTIONS ─────────────────────────────────────────────────
+   The film's words. With no JavaScript this whole layer is hidden
+   and the same copy is read from the prose column below — nothing
+   here is the only copy of anything. */
+@layer caption {
+  .captions { position: absolute; inset: 0; pointer-events: none; }
+  html:not(.js) .captions { display: none; }
+
+  .cap {
+    position: absolute;
+    width: min(var(--measure), calc(100vw - var(--gutter) * 2));
+    opacity: 0; visibility: hidden;
+    perspective: 900px;
+  }
+  /* Bright scenery and legible text are in genuine tension. This
+     is where it is resolved: every caption carries its own pool of
+     shade, sized to the text and soft enough that you read it as
+     depth of field rather than as a box. */
+  .cap::before {
+    content: "";
+    position: absolute; inset: -5rem -8rem;
+    background: radial-gradient(closest-side, rgba(5, 4, 3, .88) 0%, rgba(5, 4, 3, .62) 44%, transparent 100%);
+    z-index: -1;
+  }
+  /* The scrim alone cannot serve both a near-black frame and a
+     cream one. It does the heavy lifting; these do the last stop,
+     and cost nothing because neither ever animates. */
+  .cap__line { text-shadow: 0 1px 3px rgba(5, 4, 3, .55), 0 2px 28px rgba(5, 4, 3, .92); }
+  .cap__body, .cap__brow { text-shadow: 0 1px 2px rgba(5, 4, 3, .70), 0 1px 18px rgba(5, 4, 3, .85); }
+
+  .cap--left   { left: var(--gutter);  top: 50%; transform: translateY(-50%); }
+  .cap--right  { right: var(--gutter); top: 50%; transform: translateY(-50%); text-align: right; }
+  .cap--center { left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .cap--center::before { inset: -4rem -6rem; }
+
+  /* The opening title cannot sit on the bean — the caption carries
+     its own pool of shade, and putting that pool over the only lit
+     object in frame puts the subject out. */
+  .cap--low { top: auto; bottom: 11vh; transform: translateX(-50%); }
+
+  /* The hero is a title card: bottom left, clear of the bean in
+     the middle of frame, clear of the chapter rail under it and
+     clear of the scroll hint in the centre. Everything on this
+     screen is blocked apart from everything else, which is the
+     only reason a caption can sit over a lit object at all. */
+  .cap--hero {
+    left: var(--gutter); right: auto;
+    top: auto; bottom: 15vh;
+    transform: none;
+    text-align: left;
+    width: min(27rem, calc(100vw - var(--gutter) * 2));
+  }
+  .cap--hero::before { inset: -4rem -6rem -3rem -8rem; }
+  .cap--hero .cap__line { font-size: clamp(2.2rem, 5.4vw, 4rem); letter-spacing: -.01em; }
+  .cap--hero .cap__body { margin-inline: 0; }
+
+  .cap__brow { display: block; margin-bottom: 1.1rem; color: var(--ink-mute); }
+
+  .cap__line {
+    position: relative;
+    font-size: clamp(2.1rem, 6.4vw, 4.6rem);
+    letter-spacing: -.02em;
+    font-weight: 250;
+    color: var(--ink);
+    transform-style: preserve-3d;
+    margin-bottom: 1.15rem;
+  }
+  .cap--final .cap__line { letter-spacing: .04em; font-weight: 300; }
+
+  /* one letter, one delay — set from JS, transform and opacity only */
+  .wd { display: inline-block; white-space: nowrap; }
+  .lt { display: inline-block; will-change: transform, opacity; }
+
+  /* The condensation copy. Its blur radius never changes, so this
+     layer rasterises once and only its opacity is animated —
+     animating a blur radius forces a re-raster every frame and is
+     the single most expensive thing you can do to a scroll page. */
+  .haze {
+    position: absolute; inset: 0;
+    display: block;
+    color: var(--foam);
+    filter: blur(14px);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  .cap__body {
+    font-family: var(--serif);
+    font-size: clamp(.98rem, .5vw + .86rem, 1.12rem);
+    line-height: 1.6;
+    color: var(--ink-dim);
+    max-width: 30rem;
+  }
+  .cap__body--big {
+    font-size: clamp(1.05rem, .8vw + .9rem, 1.35rem);
+    color: var(--foam);
+    letter-spacing: .01em;
+  }
+  .cap--right .cap__body { margin-left: auto; }
+  .cap--center .cap__body { margin-inline: auto; }
+
+  .cap--final { pointer-events: auto; }
+  .cap .cta { margin-top: 1.9rem; }
+}
+
+/* ── RAIL ─────────────────────────────────────────────────── */
+@layer rail {
+  .rail {
+    position: absolute; left: var(--gutter); bottom: 2.4rem;
+    display: flex; gap: .9rem; flex-wrap: wrap;
+    font-family: var(--mono); font-size: .6875rem;
+    letter-spacing: .2em; text-transform: uppercase;
+  }
+  html:not(.js) .rail { display: none; }
+  .rail__act {
+    color: rgba(226, 200, 168, .40);
+    transition: color .5s ease;
+    position: relative; padding-top: .7rem;
+  }
+  .rail__act::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: var(--line);
+    transform: scaleX(.35); transform-origin: left;
+    transition: transform .6s cubic-bezier(.2,.9,.2,1), background .5s ease;
+  }
+  .rail__act.is-on { color: var(--ink); }
+  .rail__act.is-on::before { transform: scaleX(1); background: var(--crema); }
+}
+
+/* ── PAGE ─────────────────────────────────────────────────── */
+@layer page {
+  .page {
+    position: relative; z-index: 2;
+    background: var(--ground);
+  }
+
+  .sec {
+    position: relative;
+    padding: clamp(5rem, 13vh, 10rem) var(--gutter) clamp(5rem, 13vh, 10rem);
+    overflow: clip;
+  }
+
+  /* ── the transitions between sections ──
+     Steam wraps the camera at the end of the film; on the page it
+     wraps the *seam*. Each veil is a plume or a splash painted
+     once into a canvas by site.js and then only transformed, so a
+     transition that runs the whole length of a section costs two
+     composited properties and no repaints. */
+  .veil {
+    position: absolute; left: 50%; top: 0; z-index: 1;
+    width: min(150vw, 1800px); height: clamp(18rem, 34vh, 30rem);
+    transform: translate(-50%, -46%);
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  html:not(.js) .veil { display: none; }
+  .veil__c { width: 100%; height: 100%; }
+
+  /* A section with a plume above it gets a hairline under the
+     plume; a splash gets none, because a splash crosses it. */
+  .sec::before {
+    content: ""; position: absolute; left: var(--gutter); right: var(--gutter); top: 0;
+    height: 1px; background: linear-gradient(90deg, transparent, var(--line), transparent);
+  }
+
+  /* the wood counter: beans, bakery and about sit on it */
+  .sec--beans, .sec--bakery, .sec--about { background: var(--wood); }
+  .sec--beans::after, .sec--bakery::after, .sec--about::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(80vw 60vh at 50% -10%, rgba(201, 138, 75, .07) 0%, transparent 66%),
+      linear-gradient(180deg, rgba(11, 7, 5, .92) 0%, rgba(11, 7, 5, .55) 22%,
+                              rgba(11, 7, 5, .55) 78%, rgba(11, 7, 5, .94) 100%);
+  }
+  /* The overlay that knocks the wood back is on ::after, which
+     paints after the section's ordinary flow content, so anything
+     that has to read over it needs a stacking context of its own.
+     `> *` is the obvious way to write that and it is wrong: it
+     also matches the veil, takes away its absolute positioning,
+     and drops 370 px of dead air into the top of three sections.
+     The veil gets its z-index from its own rule above. */
+  .sec--beans > :not(.veil),
+  .sec--bakery > :not(.veil),
+  .sec--about > :not(.veil) { position: relative; z-index: 1; }
+
+  .sec__head { max-width: 46rem; margin: 0 auto clamp(3rem, 7vh, 5rem); text-align: center; }
+  .sec__head--left { margin-inline: 0; text-align: left; }
+
+  .sec__title {
+    font-size: clamp(2.4rem, 6.4vw, 4.6rem);
+    letter-spacing: -.03em; font-weight: 200;
+    margin-bottom: 1.3rem;
+  }
+  .sec__lede {
+    font-family: var(--serif);
+    font-size: clamp(1.02rem, .8vw + .88rem, 1.26rem);
+    line-height: 1.58; color: var(--ink-dim);
+    max-width: 42rem; margin-inline: auto;
+  }
+  .sec__head--left .sec__lede { margin-inline: 0; }
+  .sec__actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2.2rem; }
+}
+
+/* ── SECTIONS: reveals and depth ──────────────────────────────
+   Nothing on this page fades in from nowhere. Everything arrives
+   from *behind* — a little further away, a little lower, tipped
+   back a few degrees — and lands. That is one composited
+   transform per element, and it is the difference between a page
+   that assembles and a page that cross-fades.
+
+   Every one of these rules is gated on .js: with scripting off,
+   .is-in never arrives, so the initial state must not be the
+   hidden one. */
+@layer sections {
+  .js [data-reveal],
+  .js [data-stagger] > * {
+    opacity: 0;
+    transform: translate3d(0, 2.6rem, -6rem) rotateX(7deg);
+    transition:
+      opacity .9s cubic-bezier(.2, .9, .2, 1) var(--d, 0s),
+      transform 1.15s cubic-bezier(.2, .9, .2, 1) var(--d, 0s);
+    will-change: transform, opacity;
+  }
+  .js [data-stagger] { perspective: 1400px; }
+  .js [data-reveal].is-in,
+  .js [data-stagger].is-in > * {
+    opacity: 1;
+    transform: none;
+  }
+  /* once it has landed, stop paying for the promotion */
+  .js [data-reveal].is-done, .js [data-stagger].is-done > * { will-change: auto; }
+
+  .grid {
+    display: grid;
+    gap: clamp(1.1rem, 2vw, 2rem);
+    max-width: 96rem; margin-inline: auto;
+  }
+  .grid--drinks { grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
+  .grid--beans  { grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr)); }
+  .grid--tea    { grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); }
+  .grid--bakery { grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
+}
+
+/* ── CARDS ────────────────────────────────────────────────────
+   A card is a lit stage, not a tile. The figure sits in a pool of
+   light with its own shadow under it and floats a few hundred
+   pixels in front of the panel in Z, so a pointer move parallaxes
+   the object against its own background rather than sliding a
+   flat picture around. */
+@layer cards {
+  .card {
+    position: relative;
+    display: flex; flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background:
+      radial-gradient(120% 80% at 50% 0%, rgba(201, 138, 75, .07) 0%, transparent 62%),
+      linear-gradient(178deg, var(--card-hi) 0%, var(--card) 46%, #100a07 100%);
+    overflow: hidden;
+    transform-style: preserve-3d;
+    transition: border-color .5s ease, box-shadow .6s ease;
+  }
+  .js .card {
+    /* written by site.js, once a frame, only while pointed at */
+    transform:
+      perspective(1200px)
+      rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+      translate3d(0, var(--ty, 0px), 0);
+  }
+  .card:hover {
+    border-color: var(--line-hi);
+    box-shadow: 0 2rem 4rem rgba(0, 0, 0, .5), 0 0 0 1px rgba(201, 138, 75, .10) inset;
+  }
+
+  .card__figure {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    display: grid; place-items: center;
+    background:
+      radial-gradient(64% 52% at 50% 40%, rgba(201, 138, 75, .16) 0%, transparent 68%),
+      radial-gradient(90% 70% at 50% 118%, rgba(0, 0, 0, .55) 0%, transparent 60%);
+  }
+  .card--bag .card__figure { aspect-ratio: 4 / 4.4; }
+
+  /* The float is written by site.js as --fy and --fr — two
+     numbers a frame, with the Z offset that lifts the object off
+     its own panel left here in the stylesheet. There is
+     deliberately no transition on this element: --fy and --fr are
+     rewritten every frame, and a transition on a per-frame value
+     does not smooth it, it lags it. The hover state is carried by
+     the card, which does have one. */
+  .card__c {
+    width: 88%; height: 88%;
+    transform:
+      translateZ(var(--zc, 46px))
+      translateY(var(--fy, 0px))
+      rotate(var(--fr, 0deg));
+  }
+
+  /* A rendered product carries its own set — a lit surface, a
+     backdrop and a shadow — so it fills the figure edge to edge
+     and reads as a photograph. The drawn fallback is an object on
+     nothing, so it keeps its margin and sits in the card's own
+     pool of light instead. */
+  .card.is-shot .card__figure { background: none; }
+  .card.is-shot .card__c {
+    width: 100%; height: 100%;
+    --zc: 0px;
+  }
+  .card.is-shot:hover .card__c { --zc: 0px; }
+
+  /* the light that rakes across the figure as the card turns */
+  .card__figure::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(112deg,
+      transparent 30%, rgba(244, 236, 225, .07) 48%, transparent 62%);
+    opacity: 0; transition: opacity .6s ease;
+    pointer-events: none;
+  }
+  .card:hover .card__figure::after { opacity: 1; }
+
+  .card__text {
+    padding: 1.35rem 1.4rem 1.5rem;
+    border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: .55rem;
+    flex: 1;
+    transform: translateZ(18px);
+  }
+  .card__name {
+    font-size: 1.16rem; letter-spacing: -.01em; color: var(--ink);
+    font-weight: 400;
+  }
+  .card__note {
+    font-family: var(--serif); font-size: .955rem; line-height: 1.5;
+    color: var(--ink-dim);
+  }
+  .card__meta {
+    margin-top: auto; padding-top: .7rem;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    border-top: 1px solid var(--line);
+  }
+  .card__price {
+    font-family: var(--mono); font-size: .95rem; letter-spacing: .04em;
+    color: var(--crema);
+  }
+  .card__size {
+    font-family: var(--mono); font-size: .6875rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+
+  /* the roast meter on a bag: how far it actually went */
+  .roast { display: grid; gap: .45rem; }
+  .roast__label { font-size: .6875rem; letter-spacing: .2em; }
+  .roast__bar {
+    display: block; height: 3px; border-radius: 2px;
+    background: linear-gradient(90deg, #c9a06a 0%, #8a4a1e 46%, #2a1509 78%, #120b06 100%);
+    position: relative;
+  }
+  .roast__bar i {
+    position: absolute; top: -3px; bottom: -3px;
+    left: calc(var(--r) * 100%);
+    width: 2px; background: var(--milk);
+    box-shadow: 0 0 8px rgba(244, 236, 225, .7);
+    transform: translateX(-1px);
+  }
+}
+
+/* ── REWARDS ──────────────────────────────────────────────── */
+@layer rewards {
+  .sec--rewards {
+    background:
+      radial-gradient(70vw 60vh at 82% 30%, rgba(138, 74, 30, .16) 0%, transparent 62%),
+      var(--panel);
+  }
+  .rewards {
+    display: grid; gap: clamp(2.5rem, 5vw, 4.5rem);
+    grid-template-columns: minmax(18rem, 24rem) 1fr;
+    align-items: start;
+    max-width: 90rem; margin-inline: auto;
+  }
+  .rewards .sec__head { margin-bottom: 0; }
+
+  .perks { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .perk {
+    background: linear-gradient(178deg, var(--card-hi), var(--card));
+    padding: 1.7rem 1.8rem;
+    display: grid; gap: .6rem;
+    transition: background .5s ease;
+  }
+  .perk:hover { background: linear-gradient(178deg, #251913, var(--card-hi)); }
+  .perk__num { font-size: .6875rem; letter-spacing: .3em; color: var(--crema); }
+  .perk__name { font-size: 1.22rem; font-weight: 400; }
+  .perk__note { font-family: var(--serif); color: var(--ink-dim); font-size: .98rem; }
+
+  /* The member card. It is decorative — every number on it is
+     also stated in the copy — so it is aria-hidden and it leans
+     on a Z rotation that JS drives from the pointer. */
+  .rcard {
+    position: absolute; right: var(--gutter); bottom: clamp(2rem, 6vh, 5rem);
+    width: min(20rem, 42vw);
+    perspective: 1000px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .rcard__face {
+    aspect-ratio: 1.586;
+    border-radius: 10px;
+    padding: 1.3rem 1.4rem;
+    display: grid; align-content: space-between;
+    background:
+      linear-gradient(148deg, rgba(244, 236, 225, .12) 0%, transparent 42%),
+      linear-gradient(160deg, #3a1d0b 0%, #1d0e06 58%, #0d0704 100%);
+    border: 1px solid rgba(201, 138, 75, .34);
+    box-shadow: 0 2.4rem 5rem rgba(0, 0, 0, .6);
+    transform:
+      rotateX(var(--rx, 8deg)) rotateY(var(--ry, -14deg)) rotateZ(-3deg);
+    transition: transform .8s cubic-bezier(.2, .9, .2, 1);
+  }
+  .rcard__brand { font-size: .625rem; letter-spacing: .3em; color: var(--crema); }
+  .rcard__pts {
+    font-family: var(--mono); font-size: 2rem; color: var(--milk); letter-spacing: -.01em;
+  }
+  .rcard__pts span { font-size: .75rem; letter-spacing: .2em; color: var(--ink-faint); margin-left: .5rem; }
+  .rcard__row {
+    display: flex; justify-content: space-between; gap: 1rem;
+    font-size: .625rem; letter-spacing: .18em; color: var(--ink-faint);
+  }
+}
+
+/* ── LOCATIONS ────────────────────────────────────────────── */
+@layer locate {
+  .locate {
+    display: grid; gap: clamp(1.5rem, 3vw, 2.5rem);
+    grid-template-columns: 1.35fr 1fr;
+    align-items: stretch;
+    max-width: 90rem; margin-inline: auto;
+  }
+
+  .map {
+    position: relative;
+    min-height: clamp(24rem, 56vh, 38rem);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    background:
+      radial-gradient(70% 60% at 50% 40%, #17100a 0%, #0a0605 78%);
+    cursor: grab;
+    touch-action: pan-y;
+  }
+  .map:active { cursor: grabbing; }
+  .map__c { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .map__hint {
+    position: absolute; left: 1rem; bottom: .9rem;
+    font-size: .625rem; letter-spacing: .24em; color: var(--ink-faint);
+    pointer-events: none;
+  }
+  .map__fallback { padding: 2rem; color: var(--ink-dim); }
+
+  .stores { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); align-content: start; }
+  .store {
+    background: linear-gradient(178deg, var(--card-hi), var(--card));
+    padding: 1.25rem 1.4rem;
+    display: grid; gap: .4rem;
+    cursor: pointer;
+    transition: background .45s ease, padding-left .45s cubic-bezier(.2,.9,.2,1);
+    position: relative;
+  }
+  .store::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--crema);
+    transform: scaleY(0); transform-origin: top;
+    transition: transform .5s cubic-bezier(.2,.9,.2,1);
+  }
+  .store:hover { background: linear-gradient(178deg, #251913, var(--card-hi)); }
+  .store.is-on { background: linear-gradient(178deg, #2a1c14, #1a120c); padding-left: 1.75rem; }
+  .store.is-on::before { transform: scaleY(1); }
+
+  .store__name { font-size: 1.1rem; font-weight: 400; display: flex; gap: .7rem; align-items: baseline; flex-wrap: wrap; }
+  .store__tag {
+    font-size: .625rem; letter-spacing: .2em; color: var(--crema);
+    border: 1px solid var(--line-hi); border-radius: 2px; padding: .12rem .45rem;
+  }
+  .store__addr { font-family: var(--serif); color: var(--ink-dim); font-size: .96rem; }
+  .store__hours, .store__svc { font-size: .6875rem; letter-spacing: .12em; }
+  .store__hours { color: var(--ink-mute); display: flex; align-items: center; gap: .5rem; }
+  .store__svc { color: var(--ink-faint); }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #7fae5e; box-shadow: 0 0 8px rgba(127, 174, 94, .8);
+    flex: 0 0 auto;
+  }
+
+  .locate__actions {
+    display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+    margin-top: clamp(2rem, 5vh, 3.5rem);
+  }
+}
+
+/* ── ABOUT, ORDER, FOOTER ─────────────────────────────────── */
+@layer foot {
+  .story {
+    display: grid; gap: clamp(1.1rem, 2vw, 2rem);
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    max-width: 90rem; margin: 0 auto clamp(3.5rem, 8vh, 6rem);
+  }
+  .beat {
+    padding: 1.6rem 1.5rem;
+    border: 1px solid var(--line); border-radius: 3px;
+    background: linear-gradient(178deg, rgba(31, 21, 16, .72), rgba(16, 10, 7, .72));
+    display: grid; gap: .55rem; align-content: start;
+  }
+  .beat__year { font-size: .75rem; letter-spacing: .26em; color: var(--crema); }
+  .beat__name { font-size: 1.2rem; font-weight: 400; }
+  .beat__note { font-family: var(--serif); color: var(--ink-dim); font-size: .96rem; }
+
+  .craft { max-width: 90rem; margin-inline: auto; }
+  .craft__title {
+    font-family: var(--mono); font-size: .8125rem; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-mute);
+    padding-bottom: 1.6rem; border-bottom: 1px solid var(--line); margin-bottom: 2.4rem;
+    font-weight: 400;
+  }
+  .craft__grid {
+    display: grid; gap: clamp(1.8rem, 3.4vw, 3rem);
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  }
+  .craft h4 {
+    font-size: 1.16rem; margin-bottom: .7rem; letter-spacing: -.01em;
+    padding-top: 1rem; border-top: 1px solid var(--line-hi);
+    font-weight: 400;
+  }
+  .craft p { font-family: var(--serif); color: var(--ink-dim); }
+
+  .sec--order {
+    background:
+      radial-gradient(80vw 70vh at 50% 120%, rgba(138, 74, 30, .22) 0%, transparent 64%),
+      var(--panel);
+    text-align: center;
+  }
+  .order { max-width: 44rem; margin-inline: auto; }
+  .order__title {
+    font-size: clamp(1.9rem, 4.6vw, 3.4rem);
+    letter-spacing: -.025em; margin-bottom: 1.3rem;
+  }
+  .order__note {
+    font-family: var(--serif); color: var(--ink-dim);
+    font-size: clamp(1rem, .7vw + .88rem, 1.2rem);
+    max-width: 36rem; margin-inline: auto;
+  }
+  .order__actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 2.4rem; }
+  .order__fine { margin-top: 2rem; font-size: .625rem; letter-spacing: .24em; color: var(--ink-faint); }
+
+  .foot {
+    padding: clamp(3.5rem, 8vh, 6rem) var(--gutter) 3rem;
+    border-top: 1px solid var(--line);
+    background: var(--void);
+  }
+  .foot__top {
+    display: grid; gap: clamp(2.5rem, 5vw, 4rem);
+    grid-template-columns: minmax(14rem, 20rem) 1fr;
+    max-width: 90rem; margin-inline: auto;
+  }
+  .foot__mark {
+    font-size: 1.15rem; letter-spacing: .34em; color: var(--milk); font-weight: 300;
+    margin-bottom: .7rem;
+  }
+  .foot__line { font-size: .625rem; letter-spacing: .2em; color: var(--ink-faint); }
+
+  .foot__cols {
+    display: grid; gap: 2rem clamp(1.5rem, 3vw, 3rem);
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  }
+  .foot__col { display: grid; gap: .7rem; align-content: start; }
+  .foot__h {
+    font-family: var(--mono); font-size: .6875rem; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--crema); font-weight: 400;
+    margin-bottom: .3rem;
+  }
+  .foot__col a {
+    font-size: .94rem; color: var(--ink-mute); text-decoration: none;
+    justify-self: start;
+    border-bottom: 1px solid transparent;
+    transition: color .4s ease, border-color .4s ease;
+  }
+  .foot__col a:hover { color: var(--ink); border-color: var(--crema); }
+
+  .foot__fine {
+    max-width: 62rem; margin: clamp(3rem, 6vh, 4.5rem) auto 0;
+    padding-top: 1.8rem; border-top: 1px solid var(--line);
+    font-size: .8125rem; line-height: 1.6; color: var(--ink-faint);
+  }
+
+  .hud {
+    position: fixed; right: .8rem; top: 5.2rem; z-index: 250;
+    padding: .45rem .7rem; background: rgba(5,4,3,.86);
+    border: 1px solid var(--line); border-radius: 2px;
+    font-size: .6875rem; letter-spacing: .08em; color: var(--ink-mute);
+    pointer-events: none;
+  }
+}
+
+/* ── NO WEBGL ─────────────────────────────────────────────────
+   The film needs WebGL2. Without it the stage keeps the poster,
+   stops being sticky, and the captions never run — the page
+   becomes its own sections, which were always the real content.
+   The menu, the map and every reveal keep working: they are
+   canvas 2D and CSS, and neither needs a GPU context. */
+@layer film {
+  .no-gl .film { height: auto; }
+  .no-gl .stage { position: relative; height: 78vh; }
+  .no-gl .captions, .no-gl .rail, .no-gl .hint { display: none; }
+  .no-gl .stage__canvas { display: none; }
+}
+
+/* ── MOTION ───────────────────────────────────────────────────
+   With reduced motion the film still answers the scroll — that is
+   navigation, not decoration — but nothing moves on its own: the
+   wall clock is frozen in the loop, the handheld and the camera
+   lag are switched off, the captions arrive without the per-letter
+   travel, and the cards land without tipping. */
+@layer motion {
+  @media (prefers-reduced-motion: reduce) {
+    .boot__bean { animation: none; }
+    .hint::after { animation: none; transform: scaleY(.7); opacity: .6; }
+    .cta, .cta:hover { transition: none; transform: none; }
+    .haze { display: none; }
+    .rail__act::before { transition: none; }
+    .js .card { transform: none; }
+    .card__c { transition: none; transform: none; }
+    .js [data-reveal], .js [data-stagger] > * {
+      transform: translate3d(0, 1rem, 0);
+      transition-duration: .4s;
+    }
+    .rcard__face { transition: none; }
+    :root { --film-length: 620vh; }
+  }
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@layer responsive {
+  @media (max-width: 1080px) {
+    .rewards { grid-template-columns: 1fr; }
+    .rcard { position: relative; right: auto; bottom: auto; margin: 3rem 0 0 auto; width: min(20rem, 70vw); }
+    .locate { grid-template-columns: 1fr; }
+    .foot__top { grid-template-columns: 1fr; }
+  }
+
+  /* The nav has nine items in it. Below this width they stop
+     fitting on one line at a legible size, so they move into a
+     panel behind the toggle rather than shrinking further. */
+  @media (max-width: 940px) {
+    :root { --film-length: 820vh; }
+
+    .nav__toggle { display: grid; position: relative; }
+    .nav__links {
+      position: fixed; inset: var(--nav-h) 0 auto;
+      flex-direction: column; align-items: stretch; gap: 0;
+      padding: 1rem var(--gutter) 2rem;
+      background: rgba(9, 6, 4, .97);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line);
+      transform: translateY(-8%); opacity: 0; visibility: hidden;
+      transition: transform .5s cubic-bezier(.2,.9,.2,1), opacity .4s ease, visibility 0s linear .5s;
+      max-height: calc(100dvh - var(--nav-h)); overflow-y: auto;
+    }
+    .nav.is-open .nav__links {
+      transform: none; opacity: 1; visibility: visible;
+      transition-delay: 0s;
+    }
+    html:not(.js) .nav__links {
+      position: static; flex-direction: row; flex-wrap: wrap;
+      opacity: 1; visibility: visible; transform: none;
+      background: none; border: 0; padding: 0;
+    }
+    html:not(.js) .nav__toggle { display: none; }
+    html:not(.js) .nav { height: auto; padding-block: .8rem; flex-wrap: wrap; }
+
+    .nav__link { font-size: .875rem; padding: .85rem 0; border-bottom: 1px solid var(--line); }
+    .nav__link::after { display: none; }
+    .nav__order { margin: 1.2rem 0 0; text-align: center; padding: .9rem 1.35rem; }
+
+    .cap--left, .cap--right, .cap--center {
+      left: 50%; right: auto; top: auto; bottom: 16vh;
+      transform: translateX(-50%);
+      text-align: center;
+      width: min(30rem, calc(100vw - var(--gutter) * 2));
+    }
+    .cap--right .cap__body, .cap__body { margin-inline: auto; }
+    .cap::before { inset: -2.5rem -2rem; }
+    .rail { display: none; }
+
+    /* On a phone the bean fills the middle of the frame and the
+       hero has nowhere to go but on top of it. The eyebrow is the
+       line that lands across the brightest part, and it is the
+       one line here that is decoration rather than information —
+       so it goes, and the title keeps its pool of shade. */
+    .cap--hero .cap__brow { display: none; }
+    .cap--hero { bottom: 9vh; }
+  }
+
+  @media (max-width: 560px) {
+    .cap__line { font-size: clamp(1.8rem, 9vw, 2.6rem); }
+    .cap__body { font-size: .98rem; }
+    .hint { bottom: 1.4rem; }
+    .grid--drinks, .grid--tea, .grid--bakery { grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+    .card__text { padding: 1.1rem 1.1rem 1.25rem; }
+    .nav__since { display: none; }
+  }
+
+  /* A short landscape window is a phone on its side: the caption
+     block and the stage both have to give ground. */
+  @media (max-height: 560px) and (orientation: landscape) {
+    .cap__line { font-size: clamp(1.5rem, 5vw, 2.2rem); margin-bottom: .6rem; }
+    .cap__body { display: none; }
+    .rail, .hint { display: none; }
+  }
+
+  @media print {
+    .film, .boot, .veil, .nav, .map { display: none; }
+    html, body { background: #fff; color: #000; }
+    .sec { padding: 1.5rem 0; }
+  }
+}

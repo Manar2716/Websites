@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en" data-motion="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peet's Coffee — Handcrafted Since 1966</title>
+<meta name="description" content="A design concept for Peet's Coffee: a scroll-driven film in WebGL — one bean in the dark, a swarm that becomes a cup, an extraction in slow motion — and a full menu of handcrafted drinks, deep-roasted beans, tea and bakery.">
+<meta name="theme-color" content="#0b0705">
+<meta name="color-scheme" content="dark">
+<link rel="preload" href="assets/css/peets.css" as="style">
+<link rel="stylesheet" href="assets/css/peets.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0705'/%3E%3Cellipse cx='16' cy='16' rx='7' ry='10' fill='%235c2f14' transform='rotate(24 16 16)'/%3E%3Cpath d='M16 6.5c-1.7 3.6-1.7 15.4 0 19' stroke='%23150a04' stroke-width='1.9' fill='none' transform='rotate(24 16 16)'/%3E%3C/svg%3E">
+<script>
+  /* Runs before first paint. Everything that would leave the page
+     unreadable if the scripts never arrive — the boot card, the
+     film overlay, the sticky stage, every reveal-on-scroll style —
+     is gated on these classes, so with scripting unavailable the
+     page is the same words in a plain column. */
+  document.documentElement.classList.add('js', 'is-booting');
+</script>
+</head>
+<body>
+
+<a class="skip" href="#menu">Skip the film, go to the menu</a>
+
+<!-- ══════════════════ BOOT ══════════════════ -->
+<div class="boot" id="boot" aria-hidden="true">
+  <div class="boot__inner">
+    <span class="boot__bean"></span>
+    <p class="boot__word">PEET'S</p>
+    <p class="boot__sub mono">Handcrafted since 1966</p>
+  </div>
+</div>
+
+<!-- ══════════════════ NAV ══════════════════ -->
+<header class="nav" id="nav">
+  <a class="nav__brand" href="#home" aria-label="Peet's Coffee, home">
+    <span class="nav__seal" aria-hidden="true">
+      <svg viewBox="0 0 40 40" width="40" height="40" focusable="false">
+        <circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
+        <ellipse cx="20" cy="20" rx="7.6" ry="11" fill="currentColor" opacity=".92" transform="rotate(24 20 20)"/>
+        <path d="M20 9.4c-1.9 4-1.9 17.2 0 21.2" fill="none" stroke="#100804" stroke-width="2.1" transform="rotate(24 20 20)"/>
+      </svg>
+    </span>
+    <span class="nav__word">
+      <span class="nav__name">PEET'S</span>
+      <span class="nav__since mono">Coffee · 1966</span>
+    </span>
+  </a>
+
+  <nav class="nav__links" id="navlinks" aria-label="Primary">
+    <a href="#home" class="nav__link is-on">Home</a>
+    <a href="#menu" class="nav__link">Menu</a>
+    <a href="#coffee" class="nav__link">Coffee</a>
+    <a href="#tea" class="nav__link">Tea</a>
+    <a href="#bakery" class="nav__link">Bakery</a>
+    <a href="#rewards" class="nav__link">Rewards</a>
+    <a href="#locations" class="nav__link">Locations</a>
+    <a href="#about" class="nav__link">About</a>
+    <a href="#order" class="nav__order">Order Now</a>
+  </nav>
+
+  <button class="nav__toggle" id="navtoggle" aria-expanded="false" aria-controls="navlinks">
+    <span class="nav__bars" aria-hidden="true"></span>
+    <span class="sr">Menu</span>
+  </button>
+</header>
+
+<!-- ══════════════════ THE FILM ══════════════════ -->
+<div class="film" id="film">
+  <a id="home" class="anchor" aria-hidden="true"></a>
+  <div class="stage">
+
+    <canvas id="gl" class="stage__canvas" aria-hidden="true"></canvas>
+
+    <!-- the poster: what you get with no WebGL, and what sits
+         under the canvas while it boots -->
+    <div class="poster" aria-hidden="true">
+      <span class="poster__saucer"></span>
+      <span class="poster__pool"></span>
+      <span class="poster__bean"></span>
+      <span class="poster__steam"></span>
+    </div>
+
+    <!-- The film's captions are a JavaScript layer, so with
+         scripting off the hero would be a picture of a cup and
+         nothing else. This is the same title card, in markup, and
+         it is the only thing on the page that is shown *because*
+         the scripts did not arrive. -->
+    <div class="hero-static">
+      <p class="brow mono">Peet's Coffee · Berkeley, California</p>
+      <h1 class="hero-static__line">PEET'S COFFEE</h1>
+      <p class="hero-static__sub">Handcrafted since 1966.</p>
+      <a class="cta cta--solid cta--big" href="#order">Order Now</a>
+    </div>
+
+    <!-- The film runs from near-black to a lit café, so the chrome
+         at the edges cannot rely on the image behind it. These are
+         the lower and upper thirds a title designer would ask for. -->
+    <div class="scrim" aria-hidden="true"></div>
+
+    <!-- Captions duplicate the prose in `.craft` below, so this
+         whole layer is hidden from assistive technology rather
+         than flickering in and out of the accessibility tree. -->
+    <div class="captions" aria-hidden="true">
+
+      <!-- The hero. `data-from="0"` is a special case in
+           driveCaption: a caption that starts at the top of the
+           film has nothing to enter from, so it is on screen in
+           the first painted frame rather than condensing into
+           place a scroll-length later. It sits low, blocked apart
+           from the bean, which is the only lit thing in frame. -->
+      <div class="cap cap--center cap--low cap--hero" data-from="0" data-to="0.064">
+        <p class="cap__brow mono">Peet's Coffee · Berkeley, California</p>
+        <h2 class="cap__line" data-split>PEET'S COFFEE</h2>
+        <p class="cap__body cap__body--big">Handcrafted since 1966.</p>
+        <a class="cta cta--solid cta--big" href="#order">Order Now</a>
+      </div>
+
+      <div class="cap cap--left" data-from="0.088" data-to="0.176">
+        <p class="cap__brow mono">01 — The roast</p>
+        <h2 class="cap__line" data-split>DEEP ROASTED</h2>
+        <p class="cap__body">Taken further than most dare to and pulled the moment the oils come up. It is the darker, richer cup Alfred Peet opened with on Walnut Street, and it has not been lightened since.</p>
+      </div>
+
+      <div class="cap cap--right" data-from="0.212" data-to="0.292">
+        <p class="cap__brow mono">02 — The cup</p>
+        <h2 class="cap__line" data-split>HANDCRAFTED</h2>
+        <p class="cap__body">No automatic bar, no push-button shot. Every drink on this menu is pulled, steamed and finished by a barista standing in front of you.</p>
+      </div>
+
+      <div class="cap cap--left" data-from="0.318" data-to="0.422">
+        <p class="cap__brow mono">03 — Extraction</p>
+        <h2 class="cap__line" data-split>TWENTY-FIVE SECONDS</h2>
+        <p class="cap__body">Nine bars at ninety-three degrees through eighteen grams. The crema comes up tiger-striped and holds for four minutes.</p>
+      </div>
+
+      <div class="cap cap--right" data-from="0.448" data-to="0.534">
+        <p class="cap__brow mono">04 — The pour</p>
+        <h2 class="cap__line" data-split>SIXTY-TWO DEGREES</h2>
+        <p class="cap__body">And not one degree past it. Milk taken further stops tasting sweet and starts tasting cooked. The rosetta is drawn in one pass and pulled through at the end.</p>
+      </div>
+
+      <div class="cap cap--center" data-from="0.664" data-to="0.788">
+        <p class="cap__brow mono">06 — The bar</p>
+        <h2 class="cap__line" data-split>MADE TO ORDER</h2>
+        <p class="cap__body">A lever group, a copper boiler and a burr set trued to two microns — the same bench in every store, so the cup in Berkeley is the cup in Boston.</p>
+      </div>
+
+      <div class="cap cap--left" data-from="0.812" data-to="0.856">
+        <p class="cap__brow mono">07 — The mark</p>
+        <h2 class="cap__line" data-split>NOTHING IS RUSHED</h2>
+        <p class="cap__body">Beans roasted to order and shipped within days. Nothing sits, nothing is stretched, nothing is hidden under a flavour.</p>
+      </div>
+
+      <div class="cap cap--center cap--final" data-from="0.910" data-to="0.999">
+        <p class="cap__brow mono">Est. 1966 · 2124 Walnut Street</p>
+        <h2 class="cap__line" data-split>SINCE 1966</h2>
+        <p class="cap__body cap__body--big">Deep roasted, handcrafted, and made to order.</p>
+        <a class="cta cta--solid cta--big" href="#order">Order Now</a>
+      </div>
+
+    </div>
+
+    <!-- chapter rail -->
+    <nav class="rail" aria-hidden="true">
+      <span class="rail__act is-on" data-from="0">Bean</span>
+      <span class="rail__act" data-from="0.072">Roast</span>
+      <span class="rail__act" data-from="0.188">Cup</span>
+      <span class="rail__act" data-from="0.300">Extraction</span>
+      <span class="rail__act" data-from="0.432">Pour</span>
+      <span class="rail__act" data-from="0.546">Steam</span>
+      <span class="rail__act" data-from="0.648">The bar</span>
+      <span class="rail__act" data-from="0.800">Splash</span>
+      <span class="rail__act" data-from="0.896">Café</span>
+    </nav>
+
+    <p class="hint mono" aria-hidden="true"><span>Scroll</span></p>
+
+  </div>
+</div>
+
+<main class="page">
+
+  <!-- ══════════════════ FEATURED DRINKS ══════════════════ -->
+  <section class="sec sec--menu" id="menu">
+    <div class="veil" aria-hidden="true"><canvas class="veil__c"></canvas></div>
+
+    <header class="sec__head" data-reveal>
+      <p class="brow mono">The bar</p>
+      <h2 class="sec__title">Featured drinks</h2>
+      <p class="sec__lede">Twelve handcrafted drinks, each one pulled to order. Espresso is the
+        floor of all of them: if the shot is not right, nothing built on top of it can be.</p>
+    </header>
+
+    <div class="grid grid--drinks" data-stagger>
+
+      <article class="card" data-card data-art='{"form":"demitasse","liquid":"#3d1c09","liquidLit":"#8a4c1e","liquidEdge":"#251004","crema":0.95,"steam":0.9,"seed":1}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Espresso</h3>
+          <p class="card__note">Eighteen grams, twenty-five seconds, a crema that holds. Dark cocoa and burnt sugar.</p>
+          <p class="card__meta"><span class="card__price">$2.95</span><span class="card__size">Doppio · 2 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"mug","liquid":"#2f1607","liquidLit":"#5d2f12","crema":0.42,"steam":1,"seed":2}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Americano</h3>
+          <p class="card__note">Two shots let down with hot water, poured shot-last so the crema survives the trip.</p>
+          <p class="card__meta"><span class="card__price">$3.45</span><span class="card__size">12 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"bowl","liquid":"#4a2410","liquidLit":"#7a431d","crema":0.5,"foam":0.95,"dust":"#3a2114","steam":0.8,"seed":3}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Cappuccino</h3>
+          <p class="card__note">A third shot, a third milk, a third foam — and cocoa over the top, never through it.</p>
+          <p class="card__meta"><span class="card__price">$4.25</span><span class="card__size">8 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"mug","liquid":"#7a4a24","liquidLit":"#a9713f","foam":0.45,"art":"rosetta","steam":0.9,"seed":4}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Latte</h3>
+          <p class="card__note">Steamed to sixty-two degrees and not one past it. The rosetta is drawn in one pass.</p>
+          <p class="card__meta"><span class="card__price">$4.65</span><span class="card__size">16 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"mug","liquid":"#3f2010","liquidLit":"#6b3a1c","foam":0.55,"art":"heart","artColor":"#e8d6bc","dust":"#2a1608","steam":0.9,"seed":5}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Mocha</h3>
+          <p class="card__note">Dark chocolate stirred into the shot while it is still hot, so it goes in rather than sits on top.</p>
+          <p class="card__meta"><span class="card__price">$5.10</span><span class="card__size">16 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"bowl","liquid":"#8a5a2e","liquidLit":"#b98552","foam":0.28,"art":"heart","steam":0.8,"seed":6}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Flat White</h3>
+          <p class="card__note">A ristretto base under a thin, glossy microfoam. Less milk, more coffee, no cloud on top.</p>
+          <p class="card__meta"><span class="card__price">$4.55</span><span class="card__size">8 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"tall","liquid":"#2e1607","liquidEdge":"#180b04","fill":0.14,"ice":true,"seed":7}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Cold Brew</h3>
+          <p class="card__note">Steeped twenty hours at room temperature. No acid edge, no bitterness, nothing heated twice.</p>
+          <p class="card__meta"><span class="card__price">$4.75</span><span class="card__size">16 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"tall","layers":[[0,"#f2e4cd"],[0.34,"#c99a63"],[0.72,"#6b3a1c"],[1,"#2c1508"]],"straw":true,"fill":0.13,"ice":true,"seed":8}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Iced Latte</h3>
+          <p class="card__note">Poured over ice in that order — milk, ice, shot — so it lands in bands before you stir it.</p>
+          <p class="card__meta"><span class="card__price">$4.85</span><span class="card__size">16 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"mug","liquid":"#8a5a2e","liquidLit":"#c99a63","foam":0.5,"art":"rosetta","steam":0.9,"seed":9}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Vanilla Latte</h3>
+          <p class="card__note">Madagascar vanilla in the cup before the milk, so the sweetness reads as the coffee's own.</p>
+          <p class="card__meta"><span class="card__price">$5.10</span><span class="card__size">16 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"mug","liquid":"#7c4a20","liquidLit":"#c58a4e","foam":0.5,"art":"dot","artColor":"#b9743a","steam":0.9,"seed":10}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Caramel Latte</h3>
+          <p class="card__note">Slow-cooked caramel, salted just enough that the second mouthful tastes like the first.</p>
+          <p class="card__meta"><span class="card__price">$5.25</span><span class="card__size">16 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"bowl","liquid":"#7f9c53","liquidLit":"#a8c078","liquidEdge":"#5e7a3a","foam":0.4,"art":"rosetta","steam":0.7,"seed":11}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Matcha Latte</h3>
+          <p class="card__note">Ceremonial-grade matcha whisked, not shaken, then let down with milk at seventy degrees.</p>
+          <p class="card__meta"><span class="card__price">$5.35</span><span class="card__size">16 oz</span></p>
+        </div>
+      </article>
+
+      <article class="card" data-card data-art='{"form":"mug","liquid":"#a9713f","liquidLit":"#d09a63","foam":0.45,"dust":"#7c4a20","steam":1,"seed":12}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Chai Latte</h3>
+          <p class="card__note">Cardamom, clove, ginger and black pepper simmered with Assam, then cut with steamed milk.</p>
+          <p class="card__meta"><span class="card__price">$4.95</span><span class="card__size">16 oz</span></p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════ COFFEE BEANS ══════════════════ -->
+  <section class="sec sec--beans" id="coffee">
+    <div class="veil veil--splash" aria-hidden="true"><canvas class="veil__c"></canvas></div>
+
+    <header class="sec__head" data-reveal>
+      <p class="brow mono">Whole bean</p>
+      <h2 class="sec__title">Coffee</h2>
+      <p class="sec__lede">Eight blends and single origins, roasted deep and shipped within days of
+        the drum. The roast band on each bag is the honest one — how far it actually went, not
+        how far it sounds good to have gone.</p>
+    </header>
+
+    <div class="grid grid--beans" data-stagger>
+
+      <article class="card card--bag" data-card data-art='{"form":"bag","roast":"#2a1409","seed":21,"name":"Major Dickason&#39;s Blend","roastLabel":"Dark Roast"}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Major Dickason's Blend</h3>
+          <p class="card__note">The one a regular blended with Alfred Peet until it was right. Full body, complex, unfailingly consistent.</p>
+          <p class="roast"><span class="roast__label mono">Dark roast</span><span class="roast__bar"><i style="--r:.88"></i></span></p>
+          <p class="card__meta"><span class="card__price">$18.95</span><span class="card__size">1 lb</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bag" data-card data-art='{"form":"bag","roast":"#1b0d06","seed":22,"name":"French Roast","roastLabel":"Darkest Roast"}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">French Roast</h3>
+          <p class="card__name-sub"></p>
+          <p class="card__note">Taken to the far edge of the drum and pulled on the second crack. Smoke, molasses, no acidity left standing.</p>
+          <p class="roast"><span class="roast__label mono">Darkest roast</span><span class="roast__bar"><i style="--r:1"></i></span></p>
+          <p class="card__meta"><span class="card__price">$17.95</span><span class="card__size">1 lb</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bag" data-card data-art='{"form":"bag","roast":"#6b3a1c","seed":23,"name":"Big Bang","roastLabel":"Medium Roast"}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Big Bang</h3>
+          <p class="card__note">Anniversary blend, kept on because nobody would let it go. Bright citrus over a caramel base.</p>
+          <p class="roast"><span class="roast__label mono">Medium roast</span><span class="roast__bar"><i style="--r:.52"></i></span></p>
+          <p class="card__meta"><span class="card__price">$18.45</span><span class="card__size">1 lb</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bag" data-card data-art='{"form":"bag","roast":"#35190c","seed":24,"name":"Espresso Forte","roastLabel":"Dark Roast"}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Espresso Forte</h3>
+          <p class="card__note">Built for nine bars and nothing else. Syrupy under pressure, and it holds its own through milk.</p>
+          <p class="roast"><span class="roast__label mono">Dark roast</span><span class="roast__bar"><i style="--r:.82"></i></span></p>
+          <p class="card__meta"><span class="card__price">$18.95</span><span class="card__size">1 lb</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bag" data-card data-art='{"form":"bag","roast":"#4a2410","seed":25,"name":"House Blend","roastLabel":"Medium-Dark"}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">House Blend</h3>
+          <p class="card__note">Latin American beans, balanced and unhurried. The bag to keep on the counter for every morning of the week.</p>
+          <p class="roast"><span class="roast__label mono">Medium-dark roast</span><span class="roast__bar"><i style="--r:.68"></i></span></p>
+          <p class="card__meta"><span class="card__price">$16.95</span><span class="card__size">1 lb</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bag" data-card data-art='{"form":"bag","roast":"#8a5a2e","seed":26,"name":"Colombia Luminosa","roastLabel":"Light Roast"}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Colombia Luminosa</h3>
+          <p class="card__note">Single origin, washed, and roasted light enough to keep the fruit. Red apple, brown sugar, a clean finish.</p>
+          <p class="roast"><span class="roast__label mono">Light roast</span><span class="roast__bar"><i style="--r:.28"></i></span></p>
+          <p class="card__meta"><span class="card__price">$19.95</span><span class="card__size">1 lb</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bag" data-card data-art='{"form":"bag","roast":"#5c3018","seed":27,"name":"Caf&#233; Domingo","roastLabel":"Medium Roast"}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Café Domingo</h3>
+          <p class="card__note">Smooth, low-acid and built for a full pot. Milk chocolate and toasted nut, nothing sharp anywhere in it.</p>
+          <p class="roast"><span class="roast__label mono">Medium roast</span><span class="roast__bar"><i style="--r:.46"></i></span></p>
+          <p class="card__meta"><span class="card__price">$17.45</span><span class="card__size">1 lb</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bag" data-card data-art='{"form":"bag","roast":"#452209","seed":28,"name":"Decaf House Blend","roastLabel":"Medium-Dark"}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Decaf House Blend</h3>
+          <p class="card__note">Water-process decaffeinated, roasted on the same curve as the caffeinated bag. Nothing about it is an apology.</p>
+          <p class="roast"><span class="roast__label mono">Medium-dark roast</span><span class="roast__bar"><i style="--r:.66"></i></span></p>
+          <p class="card__meta"><span class="card__price">$17.95</span><span class="card__size">1 lb</span></p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════ TEA ══════════════════ -->
+  <section class="sec sec--tea" id="tea">
+    <div class="veil" aria-hidden="true"><canvas class="veil__c"></canvas></div>
+
+    <header class="sec__head" data-reveal>
+      <p class="brow mono">Loose leaf</p>
+      <h2 class="sec__title">Tea</h2>
+      <p class="sec__lede">Whole leaf, weighed per pot and steeped on a timer. Water temperature is
+        set per leaf — green at seventy-five, black at ninety-five — because the difference
+        between a good cup and a bitter one is twenty degrees.</p>
+    </header>
+
+    <div class="grid grid--tea" data-stagger>
+
+      <article class="card card--tea" data-card data-art='{"form":"teacup","liquid":"#8a4a1c","liquidLit":"#c07c38","liquidEdge":"#5e3012","steam":0.8,"seed":31}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Earl Grey</h3>
+          <p class="card__note">Ceylon black with cold-pressed bergamot. Steeped four minutes, and it takes milk without collapsing.</p>
+          <p class="card__meta"><span class="card__price">$3.25</span><span class="card__size">12 oz · 4 min</span></p>
+        </div>
+      </article>
+
+      <article class="card card--tea" data-card data-art='{"form":"teacup","liquid":"#6f3212","liquidLit":"#a35a24","liquidEdge":"#4a2110","steam":0.9,"seed":32}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">English Breakfast</h3>
+          <p class="card__note">Assam and Kenyan, malty and brisk enough to stand up to milk and to a hard morning.</p>
+          <p class="card__meta"><span class="card__price">$3.25</span><span class="card__size">12 oz · 4 min</span></p>
+        </div>
+      </article>
+
+      <article class="card card--tea" data-card data-art='{"form":"teacup","liquid":"#a8b96a","liquidLit":"#c8d691","liquidEdge":"#7d8f47","steam":0.6,"glaze":true,"seed":33}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Green Tea</h3>
+          <p class="card__note">Steamed sencha at seventy-five degrees for two minutes. Any hotter and the sweetness turns to grass.</p>
+          <p class="card__meta"><span class="card__price">$3.25</span><span class="card__size">12 oz · 2 min</span></p>
+        </div>
+      </article>
+
+      <article class="card card--tea" data-card data-art='{"form":"teacup","liquid":"#d9b45c","liquidLit":"#f0d68e","liquidEdge":"#ab8a3c","steam":0.6,"seed":34}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Chamomile</h3>
+          <p class="card__note">Whole Egyptian flowers, not dust. Honeyed, caffeine-free, and the last thing served before close.</p>
+          <p class="card__meta"><span class="card__price">$3.25</span><span class="card__size">12 oz · 5 min</span></p>
+        </div>
+      </article>
+
+      <article class="card card--tea" data-card data-art='{"form":"teacup","liquid":"#8fae72","liquidLit":"#b4cf98","liquidEdge":"#688a4e","steam":0.7,"glaze":true,"seed":35}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Mint Tea</h3>
+          <p class="card__note">Peppermint leaf steeped whole. Cooling, clean, and the only thing on the menu that resets a palate.</p>
+          <p class="card__meta"><span class="card__price">$3.25</span><span class="card__size">12 oz · 5 min</span></p>
+        </div>
+      </article>
+
+      <article class="card card--tea" data-card data-art='{"form":"teacup","liquid":"#b98552","liquidLit":"#d8a874","liquidEdge":"#8d6134","foam":0.35,"dust":"#7c4a20","steam":0.9,"seed":36}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Chai Tea</h3>
+          <p class="card__note">Spices cracked the morning they are used and simmered with the leaf, never steeped alongside it.</p>
+          <p class="card__meta"><span class="card__price">$3.75</span><span class="card__size">12 oz · 6 min</span></p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════ BAKERY ══════════════════ -->
+  <section class="sec sec--bakery" id="bakery">
+    <div class="veil" aria-hidden="true"><canvas class="veil__c"></canvas></div>
+
+    <header class="sec__head" data-reveal>
+      <p class="brow mono">Baked overnight</p>
+      <h2 class="sec__title">Bakery</h2>
+      <p class="sec__lede">Laminated the day before, proved overnight and baked before the doors open.
+        Everything here is sold on the day it is made and nothing is held over.</p>
+    </header>
+
+    <div class="grid grid--bakery" data-stagger>
+
+      <article class="card card--bake" data-card data-art='{"form":"croissant","seed":41}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Butter Croissant</h3>
+          <p class="card__note">Twenty-seven layers of European butter, folded three times over two days. Shatters, then gives.</p>
+          <p class="card__meta"><span class="card__price">$3.95</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bake" data-card data-art='{"form":"batard","seed":42}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Chocolate Croissant</h3>
+          <p class="card__note">Two batons of 62% dark chocolate rolled into the same dough, so it melts rather than seizes.</p>
+          <p class="card__meta"><span class="card__price">$4.25</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bake" data-card data-art='{"form":"croissant","almond":true,"seed":43}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Almond Croissant</h3>
+          <p class="card__note">Yesterday's croissant, soaked in syrup, filled with frangipane and baked a second time. Better for the wait.</p>
+          <p class="card__meta"><span class="card__price">$4.50</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bake" data-card data-art='{"form":"muffin","berry":true,"bits":16,"seed":44}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Blueberry Muffin</h3>
+          <p class="card__note">Wild blueberries folded in last and frozen, which is the only way they stay whole through the oven.</p>
+          <p class="card__meta"><span class="card__price">$3.75</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bake" data-card data-art='{"form":"muffin","cocoa":true,"bits":18,"seed":45}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Chocolate Muffin</h3>
+          <p class="card__note">Dutch cocoa in the crumb, chunks through it, and a crown that cracks the way it should.</p>
+          <p class="card__meta"><span class="card__price">$3.95</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bake" data-card data-art='{"form":"loaf","seed":46}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Banana Bread</h3>
+          <p class="card__note">Bananas taken past ripe on purpose, walnuts through the middle, and a crust that stays dark.</p>
+          <p class="card__meta"><span class="card__price">$3.85</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bake" data-card data-art='{"form":"roll","seed":47}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Cinnamon Roll</h3>
+          <p class="card__note">Saigon cinnamon in the seam, iced while still warm so the glaze runs into the spiral.</p>
+          <p class="card__meta"><span class="card__price">$4.45</span></p>
+        </div>
+      </article>
+
+      <article class="card card--bake" data-card data-art='{"form":"cookie","seed":48}'>
+        <div class="card__figure"><canvas class="card__c" aria-hidden="true"></canvas></div>
+        <div class="card__text">
+          <h3 class="card__name">Chocolate Cookie</h3>
+          <p class="card__note">Dough rested seventy-two hours, chunks rather than chips, and sea salt over the top of it.</p>
+          <p class="card__meta"><span class="card__price">$3.45</span></p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════ REWARDS ══════════════════ -->
+  <section class="sec sec--rewards" id="rewards">
+    <div class="veil veil--splash" aria-hidden="true"><canvas class="veil__c"></canvas></div>
+
+    <div class="rewards">
+      <header class="sec__head sec__head--left" data-reveal>
+        <p class="brow mono">Peetnik Rewards</p>
+        <h2 class="sec__title">Every cup counts for something</h2>
+        <p class="sec__lede">Join once, at the counter or in the app. Points collect on everything —
+          drinks, beans, bakery — and they do not quietly expire on you.</p>
+        <p class="sec__actions">
+          <a class="cta cta--solid" href="#order">Join Rewards</a>
+          <a class="cta cta--ghost" href="#order">Sign in</a>
+        </p>
+      </header>
+
+      <ul class="perks" data-stagger>
+        <li class="perk" data-card>
+          <span class="perk__num mono">01</span>
+          <h3 class="perk__name">Earn points on every purchase</h3>
+          <p class="perk__note">One point per dollar, in store and in the app, on everything from a
+            single espresso to a case of beans. Fifty points is a free handcrafted drink.</p>
+        </li>
+        <li class="perk" data-card>
+          <span class="perk__num mono">02</span>
+          <h3 class="perk__name">Exclusive member offers</h3>
+          <p class="perk__note">First access to seasonal roasts and limited lots, plus offers built
+            from what you actually order rather than what we would like you to.</p>
+        </li>
+        <li class="perk" data-card>
+          <span class="perk__num mono">03</span>
+          <h3 class="perk__name">Birthday rewards</h3>
+          <p class="perk__note">A free drink of any size on your birthday, valid the whole week
+            around it — because nobody is in a café on a Tuesday for a reason.</p>
+        </li>
+        <li class="perk" data-card>
+          <span class="perk__num mono">04</span>
+          <h3 class="perk__name">Mobile ordering</h3>
+          <p class="perk__note">Order ahead, pay in the app, and pick it up from the end of the bar.
+            The shot is pulled when you are two minutes out, not when you tap.</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="rcard" data-card aria-hidden="true">
+      <div class="rcard__face">
+        <p class="rcard__brand mono">PEETNIK REWARDS</p>
+        <p class="rcard__pts">1 240<span>pts</span></p>
+        <p class="rcard__row mono"><span>MEMBER SINCE</span><span>2019</span></p>
+        <p class="rcard__row mono"><span>NEXT REWARD</span><span>10 PTS</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ LOCATIONS ══════════════════ -->
+  <section class="sec sec--locations" id="locations">
+    <div class="veil" aria-hidden="true"><canvas class="veil__c"></canvas></div>
+
+    <header class="sec__head" data-reveal>
+      <p class="brow mono">Find us</p>
+      <h2 class="sec__title">Locations</h2>
+      <p class="sec__lede">Drag the map to look around. Every pin is a store; the tall one is the
+        original, at Walnut and Vine, which has been pouring since April 1966.</p>
+    </header>
+
+    <div class="locate">
+      <div class="map" data-card>
+        <canvas class="map__c" id="map" aria-hidden="true"></canvas>
+        <p class="map__hint mono" aria-hidden="true">Drag to orbit</p>
+        <noscript><p class="map__fallback">The interactive map needs JavaScript. The store list below has everything on it.</p></noscript>
+      </div>
+
+      <ul class="stores">
+        <li class="store is-on" data-store="0" data-card>
+          <h3 class="store__name">Walnut &amp; Vine <span class="store__tag mono">The original</span></h3>
+          <p class="store__addr">2124 Walnut Street, Berkeley, CA</p>
+          <p class="store__hours mono"><span class="dot" aria-hidden="true"></span>Open until 8:00 PM · Mon–Sun 5:30 AM – 8:00 PM</p>
+          <p class="store__svc mono">Order pickup · Drive-thru · Whole bean bar</p>
+        </li>
+        <li class="store" data-store="1" data-card>
+          <h3 class="store__name">Mission &amp; 22nd</h3>
+          <p class="store__addr">2255 Mission Street, San Francisco, CA</p>
+          <p class="store__hours mono"><span class="dot" aria-hidden="true"></span>Open until 7:00 PM · Mon–Sun 6:00 AM – 7:00 PM</p>
+          <p class="store__svc mono">Order pickup · Outdoor seating</p>
+        </li>
+        <li class="store" data-store="2" data-card>
+          <h3 class="store__name">Shattuck Avenue</h3>
+          <p class="store__addr">1799 Shattuck Avenue, Berkeley, CA</p>
+          <p class="store__hours mono"><span class="dot" aria-hidden="true"></span>Open until 8:30 PM · Mon–Sun 5:00 AM – 8:30 PM</p>
+          <p class="store__svc mono">Order pickup · Roastery tours</p>
+        </li>
+        <li class="store" data-store="3" data-card>
+          <h3 class="store__name">Ferry Building</h3>
+          <p class="store__addr">1 Ferry Building, San Francisco, CA</p>
+          <p class="store__hours mono"><span class="dot" aria-hidden="true"></span>Open until 6:00 PM · Mon–Sun 6:30 AM – 6:00 PM</p>
+          <p class="store__svc mono">Order pickup · Bay-side seating</p>
+        </li>
+        <li class="store" data-store="4" data-card>
+          <h3 class="store__name">Grand Lake</h3>
+          <p class="store__addr">3258 Lakeshore Avenue, Oakland, CA</p>
+          <p class="store__hours mono"><span class="dot" aria-hidden="true"></span>Open until 7:30 PM · Mon–Sun 5:30 AM – 7:30 PM</p>
+          <p class="store__svc mono">Order pickup · Drive-thru</p>
+        </li>
+      </ul>
+    </div>
+
+    <p class="locate__actions" data-reveal>
+      <a class="cta cta--solid" href="#order">Find your nearest Peet's</a>
+      <a class="cta cta--ghost" href="#order">Order pickup</a>
+    </p>
+  </section>
+
+  <!-- ══════════════════ ABOUT ══════════════════ -->
+  <section class="sec sec--about" id="about">
+    <div class="veil" aria-hidden="true"><canvas class="veil__c"></canvas></div>
+
+    <header class="sec__head" data-reveal>
+      <p class="brow mono">Since 1966</p>
+      <h2 class="sec__title">The craft</h2>
+      <p class="sec__lede">A Dutchman who had grown up in his father's roastery opened a shop on a
+        corner in Berkeley and started roasting darker than anyone in the country. People queued
+        for it. Most of what American coffee became afterwards started in that queue.</p>
+    </header>
+
+    <ol class="story" data-stagger>
+      <li class="beat" data-card>
+        <p class="beat__year mono">1966</p>
+        <h3 class="beat__name">Walnut and Vine</h3>
+        <p class="beat__note">One shop, one roaster, and beans sold whole so nobody could stale them
+          on the way home. The queue on the pavement is still the shape of the business.</p>
+      </li>
+      <li class="beat" data-card>
+        <p class="beat__year mono">1971</p>
+        <h3 class="beat__name">The apprentices</h3>
+        <p class="beat__note">Three of them learned the roast here and left to open their own shop in
+          Seattle. That is the whole story of American speciality coffee in one sentence.</p>
+      </li>
+      <li class="beat" data-card>
+        <p class="beat__year mono">1984</p>
+        <h3 class="beat__name">Roast to order</h3>
+        <p class="beat__note">Beans go into the drum against the orders on the board, not against a
+          forecast. It costs more and it is the only way freshness means anything.</p>
+      </li>
+      <li class="beat" data-card>
+        <p class="beat__year mono">Today</p>
+        <h3 class="beat__name">Still by hand</h3>
+        <p class="beat__note">Every roast is signed off by a person watching colour and listening for
+          the crack. There is a machine that could do it. It does not do it as well.</p>
+      </li>
+    </ol>
+
+    <!-- The film's narration, in a plain column. The captions over
+         the canvas are decorative duplicates of these paragraphs —
+         nothing in this project is available only to someone who
+         can see a WebGL canvas. -->
+    <div class="craft" data-stagger>
+      <h3 class="craft__title">The film, in words</h3>
+      <div class="craft__grid">
+        <article data-card>
+          <h4>One bean</h4>
+          <p>A roasted seed is an ellipsoid with one flat face and a crease down the middle of it.
+             Under a single hard light that crease catches the highlight and loses it again once per
+             turn, and that is the whole first shot.</p>
+        </article>
+        <article data-card>
+          <h4>Deep roasted</h4>
+          <p>The roast is taken further than most and pulled the moment the oils come up on the
+             surface of the bean. A minute past that is char; a minute short of it is the flat,
+             sour cup the country drank before 1966.</p>
+        </article>
+        <article data-card>
+          <h4>Handcrafted</h4>
+          <p>No automatic bar and no push-button shot. A barista grinds, doses, tamps, pulls and
+             finishes every drink, which is slower, and is the reason two people ordering the same
+             latte get the same latte.</p>
+        </article>
+        <article data-card>
+          <h4>Twenty-five seconds</h4>
+          <p>Nine bars at ninety-three degrees through eighteen grams. The crema arrives
+             tiger-striped, holds for about four minutes, and is the first thing to tell you whether
+             the grind was right.</p>
+        </article>
+        <article data-card>
+          <h4>Sixty-two degrees</h4>
+          <p>Milk is steamed to sixty-two and not one degree past it. Beyond that the lactose stops
+             reading as sweetness and the cup turns flat and slightly cooked.</p>
+        </article>
+        <article data-card>
+          <h4>Made to order</h4>
+          <p>A lever group, a copper boiler and a burr set trued to two microns. The same bench in
+             every store, maintained on the same schedule, so the cup does not depend on which
+             door you walked through.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ ORDER ══════════════════ -->
+  <section class="sec sec--order" id="order">
+    <div class="veil veil--splash" aria-hidden="true"><canvas class="veil__c"></canvas></div>
+    <div class="order" data-reveal>
+      <p class="brow mono">Order</p>
+      <h2 class="order__title">Handcrafted, and ready when you are.</h2>
+      <p class="order__note">Order ahead in the app and pick it up from the end of the bar, or have
+        beans roasted to order and shipped the same week. Delivery is free over $35.</p>
+      <p class="order__actions">
+        <a class="cta cta--solid cta--big" href="#order">Order Now</a>
+        <a class="cta cta--ghost" href="#coffee">Shop coffee</a>
+      </p>
+      <p class="order__fine mono">Concept site · prices and hours are illustrative</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════ FOOTER ══════════════════ -->
+  <footer class="foot" id="foot">
+    <div class="foot__top">
+      <div class="foot__brand">
+        <p class="foot__mark">PEET'S COFFEE</p>
+        <p class="foot__line mono">Handcrafted since 1966 · Berkeley, California</p>
+      </div>
+
+      <nav class="foot__cols" aria-label="Footer">
+        <div class="foot__col">
+          <h2 class="foot__h">Company</h2>
+          <a href="#about">About</a>
+          <a href="#about">Careers</a>
+          <a href="#about">Sustainability</a>
+        </div>
+        <div class="foot__col">
+          <h2 class="foot__h">Shop</h2>
+          <a href="#coffee">Coffee</a>
+          <a href="#tea">Tea</a>
+          <a href="#order">Gift Cards</a>
+        </div>
+        <div class="foot__col">
+          <h2 class="foot__h">Help</h2>
+          <a href="#locations">Contact</a>
+          <a href="#rewards">Rewards</a>
+          <a href="#foot">Privacy Policy</a>
+        </div>
+        <div class="foot__col">
+          <h2 class="foot__h">Social Media</h2>
+          <a href="#foot">Instagram</a>
+          <a href="#foot">Facebook</a>
+          <a href="#foot">X</a>
+          <a href="#foot">YouTube</a>
+        </div>
+      </nav>
+    </div>
+
+    <p class="foot__fine">An unofficial design concept, built as a portfolio exercise. Not affiliated
+      with, endorsed by, or produced for Peet's Coffee. No logo, photograph or other trade dress of
+      the real company is used — every mark, illustration and object on this page is drawn from
+      scratch in code. Product names are used descriptively; prices, hours and addresses are
+      invented for the layout.</p>
+  </footer>
+
+</main>
+
+<script src="assets/js/math.js"></script>
+<script src="assets/js/gl.js"></script>
+<script src="assets/js/geometry.js"></script>
+<script src="assets/js/textures.js"></script>
+<script src="assets/js/shaders.js"></script>
+<script src="assets/js/bodies.js"></script>
+<script src="assets/js/stage.js"></script>
+<script src="assets/js/film.js"></script>
+<script src="assets/js/art.js"></script>
+<script src="assets/js/products.js"></script>
+<script src="assets/js/studio.js"></script>
+<script src="assets/js/site.js"></script>
+<script src="assets/js/main.js"></script>
+
+</body>
+</html>
