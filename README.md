@@ -102,3 +102,14 @@ a `js` class before first paint; the boot overlay and every reveal-on-scroll sty
 is gated behind it, so with scripting unavailable the page is a static version of
 itself rather than a blank screen. Verified in Chromium at 390 / 1280 / 1440 /
 1600 px wide, with reduced motion, and with JavaScript disabled.
+
+---
+
+## Also in this repository
+
+`coffee/` — **NOCTURNE, Lot 014**, a scroll-driven film for a fictional coffee
+roastery. Same house rules as this project (no build step, no dependencies, no
+network calls, no image files), but rendered in WebGL2 rather than CSS: a
+single-pass-per-frame renderer with a shadow map, a raymarched volumetric plume,
+dual-filter bloom and ACES, and one spring system driving every crowd in it.
+See `coffee/README.md`.

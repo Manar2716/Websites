@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-motion="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOCTURNE — Lot 014 · Roasted in the dark hours</title>
+<meta name="description" content="NOCTURNE is a single-lot coffee roasted before dawn. A scroll-driven film: one bean in the dark, a swarm that becomes a cup, an extraction in slow motion, and a bench that assembles itself out of the air.">
+<meta name="theme-color" content="#080604">
+<meta name="color-scheme" content="dark">
+<link rel="preload" href="assets/css/coffee.css" as="style">
+<link rel="stylesheet" href="assets/css/coffee.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080604'/%3E%3Cellipse cx='16' cy='16' rx='7' ry='10' fill='%2356260f' transform='rotate(24 16 16)'/%3E%3Cpath d='M16 6.5c-1.6 3.6-1.6 15.4 0 19' stroke='%23150a04' stroke-width='1.8' fill='none' transform='rotate(24 16 16)'/%3E%3C/svg%3E">
+<script>
+  /* Runs before first paint. Everything that would leave the page
+     unreadable if the scripts never arrive — the boot card, the
+     film overlay, the sticky stage — is gated on these classes,
+     so with scripting unavailable the page is the same words in
+     a plain column. */
+  document.documentElement.classList.add('js', 'is-booting');
+</script>
+</head>
+<body>
+
+<a class="skip" href="#lot">Skip the film</a>
+
+<!-- ══════════ BOOT ══════════ -->
+<div class="boot" id="boot" aria-hidden="true">
+  <div class="boot__inner">
+    <span class="boot__bean"></span>
+    <p class="boot__word mono">NOCTURNE</p>
+  </div>
+</div>
+
+<!-- ══════════ THE FILM ══════════ -->
+<div class="film" id="film">
+  <div class="stage">
+
+    <canvas id="gl" class="stage__canvas" aria-hidden="true"></canvas>
+
+    <!-- the poster: what you get with no WebGL, and what sits
+         under the canvas while it boots -->
+    <div class="poster" aria-hidden="true">
+      <span class="poster__pool"></span>
+      <span class="poster__bean"></span>
+      <span class="poster__steam"></span>
+    </div>
+
+    <!-- The film runs from near-black to a lit café, so the chrome
+         at the edges cannot rely on the image behind it. These two
+         gradients are the lower and upper thirds a title designer
+         would ask for, and they are what keeps the rail and the
+         scroll hint readable in both. -->
+    <div class="scrim" aria-hidden="true"></div>
+
+    <!-- Captions duplicate the prose below the film, so this whole
+         layer is hidden from assistive technology rather than
+         flickering in and out of the accessibility tree. -->
+    <div class="captions" aria-hidden="true">
+
+      <div class="cap cap--center cap--low" data-from="0.004" data-to="0.070">
+        <p class="cap__brow mono">Nocturne · Lot 014 · Kirinyaga</p>
+        <h2 class="cap__line" data-split>ONE BEAN</h2>
+        <p class="cap__body">Eleven months on the branch. Eleven minutes in the drum.<br>Everything after this is arithmetic.</p>
+      </div>
+
+      <div class="cap cap--left" data-from="0.088" data-to="0.176">
+        <p class="cap__brow mono">01 — The harvest</p>
+        <h2 class="cap__line" data-split>PICKED NINE TIMES</h2>
+        <p class="cap__body">One hectare of the Kirinyaga slope, taken cherry by cherry across eleven weeks. Nothing is stripped from the branch.</p>
+      </div>
+
+      <div class="cap cap--right" data-from="0.212" data-to="0.292">
+        <p class="cap__brow mono">02 — The vessel</p>
+        <h2 class="cap__line" data-split>SIXTY GRAMS</h2>
+        <p class="cap__body">Thrown to one profile: a wall that thickens toward the base, so the heat leaves the cup slower than it leaves your hands.</p>
+      </div>
+
+      <div class="cap cap--left" data-from="0.318" data-to="0.422">
+        <p class="cap__brow mono">03 — Extraction</p>
+        <h2 class="cap__line" data-split>TWENTY-FIVE SECONDS</h2>
+        <p class="cap__body">Nine bars at ninety-three degrees. The crema comes up tiger-striped and holds for four minutes.</p>
+      </div>
+
+      <div class="cap cap--right" data-from="0.448" data-to="0.534">
+        <p class="cap__brow mono">04 — The pour</p>
+        <h2 class="cap__line" data-split>SIXTY-TWO DEGREES</h2>
+        <p class="cap__body">And not one degree past it. Milk taken further stops tasting sweet and starts tasting cooked.</p>
+      </div>
+
+      <div class="cap cap--center" data-from="0.664" data-to="0.788">
+        <p class="cap__brow mono">06 — The bench</p>
+        <h2 class="cap__line" data-split>TWO HUNDRED PARTS</h2>
+        <p class="cap__body">A lever group, a copper boiler, and a burr set trued to two microns. Assembled by four people, in one room, in Turin.</p>
+      </div>
+
+      <div class="cap cap--left" data-from="0.812" data-to="0.856">
+        <p class="cap__brow mono">07 — The mark</p>
+        <h2 class="cap__line" data-split>NOTHING IS ADDED</h2>
+        <p class="cap__body">No blend, no filler, no second origin hiding underneath. One slope, one season, one roast curve.</p>
+      </div>
+
+      <div class="cap cap--center cap--final" data-from="0.910" data-to="0.999">
+        <p class="cap__brow mono">Lot 014 · 340 kg · released 04:00</p>
+        <h2 class="cap__line" data-split>NOCTURNE</h2>
+        <p class="cap__body">Roasted in the dark hours, shipped the same morning.</p>
+        <a class="cta" href="#lot">Reserve the harvest</a>
+      </div>
+
+    </div>
+
+    <!-- chapter rail -->
+    <nav class="rail" aria-hidden="true">
+      <span class="rail__act is-on" data-from="0">Ember</span>
+      <span class="rail__act" data-from="0.072">Harvest</span>
+      <span class="rail__act" data-from="0.188">Vessel</span>
+      <span class="rail__act" data-from="0.300">Extraction</span>
+      <span class="rail__act" data-from="0.432">Pour</span>
+      <span class="rail__act" data-from="0.546">Steam</span>
+      <span class="rail__act" data-from="0.648">Bench</span>
+      <span class="rail__act" data-from="0.800">Splash</span>
+      <span class="rail__act" data-from="0.896">Coda</span>
+    </nav>
+
+    <p class="hint mono" aria-hidden="true"><span>Scroll</span></p>
+
+  </div>
+</div>
+
+<!-- ══════════ THE LOT ══════════ -->
+<main class="page">
+
+  <section class="lot" id="lot">
+    <p class="brow mono">The lot</p>
+    <h1 class="lot__title">Nocturne 014</h1>
+    <p class="lot__lede">
+      A single-lot Kenyan picked across eleven weeks on one hectare of the Kirinyaga
+      slope, washed on the farm, dried eighteen days on raised beds, and roasted in
+      the two hours before the street wakes up. Three hundred and forty kilograms.
+      When it is gone there is no more of it until next season.
+    </p>
+
+    <dl class="spec">
+      <div><dt>Origin</dt><dd>Kirinyaga, Kenya · 1 780 m</dd></div>
+      <div><dt>Varietal</dt><dd>SL28, SL34, Batian</dd></div>
+      <div><dt>Process</dt><dd>Washed · 18 days, raised beds</dd></div>
+      <div><dt>Roast</dt><dd>11:40 to first crack + 1:05</dd></div>
+      <div><dt>In the cup</dt><dd>Blackcurrant, cocoa nib, dried fig</dd></div>
+      <div><dt>Released</dt><dd>04:00, the morning after the roast</dd></div>
+    </dl>
+  </section>
+
+  <!-- The film's narration, in a plain column. The captions over
+       the canvas are decorative duplicates of these paragraphs —
+       nothing in this project is available only to someone who
+       can see a WebGL canvas. -->
+  <section class="read">
+    <p class="brow mono">The film, in words</p>
+
+    <div class="read__grid">
+      <article>
+        <h3>One bean</h3>
+        <p>Eleven months on the branch and eleven minutes in the drum. A roasted seed is
+           an ellipsoid with one flat face and a crease down the middle of it, and under a
+           single hard light that crease catches and loses the highlight once per turn.
+           That is the whole first shot.</p>
+      </article>
+      <article>
+        <h3>Picked nine times</h3>
+        <p>Cherry ripens unevenly, so the slope is walked nine times across eleven weeks
+           and only the ripe fruit comes off. Stripping a branch in one pass is faster and
+           it is why most coffee tastes like most coffee.</p>
+      </article>
+      <article>
+        <h3>Sixty grams</h3>
+        <p>Every cup is thrown to one profile, with a wall that thickens toward the base.
+           Heat leaves it slower than it leaves your hands, which is the only measurement
+           in ceramics that a drinker actually notices.</p>
+      </article>
+      <article>
+        <h3>Twenty-five seconds</h3>
+        <p>Nine bars at ninety-three degrees through eighteen grams. The crema arrives
+           tiger-striped, holds for about four minutes, and is the first thing to tell you
+           whether the grind was right.</p>
+      </article>
+      <article>
+        <h3>Sixty-two degrees</h3>
+        <p>Milk is steamed to sixty-two and not one degree past it. Beyond that the
+           lactose stops reading as sweetness and the whole cup turns flat and slightly
+           cooked. The rosetta is drawn in one pass and pulled through at the end.</p>
+      </article>
+      <article>
+        <h3>Two hundred parts</h3>
+        <p>A lever group, a copper boiler, a burr set trued to two microns, and about two
+           hundred machined parts around them. Four people assemble it in one room in
+           Turin, and it is designed to be taken apart by whoever owns it.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="order">
+    <p class="brow mono">Reserve</p>
+    <h2>Three hundred and forty kilograms, and then nothing until next season.</h2>
+    <p class="order__note">
+      Subscriptions ship the morning of the roast. Single bags ship the same day if
+      the order is in before 09:00.
+    </p>
+    <p class="order__actions">
+      <a class="cta cta--solid" href="#lot">Reserve a bag</a>
+      <a class="cta cta--ghost" href="#lot">Standing order</a>
+    </p>
+  </section>
+
+  <footer class="foot">
+    <div class="foot__brand">
+      <p class="mono">NOCTURNE ROASTERY</p>
+      <p class="foot__fine">A fictional roastery, invented for this page. No trade dress,
+         mark or product of any real company is used or referenced.</p>
+    </div>
+    <nav class="foot__nav" aria-label="Footer">
+      <a href="#lot">The lot</a>
+      <a href="#lot">Subscriptions</a>
+      <a href="#lot">Wholesale</a>
+      <a href="../index.html">Understory</a>
+    </nav>
+  </footer>
+
+</main>
+
+<script src="assets/js/math.js"></script>
+<script src="assets/js/gl.js"></script>
+<script src="assets/js/geometry.js"></script>
+<script src="assets/js/textures.js"></script>
+<script src="assets/js/shaders.js"></script>
+<script src="assets/js/bodies.js"></script>
+<script src="assets/js/stage.js"></script>
+<script src="assets/js/timeline.js"></script>
+<script src="assets/js/main.js"></script>
+
+</body>
+</html>

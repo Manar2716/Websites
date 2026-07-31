@@ -1,0 +1,507 @@
+/* ═══════════════════════════════════════════════════════════
+   NOCTURNE · LOT 014
+
+   ONE CONSTRAINT: every colour that emits or reflects light in
+   this project is a coffee colour. The ramp runs from unroasted
+   green through cinnamon, crema and roast to the near-black of
+   an over-developed bean. The single exception is the daylight
+   through the café window, which is neutral-cool and exists so
+   the warm side has something to be warm against.
+
+   There is no photograph anywhere in this project, and no image
+   file of any kind: the film is WebGL, the poster fallback is
+   gradients, and the two textures the renderer uses are drawn on
+   a canvas at load.
+   ═══════════════════════════════════════════════════════════ */
+
+@layer tokens, base, boot, film, caption, rail, page, motion, responsive;
+
+/* ── TOKENS ───────────────────────────────────────────────── */
+@layer tokens {
+  :root {
+    /* the roast ramp */
+    --void:    #050403;
+    --ground:  #080604;
+    --char:    #120b06;
+    --roast:   #2a1509;
+    --shell:   #56260f;
+    --cinnamon:#8a4a1e;
+    --crema:   #c98a4b;
+    --foam:    #e8d6bd;
+    --milk:    #f4ece1;
+
+    /* the window: the one cool value in the project */
+    --day:     #b9c6cf;
+
+    /* Text colour is set from measured contrast against
+       --ground (#080604), not chosen by eye. The film's captions
+       sit over a moving image, so they carry their own scrim —
+       see .cap::before. */
+    --ink:      #f4ece1;                     /* ~17.9:1  headings */
+    --ink-dim:  rgba(244, 236, 225, .84);    /* ~14.6:1  body */
+    --ink-mute: rgba(226, 200, 168, .76);    /*  ~9.4:1  labels */
+    --ink-faint:rgba(226, 200, 168, .58);    /*  ~6.1:1  fine print, 13px floor */
+
+    --line:     rgba(201, 138, 75, .20);
+    --line-hi:  rgba(201, 138, 75, .42);
+
+    --sans: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --film-length: 950vh;
+    --gutter: clamp(1.25rem, 5vw, 5rem);
+    --measure: 34rem;
+  }
+}
+
+/* ── BASE ─────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    background: var(--ground);
+    color: var(--ink-dim);
+    font-family: var(--sans);
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: auto;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100%;
+    font-size: clamp(1rem, .55vw + .86rem, 1.075rem);
+    line-height: 1.62;
+    overflow-x: hidden;
+    /* a flat black page would band on an OLED panel; this is the
+       same near-black with a barely-there warm floor under it */
+    background:
+      radial-gradient(120vw 80vh at 50% 0%, #0d0906 0%, transparent 70%),
+      var(--ground);
+  }
+
+  h1, h2, h3 { color: var(--ink); font-weight: 300; line-height: 1.08; margin: 0; }
+  p { margin: 0; }
+  a { color: inherit; }
+
+  .mono {
+    font-family: var(--mono);
+    /* micro labels were the accessibility failure in the sibling
+       project on this repo: 9.6px at 34% alpha. The floor here is
+       13px and the lightest label token measures 6.1:1. */
+    font-size: .8125rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .brow { margin-bottom: 1.4rem; }
+
+  .skip {
+    position: fixed; top: -100%; left: var(--gutter); z-index: 200;
+    padding: .7rem 1.1rem; background: var(--roast); color: var(--ink);
+    border: 1px solid var(--line-hi); border-radius: 2px;
+    font-family: var(--mono); font-size: .8125rem; letter-spacing: .12em;
+    text-transform: uppercase; text-decoration: none;
+  }
+  .skip:focus-visible { top: 1rem; }
+
+  :focus-visible { outline: 2px solid var(--crema); outline-offset: 3px; }
+}
+
+/* ── BOOT ─────────────────────────────────────────────────── */
+@layer boot {
+  .boot { display: none; }
+
+  .js .boot {
+    display: grid; place-items: center;
+    position: fixed; inset: 0; z-index: 120;
+    background: var(--void);
+    transition: opacity .9s ease .1s, visibility 0s linear 1s;
+  }
+  .boot.is-done { opacity: 0; visibility: hidden; }
+
+  .boot__inner { display: grid; justify-items: center; gap: 1.6rem; }
+
+  /* the bean, turning, before there is a renderer to turn it */
+  .boot__bean {
+    width: 42px; height: 58px; border-radius: 50% / 46%;
+    background:
+      linear-gradient(100deg, #100804 0 46%, transparent 46% 54%, #100804 54% 100%),
+      radial-gradient(120% 90% at 32% 26%, rgba(232, 214, 189, .28) 0%, transparent 46%),
+      linear-gradient(140deg, #7c3a17 0%, #47200c 46%, #1d0d05 100%);
+    box-shadow: 0 0 42px rgba(201, 138, 75, .18);
+    animation: bean-turn 3.4s cubic-bezier(.5, 0, .5, 1) infinite;
+  }
+  @keyframes bean-turn {
+    0%   { transform: rotateY(0deg) rotate(-8deg); }
+    100% { transform: rotateY(360deg) rotate(-8deg); }
+  }
+
+  .boot__word { font-size: .75rem; letter-spacing: .55em; color: var(--ink-faint); }
+}
+
+/* ── FILM ─────────────────────────────────────────────────── */
+@layer film {
+  .film { position: relative; }
+  .js .film { height: var(--film-length); }
+
+  .stage {
+    position: relative;
+    height: 100vh; height: 100svh;
+    overflow: hidden;
+    background: var(--void);
+  }
+  .js .stage { position: sticky; top: 0; }
+
+  .stage__canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    display: block;
+  }
+  .has-gl .poster { opacity: 0; }
+
+  /* ── poster ──
+     What the stage looks like with no WebGL and no JavaScript: a
+     cup of coffee built from four gradients. It is also what sits
+     under the canvas during boot, so the first paint is never a
+     black rectangle. */
+  .poster {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(70vw 60vh at 50% 118%, #2a1509 0%, transparent 62%),
+      radial-gradient(50vw 46vh at 62% -6%, #3a1d0b 0%, transparent 60%),
+      var(--void);
+    transition: opacity 1.2s ease;
+  }
+  .poster__pool {
+    position: absolute; left: 50%; top: 58%;
+    width: min(46vw, 30rem); aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 38% 34%, rgba(232, 214, 189, .5) 0%, transparent 34%),
+      radial-gradient(circle at 62% 66%, #c98a4b 0%, #8a4a1e 46%, #2a1509 78%, #120b06 100%);
+    box-shadow: 0 0 12rem rgba(201, 138, 75, .18);
+  }
+  .poster__bean {
+    position: absolute; left: 50%; top: 58%;
+    width: min(9vw, 5rem); aspect-ratio: .72;
+    transform: translate(-50%, -50%) rotate(-18deg);
+    border-radius: 50% / 46%;
+    background:
+      linear-gradient(100deg, #150a05 0 47%, transparent 47% 53%, #150a05 53% 100%),
+      linear-gradient(140deg, #8a4a1e 0%, #4a220d 50%, #1a0c05 100%);
+  }
+  .poster__steam {
+    position: absolute; left: 50%; top: 12%;
+    width: min(34vw, 22rem); height: 46vh;
+    transform: translateX(-50%);
+    background:
+      radial-gradient(closest-side, rgba(244, 236, 225, .10) 0%, transparent 70%),
+      radial-gradient(closest-side at 62% 30%, rgba(244, 236, 225, .07) 0%, transparent 66%);
+    filter: blur(6px);
+  }
+
+  .scrim {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to top, rgba(5, 4, 3, .82) 0%, rgba(5, 4, 3, .34) 9%, transparent 22%),
+      linear-gradient(to bottom, rgba(5, 4, 3, .40) 0%, transparent 14%);
+  }
+
+  /* ── scroll hint ── */
+  .hint {
+    position: absolute; left: 50%; bottom: 2.2rem;
+    transform: translateX(-50%);
+    display: grid; justify-items: center; gap: .7rem;
+    font-size: .6875rem; letter-spacing: .42em; color: var(--ink-faint);
+    transition: opacity .7s ease;
+  }
+  .hint::after {
+    content: ""; width: 1px; height: 3.2rem;
+    background: linear-gradient(var(--line-hi), transparent);
+    animation: hint-fall 2.6s ease-in-out infinite;
+    transform-origin: top;
+  }
+  @keyframes hint-fall {
+    0%, 100% { transform: scaleY(.3); opacity: .3; }
+    45%      { transform: scaleY(1);  opacity: 1; }
+  }
+  .hint.is-gone { opacity: 0; }
+  html:not(.js) .hint { display: none; }
+}
+
+/* ── CAPTIONS ─────────────────────────────────────────────────
+   The film's words. With no JavaScript this whole layer is hidden
+   and the same copy is read from the prose column below — nothing
+   here is the only copy of anything. */
+@layer caption {
+  .captions { position: absolute; inset: 0; pointer-events: none; }
+  html:not(.js) .captions { display: none; }
+
+  .cap {
+    position: absolute;
+    width: min(var(--measure), calc(100vw - var(--gutter) * 2));
+    opacity: 0; visibility: hidden;
+    perspective: 900px;
+  }
+  /* Bright scenery and legible text are in genuine tension. This
+     is where it is resolved: every caption carries its own pool of
+     shade, sized to the text and soft enough that you read it as
+     depth of field rather than as a box. */
+  .cap::before {
+    content: "";
+    position: absolute; inset: -5rem -8rem;
+    background: radial-gradient(closest-side, rgba(5, 4, 3, .88) 0%, rgba(5, 4, 3, .62) 44%, transparent 100%);
+    z-index: -1;
+  }
+  /* The scrim alone cannot serve both a near-black frame and a
+     cream one. It does the heavy lifting; these do the last stop,
+     and cost nothing because neither ever animates. The tight
+     shadow is what holds the counters of the letterforms open
+     against the steam. */
+  .cap__line { text-shadow: 0 1px 3px rgba(5, 4, 3, .55), 0 2px 28px rgba(5, 4, 3, .92); }
+  .cap__body, .cap__brow { text-shadow: 0 1px 2px rgba(5, 4, 3, .70), 0 1px 18px rgba(5, 4, 3, .85); }
+
+  .cap--left   { left: var(--gutter);  top: 50%; transform: translateY(-50%); }
+  .cap--right  { right: var(--gutter); top: 50%; transform: translateY(-50%); text-align: right; }
+  .cap--center { left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .cap--center::before { inset: -4rem -6rem; }
+
+  /* The opening title cannot sit on the bean — the caption carries
+     its own pool of shade, and putting that pool over the only lit
+     object in frame puts the subject out. */
+  .cap--low { top: auto; bottom: 11vh; transform: translateX(-50%); }
+
+  .cap__brow { display: block; margin-bottom: 1.1rem; color: var(--ink-mute); }
+
+  .cap__line {
+    position: relative;
+    font-size: clamp(2.1rem, 6.4vw, 4.6rem);
+    letter-spacing: -.02em;
+    font-weight: 250;
+    color: var(--ink);
+    transform-style: preserve-3d;
+    margin-bottom: 1.15rem;
+  }
+
+  /* one letter, one delay — set from JS, transform and opacity only */
+  .wd { display: inline-block; white-space: nowrap; }
+  .lt { display: inline-block; will-change: transform, opacity; }
+
+  /* The condensation copy. Its blur radius never changes, so this
+     layer rasterises once and only its opacity is animated —
+     animating a blur radius forces a re-raster every frame and is
+     the single most expensive thing you can do to a scroll page. */
+  .haze {
+    position: absolute; inset: 0;
+    display: block;
+    color: var(--foam);
+    filter: blur(14px);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  .cap__body {
+    font-family: var(--serif);
+    font-size: clamp(.98rem, .5vw + .86rem, 1.12rem);
+    line-height: 1.6;
+    color: var(--ink-dim);
+    max-width: 30rem;
+  }
+  .cap--right .cap__body { margin-left: auto; }
+  .cap--center .cap__body { margin-inline: auto; }
+
+  .cap--final { pointer-events: auto; }
+
+  .cta {
+    display: inline-block; margin-top: 1.8rem;
+    padding: .85rem 1.9rem;
+    border: 1px solid var(--line-hi);
+    border-radius: 2px;
+    font-family: var(--mono); font-size: .8125rem;
+    letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink); text-decoration: none;
+    background: rgba(42, 21, 9, .5);
+    transition: background .45s ease, border-color .45s ease, transform .45s cubic-bezier(.2,.9,.2,1);
+  }
+  .cta:hover { background: rgba(138, 74, 30, .42); border-color: var(--crema); transform: translateY(-2px); }
+  .cta--solid { background: var(--shell); border-color: var(--shell); }
+  .cta--solid:hover { background: var(--cinnamon); border-color: var(--cinnamon); }
+  .cta--ghost { background: transparent; }
+}
+
+/* ── RAIL ─────────────────────────────────────────────────── */
+@layer rail {
+  .rail {
+    position: absolute; left: var(--gutter); bottom: 2.4rem;
+    display: flex; gap: .9rem; flex-wrap: wrap;
+    font-family: var(--mono); font-size: .6875rem;
+    letter-spacing: .2em; text-transform: uppercase;
+  }
+  html:not(.js) .rail { display: none; }
+  .rail__act {
+    color: rgba(226, 200, 168, .40);
+    transition: color .5s ease;
+    position: relative; padding-top: .7rem;
+  }
+  .rail__act::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: var(--line);
+    transform: scaleX(.35); transform-origin: left;
+    transition: transform .6s cubic-bezier(.2,.9,.2,1), background .5s ease;
+  }
+  .rail__act.is-on { color: var(--ink); }
+  .rail__act.is-on::before { transform: scaleX(1); background: var(--crema); }
+}
+
+/* ── PAGE ─────────────────────────────────────────────────── */
+@layer page {
+  .page {
+    position: relative; z-index: 2;
+    background: var(--ground);
+    border-top: 1px solid var(--line);
+  }
+
+  .lot, .read, .order { padding: clamp(4.5rem, 11vh, 9rem) var(--gutter); }
+
+  .lot { border-bottom: 1px solid var(--line); }
+  .lot__title {
+    font-size: clamp(2.6rem, 8vw, 6rem);
+    letter-spacing: -.03em; font-weight: 200;
+    margin-bottom: 2rem;
+  }
+  .lot__lede {
+    font-family: var(--serif);
+    font-size: clamp(1.08rem, 1vw + .9rem, 1.4rem);
+    line-height: 1.55; max-width: 42rem; color: var(--ink-dim);
+  }
+
+  .spec {
+    margin: 3.5rem 0 0; padding: 0;
+    display: grid; gap: 1px;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .spec > div { background: var(--ground); padding: 1.4rem 1.5rem; }
+  .spec dt {
+    font-family: var(--mono); font-size: .75rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-mute); margin-bottom: .5rem;
+  }
+  .spec dd { margin: 0; color: var(--ink); font-size: 1.02rem; }
+
+  .read { border-bottom: 1px solid var(--line); }
+  .read__grid {
+    display: grid; gap: clamp(2rem, 4vw, 3.4rem);
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  }
+  .read h3 {
+    font-size: 1.28rem; margin-bottom: .8rem; letter-spacing: -.01em;
+    padding-top: 1rem; border-top: 1px solid var(--line-hi);
+  }
+  .read p { font-family: var(--serif); color: var(--ink-dim); }
+
+  .order h2 {
+    font-size: clamp(1.7rem, 3.6vw, 2.9rem);
+    letter-spacing: -.02em; max-width: 30ch; margin-bottom: 1.5rem;
+  }
+  .order__note { max-width: var(--measure); color: var(--ink-dim); font-family: var(--serif); }
+  .order__actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2.4rem; }
+  .order__actions .cta { margin-top: 0; }
+
+  .foot {
+    display: flex; flex-wrap: wrap; gap: 2.5rem;
+    justify-content: space-between; align-items: flex-start;
+    padding: 3rem var(--gutter) 4rem;
+    border-top: 1px solid var(--line);
+  }
+  .foot__fine {
+    margin-top: .9rem; max-width: 30rem;
+    font-size: .875rem; color: var(--ink-faint);
+  }
+  .foot__nav { display: flex; gap: 1.8rem; flex-wrap: wrap; }
+  .foot__nav a {
+    font-family: var(--mono); font-size: .8125rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-mute); text-decoration: none;
+    padding-bottom: .3rem; border-bottom: 1px solid transparent;
+    transition: color .4s ease, border-color .4s ease;
+  }
+  .foot__nav a:hover { color: var(--ink); border-color: var(--crema); }
+
+  .hud {
+    position: fixed; right: .8rem; top: .8rem; z-index: 150;
+    padding: .45rem .7rem; background: rgba(5,4,3,.82);
+    border: 1px solid var(--line); border-radius: 2px;
+    font-size: .6875rem; letter-spacing: .08em; color: var(--ink-mute);
+    pointer-events: none;
+  }
+}
+
+/* ── NO WEBGL ─────────────────────────────────────────────────
+   The film needs WebGL2. Without it the stage keeps the poster,
+   stops being sticky, and the captions never run — the page
+   becomes the prose column, which was always the real content. */
+@layer film {
+  .no-gl .film { height: auto; }
+  .no-gl .stage { position: relative; height: 78vh; }
+  .no-gl .captions, .no-gl .rail, .no-gl .hint { display: none; }
+  .no-gl .stage__canvas { display: none; }
+}
+
+/* ── MOTION ───────────────────────────────────────────────────
+   With reduced motion the film still answers the scroll — that is
+   navigation, not decoration — but nothing moves on its own: the
+   wall clock is frozen in the loop, the handheld and the camera
+   lag are switched off, and the captions arrive without the
+   per-letter travel. */
+@layer motion {
+  @media (prefers-reduced-motion: reduce) {
+    .boot__bean { animation: none; }
+    .hint::after { animation: none; transform: scaleY(.7); opacity: .6; }
+    .cta { transition: none; }
+    .cta:hover { transform: none; }
+    .haze { display: none; }
+    .rail__act::before { transition: none; }
+    :root { --film-length: 620vh; }
+  }
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@layer responsive {
+  @media (max-width: 900px) {
+    :root { --film-length: 820vh; }
+    .cap--left, .cap--right, .cap--center {
+      left: 50%; right: auto; top: auto; bottom: 16vh;
+      transform: translateX(-50%);
+      text-align: center;
+      width: min(30rem, calc(100vw - var(--gutter) * 2));
+    }
+    .cap--right .cap__body, .cap__body { margin-inline: auto; }
+    .cap::before { inset: -2.5rem -2rem; }
+    .rail { display: none; }
+    .foot { flex-direction: column; }
+  }
+
+  @media (max-width: 560px) {
+    .cap__line { font-size: clamp(1.8rem, 9vw, 2.6rem); }
+    .cap__body { font-size: .98rem; }
+    .hint { bottom: 1.4rem; }
+  }
+
+  /* A short landscape window is a phone on its side: the caption
+     block and the stage both have to give ground. */
+  @media (max-height: 560px) and (orientation: landscape) {
+    .cap__line { font-size: clamp(1.5rem, 5vw, 2.2rem); margin-bottom: .6rem; }
+    .cap__body { display: none; }
+    .rail, .hint { display: none; }
+  }
+
+  @media print {
+    .film, .boot { display: none; }
+    html, body { background: #fff; color: #000; }
+  }
+}
