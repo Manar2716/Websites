@@ -24,7 +24,7 @@
   'use strict';
 
   var PEET = (global.PEET = global.PEET || {});
-  var doc = document;
+  var doc = document, root = doc.documentElement;
 
   function sat(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
   function lerp(a, b, t) { return a + (b - a) * t; }
@@ -494,21 +494,79 @@
     }
 
     /* ── the product art ─────────────────────────────────────
-       Drawn once, when the card first comes within a screen of
-       the viewport, and redrawn only if the card's box changes
-       size by more than a third. */
+       Every product is rendered by the same PBR pipeline as the
+       film — modelled, lit, shadowed and graded on one curve — and
+       the flat 2D drawing in art.js stays on as the fallback for
+       machines without WebGL2. Under a film rendered with GGX and
+       an analytic environment, vector illustration does not read
+       as a cheaper version of a product shot; it reads as a
+       different medium, and the mismatch is what made the first
+       version of this page look cheap.
+
+       Renders are queued rather than run on the spot: one studio
+       frame is six passes, and thirty-four of them in the frame a
+       card happens to scroll into view is a visible stall. */
     var figures = [].slice.call(doc.querySelectorAll('[data-art]')).map(function (card) {
       var spec;
       try { spec = JSON.parse(card.getAttribute('data-art')); }
       catch (err) { spec = null; }
-      return { card: card, spec: spec, canvas: card.querySelector('.card__c'), drawn: 0 };
+      var nameEl = card.querySelector('.card__name');
+      return {
+        card: card, spec: spec,
+        name: nameEl ? nameEl.textContent.trim() : '',
+        canvas: card.querySelector('.card__c'),
+        drawn: 0, queued: false
+      };
     }).filter(function (f) { return f.spec && f.canvas; });
+
+    var studio = null, studioTried = false, queue = [], rendered = 0;
+
+    function getStudio() {
+      if (studioTried) return studio;
+      studioTried = true;
+      if (!PEET.Studio || !PEET.Products || reduced && false) return null;
+      var s = new PEET.Studio(dpr > 1.4 ? 640 : 512);
+      studio = s.ok ? s : null;
+      if (!studio) root.classList.add('no-studio');
+      return studio;
+    }
 
     function drawFigure(f) {
       var box = f.canvas.getBoundingClientRect();
       var w = box.width || 240, h = box.height || 240;
       if (f.drawn && Math.abs(w - f.drawn) / f.drawn < 0.34) return;
+
+      var st = getStudio();
+      if (st && PEET.Products.has(f.name)) {
+        if (!f.queued) { f.queued = true; queue.push(f); kick(); }
+        return;
+      }
       if (PEET.Art.draw(f.canvas, f.spec, w, h, dpr)) f.drawn = w;
+    }
+
+    /* One product per frame. The drawing buffer is not preserved,
+       so the blit has to happen in the same task as the draw —
+       never across an await or a rAF boundary. */
+    function pumpQueue() {
+      if (!queue.length || !studio) return false;
+      var f = queue.shift();
+      f.queued = false;
+      var box = f.canvas.getBoundingClientRect();
+      var w = box.width || 240, h = box.height || 240;
+      var scene = PEET.Products.build(studio, f.name);
+      if (scene && studio.draw(scene) && studio.blit(f.canvas, w, h, dpr)) {
+        f.drawn = w;
+        f.card.classList.add('is-shot');
+      } else if (PEET.Art.draw(f.canvas, f.spec, w, h, dpr)) {
+        f.drawn = w;
+      }
+      rendered++;
+      /* hand the context back once every card has its picture */
+      if (!queue.length && rendered >= figures.length) {
+        studio.dispose();
+        studio = null;
+      }
+      return true;
     }
 
     var artIO = null;
@@ -763,6 +821,9 @@
         ve.el.style.transform =
           'translate(-50%,' + (-46 + rise * 0.12).toFixed(2) + '%) scale(' + sc.toFixed(3) + ')';
       }
+
+      /* ── one product render, if any are waiting ── */
+      if (pumpQueue()) moving = true;
 
       /* ── floating products ── */
       for (var f = 0; f < floaters.length; f++) {

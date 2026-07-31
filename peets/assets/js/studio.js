@@ -35,7 +35,7 @@
     canvas.height = this.size;
     this.canvas = canvas;
 
-    var ctx = GL.context(canvas);
+    var ctx = GL.context(canvas, { preserveDrawingBuffer: true });
     if (!ctx || !ctx.gl) { this.error = 'no webgl2'; return; }
     this.gl = ctx.gl;
     this.hdr = !!ctx.hdr;
@@ -192,9 +192,15 @@
        shadow map on empty counter */
     var f = st.cam.target;
     var r = st.shadowExtent || 1.2;
-    var lp = [f[0] + st.sun.dir[0] * 6, f[1] + st.sun.dir[1] * 6, f[2] + st.sun.dir[2] * 6];
+    /* The depth range has to match the film's, not just the box.
+       The bias in shadowAt is a constant in normalised depth, so
+       squeezing near/far around a 12 cm cup makes that constant
+       cover a fraction of the world distance it was tuned for, and
+       the cup wall comes back covered in acne. Same 0.6–20 range,
+       same light distance; only the XY box tightens. */
+    var lp = [f[0] + st.sun.dir[0] * 9, f[1] + st.sun.dir[1] * 9, f[2] + st.sun.dir[2] * 9];
     m4.lookAt(m.lightView, lp, f, [0, 1, 0]);
-    m4.ortho(m.lightProj, -r, r, -r, r, 0.4, 14);
+    m4.ortho(m.lightProj, -r, r, -r, r, 0.6, 20);
     m4.mul(m.lightVP, m.lightProj, m.lightView);
   };
 
@@ -333,6 +339,15 @@
       gl.depthMask(true);
       gl.disable(gl.BLEND);
     }
+
+    /* Everything from here on is a fullscreen quad, and none of it
+       wants the depth buffer. Leaving the test on is a subtle bug
+       rather than a loud one: the first composite writes its depth
+       and every later one fails it, so the studio renders
+       thirty-four different products and shows the first one
+       thirty-four times. */
+    gl.disable(gl.DEPTH_TEST);
+    gl.depthMask(false);
 
     /* 3 — bloom */
     T.bright.bind();

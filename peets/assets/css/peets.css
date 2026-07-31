@@ -733,6 +733,18 @@
       rotate(var(--fr, 0deg));
   }
 
+  /* A rendered product carries its own set — a lit surface, a
+     backdrop and a shadow — so it fills the figure edge to edge
+     and reads as a photograph. The drawn fallback is an object on
+     nothing, so it keeps its margin and sits in the card's own
+     pool of light instead. */
+  .card.is-shot .card__figure { background: none; }
+  .card.is-shot .card__c {
+    width: 100%; height: 100%;
+    --zc: 0px;
+  }
+  .card.is-shot:hover .card__c { --zc: 0px; }
+
   /* the light that rakes across the figure as the card turns */
   .card__figure::after {
     content: ""; position: absolute; inset: 0;

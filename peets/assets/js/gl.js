@@ -14,17 +14,26 @@
 
   /* ── context ─────────────────────────────────────────────── */
 
-  GL.context = function (canvas) {
+  GL.context = function (canvas, overrides) {
     var opts = {
       alpha: false,
       antialias: false,          /* we resolve edges in post, not with MSAA */
       depth: true,
       stencil: false,
       premultipliedAlpha: false,
+      /* The film draws straight to the screen every frame and never
+         reads a pixel back, so it does not pay for a preserved
+         buffer. Anything that renders in order to *copy the result
+         out* has to ask for one: a canvas that is not in the
+         document is never composited, and without this the
+         readback returns whatever was in the buffer the first time
+         it was asked — which renders thirty-four different
+         products and blits the same picture thirty-four times. */
       preserveDrawingBuffer: false,
       powerPreference: 'high-performance',
       failIfMajorPerformanceCaveat: false
     };
+    if (overrides) for (var k in overrides) opts[k] = overrides[k];
     var gl = canvas.getContext('webgl2', opts);
     if (!gl) return null;
 
