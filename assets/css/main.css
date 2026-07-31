@@ -30,12 +30,33 @@
     --g-50: rgba(166, 204, 92, .50);
     --g-70: rgba(166, 204, 92, .70);
 
-    --ink:      #d8efa0;
-    --ink-dim:  rgba(216, 239, 160, .58);
-    --ink-mute: rgba(166, 204, 92, .34);
+    --ink:      #e6f5c4;
+    /* Contrast, measured against the page ground rather than eyeballed.
+       --ink-mute used to be .34 alpha, which lands at ~2.1:1 — far under
+       the 4.5:1 small text needs, and it carries every eyebrow, spec
+       unit, HUD label and footer link on the page. */
+    --ink-dim:  rgba(226, 242, 186, .78);   /* ~7.4:1  body */
+    --ink-mute: rgba(198, 228, 142, .8);    /* ~6.6:1  labels */
 
-    --line:     rgba(166, 204, 92, .14);
-    --line-hi:  rgba(166, 204, 92, .28);
+    --line:     rgba(166, 204, 92, .2);
+    --line-hi:  rgba(166, 204, 92, .38);
+
+    /* ── daylight forest ──
+       The reference is backlit: the distance is the brightest thing in
+       frame and the foreground reads as near-black silhouette. The old
+       grove had that exactly backwards. */
+    --haze:     #6f9a44;   /* sunlit depth, furthest plane */
+    --haze-hi:  #a8cf72;
+    --mid-culm: #52802f;
+    --near-culm:#16240f;
+
+    /* the machine is neutral grey, like the one in the photograph —
+       the only place on the page that leaves the green */
+    --shell-hi: #8b918a;
+    --shell-1:  #5d635e;
+    --shell-2:  #3d423e;
+    --shell-3:  #242825;
+    --shell-4:  #141715;
 
     --sans: "Helvetica Neue", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
@@ -239,6 +260,14 @@
     position: fixed; inset: 0; z-index: 0;
     pointer-events: none; overflow: hidden;
     contain: strict;
+    /* Daylight in a bamboo grove: the sun is behind the canopy, so the
+       far distance is the brightest part of the frame and everything
+       nearer reads darker against it. */
+    background:
+      radial-gradient(ellipse 62% 46% at 50% 26%, #6d9a42 0%, #3f6a2a 44%, transparent 78%),
+      linear-gradient(180deg,
+        #395e26 0%, #2f5020 18%, #223c18 40%,
+        #16280f 66%, #0d1a09 86%, #081205 100%);
   }
 
   /* The spotlight from the reference comp. Built from stacked
@@ -293,9 +322,19 @@
      filters — only the furthest plane pays for a blur, and a small
      one. Three blurred full-viewport layers was the single most
      expensive thing on the page. */
-  .grove--far  { opacity: .3;  filter: blur(2px); }
-  .grove--mid  { opacity: .46; }
-  .grove--near { opacity: .66; }
+  /* Atmospheric perspective: distance loses contrast and gains light,
+     foreground gains contrast and loses it. Same reason a real grove
+     reads as deep. */
+  .grove--far  { opacity: .5;  filter: blur(2.5px); }
+  .grove--mid  { opacity: .82; }
+  .grove--near { opacity: .96; }
+
+  .grove--far  .culm { --c-edge: #5c8536; --c-lit: var(--haze-hi); --c-core: var(--haze); }
+  .grove--mid  .culm { --c-edge: #24401b; --c-lit: #7fae44;        --c-core: var(--mid-culm); }
+  .grove--near .culm { --c-edge: #060b04; --c-lit: #2c4519;        --c-core: var(--near-culm); }
+  .grove--far  .frond { --f1: #7ea855; --f2: var(--haze-hi); }
+  .grove--mid  .frond { --f1: #3d6626; --f2: #86b44b; }
+  .grove--near .frond { --f1: #0a1206; --f2: #24391a; }
 
   /* a culm is one div: cylindrical shading across the width,
      node rings repeating up the length. Pure gradient, so it is
@@ -310,10 +349,13 @@
         transparent 0 calc(var(--seg) - 3px),
         rgba(11, 20, 16, .9) calc(var(--seg) - 3px) calc(var(--seg) - 1px),
         rgba(166, 204, 92, .28) calc(var(--seg) - 1px) var(--seg)),
-      /* the cylinder itself */
+      /* the cylinder itself — shaded from the plane's own palette */
       linear-gradient(90deg,
-        #08120a 0%, #16281a 18%, #3a6327 46%,
-        #4a7a2e 56%, #1c3319 82%, #070c08 100%);
+        var(--c-edge, #08120a) 0%,
+        var(--c-core, #3a6327) 30%,
+        var(--c-lit, #4a7a2e) 52%,
+        var(--c-core, #3a6327) 72%,
+        var(--c-edge, #070c08) 100%);
     border-radius: 2px;
     /* culms taper toward the tip, like the real thing */
     clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%);
@@ -362,7 +404,7 @@
     margin-top: -3px;
     transform-origin: 0 50%;
     transform: scaleX(var(--side, 1)) rotate(calc(var(--pd, 26deg) * -1));
-    background: linear-gradient(90deg, var(--stem), var(--bamboo) 58%, rgba(127, 168, 63, 0));
+    background: linear-gradient(90deg, #3d6626, #86b44b 58%, transparent);
     clip-path: polygon(0 50%, 16% 10%, 54% 22%, 100% 46%, 100% 54%, 54% 78%, 16% 90%);
   }
   @keyframes fernSway {
@@ -378,14 +420,15 @@
     position: absolute; inset: 0;
     background:
       /* shafts angling down through the leaves */
-      linear-gradient(101deg, transparent 18%, rgba(166,204,92,.05) 24%, transparent 30%),
-      linear-gradient(94deg,  transparent 44%, rgba(216,239,160,.045) 49%, transparent 55%),
-      linear-gradient(86deg,  transparent 66%, rgba(166,204,92,.04) 71%, transparent 77%),
-      /* leaf mass overhead */
-      radial-gradient(ellipse 70% 26% at 22% -6%, rgba(11,20,16,.95), transparent 70%),
-      radial-gradient(ellipse 60% 22% at 74% -4%, rgba(11,20,16,.9), transparent 70%),
-      /* forest floor */
-      radial-gradient(ellipse 120% 30% at 50% 106%, rgba(11,20,16,.92), transparent 72%);
+      linear-gradient(101deg, transparent 16%, rgba(198,229,140,.13) 23%, transparent 31%),
+      linear-gradient(96deg,  transparent 40%, rgba(226,242,186,.11) 47%, transparent 55%),
+      linear-gradient(86deg,  transparent 63%, rgba(198,229,140,.1) 70%, transparent 78%),
+      /* leaf mass closing in overhead */
+      radial-gradient(ellipse 74% 24% at 20% -8%, rgba(9,16,7,.9), transparent 72%),
+      radial-gradient(ellipse 64% 20% at 78% -6%, rgba(9,16,7,.84), transparent 72%),
+      /* mossy floor catching light, not a black band */
+      radial-gradient(ellipse 90% 26% at 46% 104%, rgba(64,102,38,.5), transparent 70%),
+      radial-gradient(ellipse 130% 22% at 50% 112%, rgba(6,12,4,.92), transparent 74%);
   }
 
   /* leaf blades, mirrored to whichever side of the culm they sit on */
@@ -394,15 +437,15 @@
     width: var(--len, 40px); height: 8px; margin-top: -4px;
     transform-origin: 0 50%;
     transform: scaleX(var(--side, 1)) rotate(calc(var(--drop, 20deg) * -1));
-    background: linear-gradient(90deg, var(--stem), var(--bamboo) 58%, rgba(127, 168, 63, 0));
+    background: linear-gradient(90deg, var(--f1, #4a7a2e), var(--f2, #7fa83f) 58%, transparent);
     clip-path: polygon(0 50%, 20% 10%, 58% 22%, 100% 47%, 100% 53%, 58% 78%, 20% 90%);
   }
 
   .atmos__vignette {
     position: absolute; inset: 0;
     background:
-      radial-gradient(ellipse 120% 88% at 50% 42%, transparent 38%, var(--void) 100%),
-      linear-gradient(to bottom, var(--void) 0%, transparent 18% 82%, var(--void) 100%);
+      radial-gradient(ellipse 128% 96% at 50% 40%, transparent 44%, rgba(4, 7, 5, .92) 100%),
+      linear-gradient(to bottom, rgba(4,7,5,.7) 0%, transparent 16% 84%, rgba(4,7,5,.85) 100%);
   }
   /* Static grain. An animated blend over a viewport-sized layer
      repaints the whole thing several times a second for an effect
@@ -427,6 +470,16 @@
     padding: clamp(5rem, 10vh, 7rem) var(--pad) 0;
     display: flex; flex-direction: column;
   }
+  /* The grove is bright now, so the copy needs its own shade to sit
+     in — the same job the spotlight-on-black did before. */
+  .hero__stage::before {
+    content: ""; position: absolute;
+    left: 50%; top: -6%; translate: -50% 0;
+    width: min(1180px, 96vw); height: 86%;
+    background: radial-gradient(ellipse 50% 52% at 50% 42%,
+      rgba(6, 12, 5, .9) 0%, rgba(6, 12, 5, .66) 42%, transparent 74%);
+    pointer-events: none;
+  }
   .hero__stage {
     position: relative;
     flex: 1; min-height: 0;
@@ -436,6 +489,9 @@
     text-align: center;
   }
 
+  .pill, .hero__title, .hero__sub, .hero__actions, .hero__machine, .hero__floor {
+    position: relative;   /* above the shade pool */
+  }
   .pill {
     display: inline-flex; align-items: center; gap: .6rem;
     padding: .42rem .95rem .42rem .8rem;
@@ -468,15 +524,17 @@
     text-wrap: balance;
   }
   .hero__title .line { display: block; overflow: hidden; }
+  /* Both lines stay light. The old ramp dropped the second line to
+     mid-green, which was legible on a near-black page and disappears
+     entirely against a sunlit grove. */
   .hero__title .line > span {
     display: block;
-    background: linear-gradient(180deg, var(--sun) 0%, var(--bamboo) 118%);
+    background: linear-gradient(180deg, #f2fbdd 0%, #cbe595 120%);
     -webkit-background-clip: text; background-clip: text;
     color: transparent;
   }
-  /* second line steps down the ramp — still one hue */
   .hero__title .line:nth-child(2) > span {
-    background: linear-gradient(180deg, var(--leaf) 0%, var(--stem) 130%);
+    background: linear-gradient(180deg, #e4f4bb 0%, #a9cd6c 130%);
     -webkit-background-clip: text; background-clip: text;
   }
 
@@ -627,45 +685,46 @@
   }
   .pr__face--back {
     transform: rotateY(180deg) translateZ(calc(var(--s) / 2));
-    background: linear-gradient(168deg, #121a10, #0a0f09 78%);
-    border: 1px solid rgba(166, 204, 92, .16);
+    background: linear-gradient(168deg, var(--shell-2), var(--shell-4) 82%);
+    border: 1px solid rgba(139, 145, 138, .3);
   }
   .pr__face--left {
     transform: rotateY(-90deg) translateZ(calc(var(--s) / 2));
-    background: linear-gradient(100deg, #171f13 0%, #10170e 46%, #090d08 100%);
-    border: 1px solid rgba(166, 204, 92, .14);
+    background: linear-gradient(100deg, var(--shell-2) 0%, var(--shell-3) 52%, var(--shell-4) 100%);
+    border: 1px solid rgba(139, 145, 138, .26);
   }
+  /* lit flank — the sun is coming from the right in the reference */
   .pr__face--right {
     transform: rotateY(90deg) translateZ(calc(var(--s) / 2));
-    background: linear-gradient(260deg, #1a2216 0%, #12190f 48%, #0a0f09 100%);
-    border: 1px solid rgba(166, 204, 92, .14);
+    background: linear-gradient(260deg, var(--shell-1) 0%, var(--shell-2) 54%, var(--shell-3) 100%);
+    border: 1px solid rgba(139, 145, 138, .34);
   }
   /* the lid, with the recessed panel line the real thing has */
   .pr__face--top {
     transform: rotateX(90deg) translateZ(calc(var(--s) / 2));
     background:
-      linear-gradient(180deg, transparent calc(50% - 1px), rgba(4,7,5,.75) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
-      linear-gradient(165deg, #202a1a 0%, #151d12 55%, #0e140c 100%);
-    border: 1px solid rgba(166, 204, 92, .22);
+      linear-gradient(180deg, transparent calc(50% - 1px), rgba(20,23,21,.8) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+      linear-gradient(165deg, var(--shell-hi) 0%, var(--shell-1) 46%, var(--shell-2) 100%);
+    border: 1px solid rgba(139, 145, 138, .42);
   }
   .pr__face--bottom {
     transform: rotateX(-90deg) translateZ(calc(var(--s) / 2));
-    background: #060905;
-    border: 1px solid rgba(166, 204, 92, .12);
+    background: var(--shell-4);
+    border: 1px solid rgba(139, 145, 138, .2);
   }
 
   /* ── the glass door ── */
   .pr__glass {
     transform: translateZ(calc(var(--s) / 2));
     background: linear-gradient(152deg,
-      rgba(166, 204, 92, .09) 0%,
-      rgba(36, 64, 31, .07) 40%,
-      rgba(4, 7, 5, .1) 72%,
-      rgba(166, 204, 92, .05) 100%);
-    border: 1px solid rgba(166, 204, 92, .34);
+      rgba(198, 208, 196, .17) 0%,
+      rgba(70, 78, 70, .13) 38%,
+      rgba(14, 18, 14, .26) 72%,
+      rgba(198, 208, 196, .1) 100%);
+    border: 1px solid rgba(139, 145, 138, .5);
     box-shadow:
-      inset 0 0 0 3px rgba(10, 15, 9, .85),
-      inset 0 0 34px -10px rgba(166, 204, 92, .3);
+      inset 0 0 0 4px var(--shell-3),
+      inset 0 0 34px -10px rgba(0, 0, 0, .7);
     overflow: hidden;
   }
   .pr__sheen {
@@ -683,8 +742,8 @@
     position: absolute; left: 6%; top: 4.5%;
     width: 40%; height: 14%;
     transform: translateZ(calc(var(--s) / 2 + 3px));
-    background: linear-gradient(170deg, #10170e, #070b06);
-    border: 1px solid rgba(166, 204, 92, .3);
+    background: linear-gradient(170deg, var(--shell-3), var(--shell-4));
+    border: 1px solid rgba(139, 145, 138, .45);
     border-radius: calc(var(--s) * .012);
     display: flex; align-items: center; gap: 6%;
     padding: 0 5%;
@@ -708,8 +767,8 @@
   .pr__dial {
     width: calc(var(--s) * .072); aspect-ratio: 1;
     border-radius: 50%;
-    background: radial-gradient(circle at 38% 32%, #2b3722, #0d130b 72%);
-    border: 1px solid rgba(166, 204, 92, .34);
+    background: radial-gradient(circle at 38% 32%, var(--shell-1), var(--shell-4) 74%);
+    border: 1px solid rgba(139, 145, 138, .5);
     box-shadow: inset 0 0 6px -1px rgba(0,0,0,.9);
     position: relative; flex: none;
   }
@@ -727,10 +786,10 @@
     font-family: var(--mono);
     font-size: calc(var(--s) * .026); letter-spacing: .18em;
     line-height: 1.35; text-align: right;
-    color: rgba(216, 239, 160, .5);
+    color: rgba(214, 219, 212, .62);
     backface-visibility: hidden;
   }
-  .pr__badge b { display: block; color: rgba(216,239,160,.82); font-weight: 400; }
+  .pr__badge b { display: block; color: rgba(236, 240, 234, .9); font-weight: 400; }
 
   /* small oval nameplate low on the door, as on the reference */
   .pr__oval {
@@ -738,8 +797,8 @@
     padding: calc(var(--s) * .009) calc(var(--s) * .028);
     transform: translateZ(calc(var(--s) / 2 + 2px));
     border-radius: 2rem;
-    background: rgba(216, 239, 160, .82);
-    color: #070c06;
+    background: rgba(232, 236, 230, .92);
+    color: #1b1f1c;
     font-family: var(--mono);
     font-size: calc(var(--s) * .022); letter-spacing: .12em;
     backface-visibility: hidden;
@@ -754,7 +813,7 @@
     opacity: var(--shell);
   }
   .pr__mark svg { width: 100%; height: 100%; }
-  .pr__mark path { fill: none; stroke: rgba(166,204,92,.4); stroke-width: 2.4; stroke-linecap: round; }
+  .pr__mark path { fill: none; stroke: rgba(190, 196, 188, .42); stroke-width: 2.4; stroke-linecap: round; }
 
   /* ── feet ── */
   .pr__foot {
@@ -762,7 +821,7 @@
     position: absolute; left: 50%; top: 50%;
     width: calc(var(--s) * .09); height: calc(var(--s) * .05);
     margin: 0 0 0 calc(var(--s) * -.045);
-    background: linear-gradient(180deg, #141b11, #050804);
+    background: linear-gradient(180deg, var(--shell-3), #0b0d0b);
     border-radius: 0 0 2px 2px;
   }
   .pr__foot--a { transform: translate3d(calc(var(--s) * -.36), calc(var(--s) * .5), calc(var(--s) *  .34)) }
@@ -926,6 +985,12 @@
     position: absolute; top: clamp(4.5rem, 11vh, 7rem); left: var(--pad);
     max-width: 26rem;
   }
+  .orbit__head::before {
+    content: ""; position: absolute; inset: -1.5rem -3rem -1.5rem -2rem;
+    background: radial-gradient(ellipse 62% 62% at 30% 50%,
+      rgba(6, 12, 5, .9) 0%, rgba(6, 12, 5, .6) 52%, transparent 78%);
+    z-index: -1;
+  }
   .orbit__head .eyebrow { margin-bottom: 1rem; }
   .orbit__title {
     font-size: clamp(1.6rem, 2.9vw, 2.6rem);
@@ -942,15 +1007,17 @@
   .call {
     position: absolute; left: var(--x); top: var(--y);
     width: min(310px, 30vw);
-    padding-left: 1rem;
+    padding: .7rem 1.1rem .8rem 1rem;
     border-left: 1px solid var(--line-hi);
+    background: linear-gradient(90deg,
+      rgba(6, 12, 5, .88) 0%, rgba(6, 12, 5, .66) 62%, transparent 100%);
     opacity: 0; transform: translateY(14px);
     transition: opacity .55s var(--ease), transform .55s var(--ease);
   }
   .call.is-on { opacity: 1; transform: none; }
   .call__n {
-    display: block; color: var(--stem);
-    font-size: .6rem; letter-spacing: .22em; margin-bottom: .45rem;
+    display: block; color: var(--leaf);
+    font-size: .64rem; letter-spacing: .2em; margin-bottom: .45rem;
   }
   .call b {
     display: block; color: var(--sun);
@@ -1033,6 +1100,7 @@
   .hud__row {
     display: flex; justify-content: space-between; align-items: baseline;
     gap: 1rem; padding: .46rem .85rem;
+    color: var(--ink-mute);
   }
   .hud__row b { color: var(--leaf); font-weight: 400; letter-spacing: .08em; }
   .hud__row--head {
@@ -1141,7 +1209,7 @@
   .mat b { display: block; color: var(--sun); letter-spacing: .12em; }
   .mat i {
     display: block; margin: .4rem 0 .6rem;
-    color: var(--ink-mute); font-size: .6rem; letter-spacing: .14em;
+    color: var(--ink-dim); font-size: .645rem; letter-spacing: .13em;
     text-transform: uppercase;
   }
   .mat p { font-size: .84rem; color: var(--ink-dim); max-width: 34ch; }
@@ -1258,7 +1326,7 @@
   }
 
   .spool__meta b { display: block; color: var(--sun); letter-spacing: .16em; }
-  .spool__meta span { display: block; margin: .5rem 0 .8rem; color: var(--ink-mute); font-size: .6rem; }
+  .spool__meta span { display: block; margin: .5rem 0 .8rem; color: var(--ink-dim); font-size: .645rem; }
   .spool__meta p { font-size: .82rem; color: var(--ink-dim); }
 }
 

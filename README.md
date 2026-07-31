@@ -10,12 +10,20 @@ python3 -m http.server 8000   # then visit localhost:8000
 
 ## The constraint
 
-**One hue. No exceptions.**
+**One hue for the world, neutral grey for the machine.**
 
-Every pixel is black or chlorophyll green. The palette is a single ramp from
-`#040705` to a sunlit `#D8EFA0`, which does the job white normally does — there
-is no white, no second accent, and no photograph anywhere in the project. Hue
-stays inside 82–96° throughout.
+The forest is a single green hue across a wide value range — from `#081205` in
+the foreground silhouettes up to a sunlit `#A8CF72` in the far haze. No second
+hue enters the landscape, and there is no photograph anywhere in the project.
+
+The one deliberate exception is the printer itself, which is neutral grey. It is
+the only manufactured object in frame, and letting it sit outside the green is
+what makes it read as machinery dropped into a forest rather than grown there.
+
+The grove is lit from behind, so the *distance* is the brightest part of the
+frame and each nearer plane reads darker against it. That ordering is what makes
+depth work; an earlier version had it exactly backwards, with the far plane
+dimmest, and the result read as flat scenery rather than a grove.
 
 That rule is also why there are no image assets. The jungle — bamboo culms in
 three depth planes, fern undergrowth, canopy light shafts, drifting spores — plus
@@ -69,6 +77,22 @@ assets/js/scene.js      grove, undergrowth, spores, the CSS-3D machine, spools
 assets/js/printjob.js   the layer-by-layer canvas print
 assets/js/main.js       wiring, reveals, counters, telemetry
 ```
+
+## Contrast
+
+Text colour is set from measured contrast, not by eye. The label token was once
+`rgba(166,204,92,.34)`, which lands around **2.1:1** on the page ground — well
+under the 4.5:1 small text needs, and it carried every eyebrow, spec unit, HUD
+label, footer link and the partner strip. Effectively half the page's small text
+was unreadable. Labels now sit near 6:1 and body text near 7:1, and the micro
+labels moved off `0.6rem` (9.6px), which was under-sized as well as under-set.
+
+Brightening the grove made this harder rather than easier, so anything carrying
+copy has its own ground: the hero copy sits in a pool of shade, the staged scenes
+have a scrim behind the object, and the reading sections have a backdrop. Bright
+scenery and legible text are in genuine tension here — the scrims are where that
+tension is resolved, and they are the first thing to adjust if the balance should
+move either way.
 
 ## Accessibility and degradation
 
