@@ -216,6 +216,13 @@
     'uniform vec4 uLiquid;',   /* x radius, y crema, z swirl angle, w art reveal */
     'uniform vec4 uPour;',     /* xy impact point, z strength, w art opacity */
     'uniform vec2 uFog;',      /* x start distance, y density */
+    /* The three colours the surface is mixed from. They were
+       constants while this shader only ever drew espresso; the
+       menu needs the same crema banking, the same domain-warped
+       swirl and the same stroke-ordered art on matcha, chai and
+       tea, and all that separates those is where the ramp starts
+       and ends. Defaults are set in one place, in Stage.setMat. */
+    'uniform vec3 uDeep, uCrema, uCremaHi, uMilk;',
     'out vec4 frag;',
 
     /* ── the coffee surface ───────────────────────────────────
@@ -232,9 +239,9 @@
     '  float c = fbm3(vec3(w*1.9, uTime*0.06), 4)*0.5 + 0.5;',
     '  float bubbles = fbm3(vec3(sq*26.0, uTime*0.15), 2)*0.5+0.5;',
 
-    '  vec3 espresso = vec3(0.055, 0.021, 0.010);',
-    '  vec3 crema    = vec3(0.62, 0.34, 0.135);',
-    '  vec3 cremaHi  = vec3(0.86, 0.59, 0.30);',
+    '  vec3 espresso = uDeep;',
+    '  vec3 crema    = uCrema;',
+    '  vec3 cremaHi  = uCremaHi;',
 
     '  float cm = smoothstep(0.34, 0.78, c) * uLiquid.y;',
     /* the ring where crema piles against the ceramic */
@@ -250,7 +257,7 @@
     '  vec4 art = texture(uArtTex, sq*0.5 + 0.5);',
     '  float reveal = smoothstep(art.g - 0.03, art.g + 0.09, uLiquid.w);',
     '  float milk = art.r * reveal * uPour.w;',
-    '  vec3 milkC = vec3(0.93, 0.87, 0.775);',
+    '  vec3 milkC = uMilk;',
     '  albedo = mix(albedo, milkC, milk);',
     /* milk sits slightly proud and is glossier than crema */
     '  rough = mix(mix(0.22, 0.42, cm), 0.16, milk);',
@@ -344,6 +351,34 @@
     '    emissive += envColor(reflect(-V,N), uSunDir, 0.02)*fres*0.6;',
     '  } else if(uMat == 8){',     /* the ground plane of act zero: nothing */
     '    ao = 0.6;',
+    '  } else if(uMat == 9){',     /* printed label, on a bag or a cup */
+    /* Ink on paper, not a screen: the print is matte where the
+       stock is matte, and the one thing that sells it as *printed*
+       rather than projected is that the dark ink is very slightly
+       glossier than the paper around it. */
+    '    vec4 lab = texture(uArtTex, vUv);',
+    '    albedo = mix(albedo, lab.rgb, lab.a);',
+    '    float ink = lab.a * (1.0 - dot(lab.rgb, vec3(0.33)));',
+    '    rough = clamp(rough - ink*0.16, 0.06, 1.0);',
+    '  } else if(uMat == 10){',    /* baked crust */
+    /* A pastry is not a smooth solid. The crust carries blister
+       and a fine flour-dusted grain, and the troughs between the
+       laminated layers are both darker and less glossy than the
+       shoulders that caught the oven's heat. */
+    '    vec3 q = vLocal*vec3(9.0, 16.0, 9.0);',
+    '    float e = 0.10;',
+    '    float gx = fbm3(q+vec3(e,0,0),3) - fbm3(q-vec3(e,0,0),3);',
+    '    float gy = fbm3(q+vec3(0,e,0),3) - fbm3(q-vec3(0,e,0),3);',
+    '    float gz = fbm3(q+vec3(0,0,e),3) - fbm3(q-vec3(0,0,e),3);',
+    '    vec3 g = vec3(gx,gy,gz);',
+    '    g -= N*dot(g,N);',
+    '    N = normalize(N - g*uDetail);',
+    '    float bake = fbm3(vLocal*5.5, 4);',
+    '    albedo *= 0.74 + 0.52*smoothstep(-0.35, 0.35, bake);',
+    /* the top of a bake browns; the underside stays pale */
+    '    albedo *= mix(0.72, 1.12, smoothstep(-0.5, 0.9, N.y));',
+    '    rough = clamp(rough - smoothstep(0.0,0.45,bake)*0.22, 0.12, 1.0);',
+    '    ao = mix(1.0, 0.55, smoothstep(0.3,-0.6,N.y));',
     '  }',
 
     '  vec3 col = shade(vWPos, N, albedo, rough, metal, ao, shadowMul) + emissive;',

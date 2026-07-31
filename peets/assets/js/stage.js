@@ -504,8 +504,24 @@
      .f('uTime', this.time);
   };
 
+  /* The coffee-surface ramp, as the film has always had it. It is
+     a uniform now rather than three constants in the shader, so
+     the menu can run matcha and tea through the same crema
+     banking and the same stroke-ordered art; anything that does
+     not override it gets espresso. */
+  var LIQ = {
+    deep:    [0.055, 0.021, 0.010],
+    crema:   [0.62, 0.34, 0.135],
+    cremaHi: [0.86, 0.59, 0.30],
+    milk:    [0.93, 0.87, 0.775]
+  };
+
   Stage.prototype.setMat = function (p, mat, fade, alphaMul) {
-    p.v3('uBase', mat.base)
+    p.v3('uDeep', (mat.liq || LIQ).deep)
+     .v3('uCrema', (mat.liq || LIQ).crema)
+     .v3('uCremaHi', (mat.liq || LIQ).cremaHi)
+     .v3('uMilk', (mat.liq || LIQ).milk)
+     .v3('uBase', mat.base)
      .f('uRough', mat.rough).f('uMetal', mat.metal)
      .f('uAlpha', (mat.alpha === undefined ? 1 : mat.alpha) * (alphaMul === undefined ? 1 : alphaMul))
      .v3('uEmissive', mat.emissive || [0, 0, 0])
@@ -830,6 +846,7 @@
 
   Stage.prototype.innerRadius = innerRadius;
   Stage.MAT = MAT;
+  Stage.LIQ = LIQ;
   PEET.Stage = Stage;
 
 })(window);
