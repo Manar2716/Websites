@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en" class="is-booting">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Menu — SHRIMPARTY</title>
+<meta name="description" content="The full board: seven buckets, the coals, the plates, the sides, the heat scale and the bar. Every price, in AED.">
+<meta name="theme-color" content="#090909">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="Menu — SHRIMPARTY">
+<meta property="og:description" content="The full board: seven buckets, the coals, the plates, the sides, the heat scale and the bar. Every price, in AED.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="../assets/css/shrimparty.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23090909'/><path d='M9 21c0-6 4-10 9-10 3 0 5 2 5 4s-2 4-5 4c-2 0-3-1-3-2' stroke='%23F2792B' stroke-width='2.4' fill='none' stroke-linecap='round'/></svg>">
+
+<script>
+  /* Set before first paint: every reveal-on-scroll style is gated
+     behind `.js`, so with scripting unavailable the page is a
+     static version of itself rather than a column of blanks. */
+  document.documentElement.className += ' js';
+</script>
+</head>
+<body data-page="menu">
+
+<!-- The page transition. Three layers of water on staggered delays:
+     they rise to cover as a page leaves and drain as one arrives.
+     Purely decorative, and skipped entirely for reduced motion. -->
+<div class="wash" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<canvas class="cursorfx" id="cursorfx" aria-hidden="true"></canvas>
+<div class="cursor" id="cursor" aria-hidden="true">
+  <div class="cursor__ring"></div>
+  <div class="cursor__dot"></div>
+  <div class="cursor__label"></div>
+</div>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <a class="nav__mark" href="../" aria-label="SHRIMPARTY, home" data-magnetic>
+    <svg viewBox="0 0 44 32" aria-hidden="true" focusable="false">
+      <path d="M7 23c0-8 5.6-14 12.6-14 4.2 0 7.4 2.6 7.4 5.8 0 3-2.6 5.2-6.4 5.2-2.6 0-4.2-1.2-4.2-2.6"
+            fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="30.5" cy="12.5" r="1.7" fill="currentColor"/>
+      <path d="M27 22.4c3.6 1.2 7 .4 9.6-2.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    <span>SHRIMPARTY</span>
+  </a>
+
+  <nav class="nav__links" aria-label="Primary">
+    <a class="nav__link" href="../" data-magnetic>Home</a>
+    <a class="nav__link is-on" href="../menu/" aria-current="page" data-magnetic>Menu</a>
+    <a class="nav__link" href="../signatures/" data-magnetic>Signatures</a>
+    <a class="nav__link" href="../sourcing/" data-magnetic>Sourcing</a>
+    <a class="nav__link" href="../visit/" data-magnetic>Visit</a>
+    <a class="nav__cta" href="../reserve/" data-magnetic>Reserve</a>
+  </nav>
+
+  <button class="nav__burger" id="navToggle" type="button"
+          aria-expanded="false" aria-controls="navDrawer">
+    <span class="nav__burger-lines" aria-hidden="true"><i></i><i></i></span>
+    <span class="visually-hidden">Menu</span>
+  </button>
+</header>
+
+<nav class="drawer" id="navDrawer" aria-label="Primary, small screens">
+    <a href="../">Home</a>
+    <a href="../menu/" aria-current="page">Menu</a>
+    <a href="../signatures/">Signatures</a>
+    <a href="../sourcing/">Sourcing</a>
+    <a href="../visit/">Visit</a>
+    <a href="../reserve/">Reserve a table</a>
+</nav>
+
+<section class="phero">
+  <div class="phero__inner">
+    <p class="eyebrow mono">THE BOARD</p>
+    <h1 class="phero__h" data-hero>THE WHOLE BOARD</h1>
+    <p class="phero__sub">Priced by the pail and by the plate. Every bucket is boiled to order, which is why it takes twenty-five minutes and why it is worth it.</p>
+    <p class="phero__meta mono">Prices in AED · service included · kitchen closes 00:30</p>
+  </div>
+  <div class="phero__rule" aria-hidden="true"><i></i></div>
+</section>
+<main id="main">
+<section class="board" aria-labelledby="b01">
+  <div class="board__head">
+    <p class="eyebrow mono">01 — THE BUCKETS</p>
+    <h2 class="board__h" id="b01" data-stagger>The Buckets</h2>
+    <p class="board__blurb" data-tide-soft>Thirty litres of stock, a wire basket, and a pail turned out onto paper. Nothing here is served with cutlery.</p>
+    <div class="board__art"><canvas data-art-canvas data-art="bucket"></canvas><div class="panel__steam" aria-hidden="true"><i></i><i></i><i></i></div></div>
+  </div>
+  <ul class="board__list">
+      <li class="row" data-menu-row>
+        <h3 class="row__name">The Seafood Bucket <span class="row__tag mono">SERVES 2–3</span></h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">395</b>
+        <p class="row__note">Snow crab, tiger prawn, black mussel, andouille, corn, new potato.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">The Shrimp Bucket <span class="row__tag mono">SERVES 2</span></h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">265</b>
+        <p class="row__note">A kilo of head-on Gulf prawn in garlic butter, cayenne and lemon.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">The Crab Bucket <span class="row__tag mono">SERVES 2</span></h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">445</b>
+        <p class="row__note">Snow crab clusters only, cracked at the pass, drawn butter on the side.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">The Whole Damn Thing <span class="row__tag mono">SERVES 5–6</span></h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">1,180</b>
+        <p class="row__note">Both buckets, a lobster, and every side on this page. Ordered once per table.</p>
+      </li>
+  </ul>
+</section>
+<section class="board" aria-labelledby="b02">
+  <div class="board__head">
+    <p class="eyebrow mono">02 — FROM THE COALS</p>
+    <h2 class="board__h" id="b02" data-stagger>From the Coals</h2>
+    <p class="board__blurb" data-tide-soft>The only part of the kitchen that is quiet. Everything below goes over binchō and comes off when it is done, not when it is ordered.</p>
+    <div class="board__art"><canvas data-art-canvas data-art="salmon"></canvas><div class="panel__steam" aria-hidden="true"><i></i><i></i><i></i></div></div>
+  </div>
+  <ul class="board__list">
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Grilled Salmon </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">145</b>
+        <p class="row__note">Skin down, blackened on one side only. Charred lemon, dill butter, burnt scallion.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Whole Sea Bream <span class="row__tag mono">SERVES 2</span></h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">185</b>
+        <p class="row__note">Scored, salted, chermoula through the cuts. Served on the board it was cooked on.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Tiger Prawn Skewer </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">110</b>
+        <p class="row__note">Six, head on, over the coals for ninety seconds a side.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Coal-Roast Corn </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">38</b>
+        <p class="row__note">Rolled in the boil butter and cayenne while it is still too hot to hold.</p>
+      </li>
+  </ul>
+</section>
+<section class="board" aria-labelledby="b03">
+  <div class="board__head">
+    <p class="eyebrow mono">03 — PLATES</p>
+    <h2 class="board__h" id="b03" data-stagger>Plates</h2>
+    <p class="board__blurb" data-tide-soft>For the half of the table that would rather not wear their dinner.</p>
+    <div class="board__art"><canvas data-art-canvas data-art="thermidor"></canvas><div class="panel__steam" aria-hidden="true"><i></i><i></i><i></i></div></div>
+  </div>
+  <ul class="board__list">
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Lobster Thermidor </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">320</b>
+        <p class="row__note">Half a lobster, mustard cream, gratinated in the shell.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Seafood Pasta </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">130</b>
+        <p class="row__note">Linguine, clam, prawn, calamari, a spoon of the boil stock and too much butter.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Shrimp Tagine <span class="row__tag mono">SERVES 2</span></h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">185</b>
+        <p class="row__note">Prawn, preserved lemon, olive and chermoula. Lifted at the table.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Sea Carnival Soup </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">85</b>
+        <p class="row__note">Six hours of shells, reduced nearly to a sauce, loosened with cream.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Fried Oyster Roll </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">95</b>
+        <p class="row__note">Six oysters, remoulade, shredded iceberg, a bun that will not survive it.</p>
+      </li>
+  </ul>
+</section>
+<section class="board" aria-labelledby="b04">
+  <div class="board__head">
+    <p class="eyebrow mono">04 — SIDES</p>
+    <h2 class="board__h" id="b04" data-stagger>Sides</h2>
+    <p class="board__blurb" data-tide-soft>Ordered by the table, not by the person. Assume they will disappear.</p>
+    
+  </div>
+  <ul class="board__list">
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Dirty Rice </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">42</b>
+        <p class="row__note">Cooked in the stock the buckets are boiled in.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Hush Puppies </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">38</b>
+        <p class="row__note">Nine, with the honey butter.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Slaw </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">32</b>
+        <p class="row__note">Sharp enough to reset your mouth between pails.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Cajun Fries </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">36</b>
+        <p class="row__note">Dusted with the same blend that goes in the pail.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Garlic Bread </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">30</b>
+        <p class="row__note">For the butter left in the bottom. This is the point of it.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Charred Broccolini </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">44</b>
+        <p class="row__note">Chilli, lemon, a lot of black pepper.</p>
+      </li>
+  </ul>
+</section>
+<section class="board" aria-labelledby="b05">
+  <div class="board__head">
+    <p class="eyebrow mono">05 — THE HEAT</p>
+    <h2 class="board__h" id="b05" data-stagger>The Heat</h2>
+    <p class="board__blurb" data-tide-soft>Four levels. The blend is the same in all of them; what changes is how much of it and which chillies are in the butter.</p>
+    
+  </div>
+  <ul class="board__list">
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Mild </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">no charge</b>
+        <p class="row__note">The blend, no chilli in the butter. Still tastes of something.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Medium </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">no charge</b>
+        <p class="row__note">Cayenne. Where most of the room lands, and where we would start.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Cajun </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">no charge</b>
+        <p class="row__note">Cayenne and bird’s eye. You will notice it at the back of your throat.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Carnival <span class="row__tag mono">SIGN NOTHING</span></h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">no charge</b>
+        <p class="row__note">Both, plus a long pepper that arrives late and does not leave.</p>
+      </li>
+  </ul>
+</section>
+<section class="board" aria-labelledby="b06">
+  <div class="board__head">
+    <p class="eyebrow mono">06 — BAR</p>
+    <h2 class="board__h" id="b06" data-stagger>Bar</h2>
+    <p class="board__blurb" data-tide-soft>Built to survive cayenne. Everything here is cold, and most of it is sour.</p>
+    
+  </div>
+  <ul class="board__list">
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Marina Sour </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">68</b>
+        <p class="row__note">Date, lime, egg white, a bar spoon of the boil butter washed through.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Salted Watermelon </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">38</b>
+        <p class="row__note">No alcohol. Watermelon, lime, a lot of salt. The best thing for the heat.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Gulf Highball </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">72</b>
+        <p class="row__note">Whisky, soda, cucumber, a strip of preserved lemon.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">House Lager </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">42</b>
+        <p class="row__note">Cold, wet, unremarkable, correct.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Hibiscus Iced Tea </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">28</b>
+        <p class="row__note">Free refills, and you will want them.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Wine by the glass </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">from 55</b>
+        <p class="row__note">Ask. The list is short and it is chosen for shellfish.</p>
+      </li>
+  </ul>
+</section>
+<section class="board" aria-labelledby="b07">
+  <div class="board__head">
+    <p class="eyebrow mono">07 — SWEET</p>
+    <h2 class="board__h" id="b07" data-stagger>Sweet</h2>
+    <p class="board__blurb" data-tide-soft>Three things, and two of them are cold.</p>
+    
+  </div>
+  <ul class="board__list">
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Beignets </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">48</b>
+        <p class="row__note">Five, under enough icing sugar to be a problem.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Key Lime Pie </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">52</b>
+        <p class="row__note">Sharp, cold, and the correct end to all of this.</p>
+      </li>
+      <li class="row" data-menu-row>
+        <h3 class="row__name">Salted Caramel Soft Serve </h3>
+        <i class="row__lead" aria-hidden="true"></i>
+        <b class="row__price mono">32</b>
+        <p class="row__note">In a paper cup, eaten walking along the Marina.</p>
+      </li>
+  </ul>
+</section>
+
+<section class="strip">
+  <div class="strip__inner">
+    <div>
+      <p class="eyebrow mono">READY</p>
+      <h2 class="section-h" data-stagger>BOOK IT</h2>
+      <p class="section-sub">Buckets are boiled to order. Reserving means yours starts before you sit down.</p>
+    </div>
+    <a class="bigbtn" href="../reserve/" data-magnetic>
+      <span class="bigbtn__label">Reserve a table</span>
+      <i class="bigbtn__fill" aria-hidden="true"></i>
+    </a>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot" id="foot">
+  <canvas class="foot__canvas" id="footCanvas" aria-hidden="true"></canvas>
+  <div class="foot__inner">
+    <p class="foot__word" data-split-hold>SHRIMPARTY</p>
+
+    <div class="foot__grid mono">
+      <div>
+        <h4>Find us</h4>
+        <p>Pier 7, Dubai Marina Walk<br>Dubai, United Arab Emirates</p>
+      </div>
+      <div>
+        <h4>Hours</h4>
+        <p>Daily, 18:00 — 01:00<br>Kitchen closes 00:30</p>
+      </div>
+      <div>
+        <h4>The site</h4>
+        <p><a href="../menu/">Menu</a><br><a href="../signatures/">Signatures</a><br>
+           <a href="../sourcing/">Sourcing</a></p>
+      </div>
+      <div>
+        <h4>Table</h4>
+        <p><a href="../reserve/">Reserve</a><br><a href="../visit/">Visit</a><br>
+           <a href="tel:+97140000000">+971 4 000 0000</a></p>
+      </div>
+    </div>
+
+    <p class="foot__fine mono">
+      An unofficial design concept. SHRIMPARTY is an invented restaurant — the name,
+      the marks, the prices, the addresses and the telephone number on this site are
+      made up, the reservation form sends nothing anywhere, and every object you can
+      see is drawn in code. No photograph appears anywhere on the site.
+    </p>
+  </div>
+</footer>
+
+<script src="../assets/js/math.js"></script>
+<script src="../assets/js/art.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/site.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

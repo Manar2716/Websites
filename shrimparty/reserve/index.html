@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en" class="is-booting">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reserve — SHRIMPARTY</title>
+<meta name="description" content="Book a table at SHRIMPARTY, Pier 7, Dubai Marina Walk. Tables of two to fourteen, service from 18:00.">
+<meta name="theme-color" content="#090909">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="Reserve — SHRIMPARTY">
+<meta property="og:description" content="Book a table at SHRIMPARTY, Pier 7, Dubai Marina Walk. Tables of two to fourteen, service from 18:00.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="../assets/css/shrimparty.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23090909'/><path d='M9 21c0-6 4-10 9-10 3 0 5 2 5 4s-2 4-5 4c-2 0-3-1-3-2' stroke='%23F2792B' stroke-width='2.4' fill='none' stroke-linecap='round'/></svg>">
+
+<script>
+  /* Set before first paint: every reveal-on-scroll style is gated
+     behind `.js`, so with scripting unavailable the page is a
+     static version of itself rather than a column of blanks. */
+  document.documentElement.className += ' js';
+</script>
+</head>
+<body data-page="reserve">
+
+<!-- The page transition. Three layers of water on staggered delays:
+     they rise to cover as a page leaves and drain as one arrives.
+     Purely decorative, and skipped entirely for reduced motion. -->
+<div class="wash" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<canvas class="cursorfx" id="cursorfx" aria-hidden="true"></canvas>
+<div class="cursor" id="cursor" aria-hidden="true">
+  <div class="cursor__ring"></div>
+  <div class="cursor__dot"></div>
+  <div class="cursor__label"></div>
+</div>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <a class="nav__mark" href="../" aria-label="SHRIMPARTY, home" data-magnetic>
+    <svg viewBox="0 0 44 32" aria-hidden="true" focusable="false">
+      <path d="M7 23c0-8 5.6-14 12.6-14 4.2 0 7.4 2.6 7.4 5.8 0 3-2.6 5.2-6.4 5.2-2.6 0-4.2-1.2-4.2-2.6"
+            fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="30.5" cy="12.5" r="1.7" fill="currentColor"/>
+      <path d="M27 22.4c3.6 1.2 7 .4 9.6-2.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    <span>SHRIMPARTY</span>
+  </a>
+
+  <nav class="nav__links" aria-label="Primary">
+    <a class="nav__link" href="../" data-magnetic>Home</a>
+    <a class="nav__link" href="../menu/" data-magnetic>Menu</a>
+    <a class="nav__link" href="../signatures/" data-magnetic>Signatures</a>
+    <a class="nav__link" href="../sourcing/" data-magnetic>Sourcing</a>
+    <a class="nav__link" href="../visit/" data-magnetic>Visit</a>
+    <a class="nav__cta is-on" href="../reserve/" aria-current="page" data-magnetic>Reserve</a>
+  </nav>
+
+  <button class="nav__burger" id="navToggle" type="button"
+          aria-expanded="false" aria-controls="navDrawer">
+    <span class="nav__burger-lines" aria-hidden="true"><i></i><i></i></span>
+    <span class="visually-hidden">Menu</span>
+  </button>
+</header>
+
+<nav class="drawer" id="navDrawer" aria-label="Primary, small screens">
+    <a href="../">Home</a>
+    <a href="../menu/">Menu</a>
+    <a href="../signatures/">Signatures</a>
+    <a href="../sourcing/">Sourcing</a>
+    <a href="../visit/">Visit</a>
+    <a href="../reserve/" aria-current="page">Reserve a table</a>
+</nav>
+
+<section class="phero">
+  <div class="phero__inner">
+    <p class="eyebrow mono">THE TABLE</p>
+    <h1 class="phero__h" data-hero>RESERVE</h1>
+    <p class="phero__sub">Buckets are boiled to order and take twenty-five minutes. Booking means yours goes in before you sit down.</p>
+    <p class="phero__meta mono">Nothing on this form is sent anywhere — this is a design concept</p>
+  </div>
+  <div class="phero__rule" aria-hidden="true"><i></i></div>
+</section>
+
+<main id="main">
+
+<section class="book">
+  <div class="book__inner">
+    <div class="book__copy">
+      <h2 class="book__ch" data-stagger>THE RULES</h2>
+      <dl class="book__rules">
+        <div data-tide-soft><dt>Tables of 2 to 14</dt>
+          <dd>Anything larger is a conversation rather than a form. Call the room.</dd></div>
+        <div data-tide-soft><dt>Held for 15 minutes</dt>
+          <dd>After that the table goes back to the floor. The Marina walk is slow on a Friday; leave time.</dd></div>
+        <div data-tide-soft><dt>Bibs are not optional</dt>
+          <dd>They are not a gimmick either. Wear one, or wear the boil home.</dd></div>
+        <div data-tide-soft><dt>Tell us about allergies</dt>
+          <dd>Everything in the kitchen touches shellfish. If that is a problem, it is a real one — say so and we will talk.</dd></div>
+      </dl>
+
+      <div class="book__call">
+        <p class="mono">Or simply telephone</p>
+        <a class="book__tel" href="tel:+97140000000" data-magnetic>+971 4 000 0000</a>
+        <p class="mono book__hours">Daily 12:00 — 23:00</p>
+      </div>
+    </div>
+
+    <form class="book__form" id="bookForm" novalidate>
+      <div class="field" data-field>
+        <input id="f-name" name="name" type="text" placeholder=" " required autocomplete="name">
+        <label for="f-name">Name</label>
+        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
+      </div>
+      <div class="field" data-field>
+        <input id="f-mail" name="email" type="email" placeholder=" " required autocomplete="email">
+        <label for="f-mail">Email</label>
+        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
+      </div>
+      <div class="field field--half" data-field>
+        <input id="f-date" name="date" type="date" placeholder=" " required>
+        <label for="f-date">Date</label>
+        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
+      </div>
+      <div class="field field--half" data-field>
+        <input id="f-time" name="time" type="time" value="20:00" placeholder=" " required>
+        <label for="f-time">Time</label>
+        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
+      </div>
+      <div class="field field--half" data-field>
+        <input id="f-size" name="guests" type="number" min="1" max="14" value="2" placeholder=" " required>
+        <label for="f-size">Guests</label>
+        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
+      </div>
+      <div class="field field--half" data-field>
+        <input id="f-tel" name="tel" type="tel" placeholder=" " autocomplete="tel">
+        <label for="f-tel">Telephone</label>
+        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
+      </div>
+
+      <fieldset class="heat">
+        <legend class="mono">Heat</legend>
+        <div class="heat__row" id="heatRow">
+          <label><input type="radio" name="heat" value="1"><span>Mild</span></label>
+          <label><input type="radio" name="heat" value="2" checked><span>Medium</span></label>
+          <label><input type="radio" name="heat" value="3"><span>Cajun</span></label>
+          <label><input type="radio" name="heat" value="4"><span>Carnival</span></label>
+          <i class="heat__ink" id="heatInk" aria-hidden="true"></i>
+        </div>
+      </fieldset>
+
+      <div class="field field--area" data-field>
+        <textarea id="f-note" name="note" rows="3" placeholder=" "></textarea>
+        <label for="f-note">Anything we should know</label>
+        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
+      </div>
+
+      <button class="submit" type="submit" data-magnetic>
+        <span class="submit__label">Request the table</span>
+        <span class="submit__done" aria-hidden="true">Held for you</span>
+        <i class="submit__fill" aria-hidden="true"></i>
+      </button>
+      <p class="book__note mono" id="bookNote" role="status">
+        Nothing is sent anywhere — this page is a design concept and the form is
+        part of the demonstration.
+      </p>
+    </form>
+  </div>
+</section>
+
+<section class="strip">
+  <div class="strip__inner">
+    <div>
+      <p class="eyebrow mono">BEFORE YOU COME</p>
+      <h2 class="section-h" data-stagger>READ THE BOARD</h2>
+      <p class="section-sub">Decide on the bucket now and the table will be quicker.</p>
+    </div>
+    <a class="bigbtn" href="../menu/" data-magnetic>
+      <span class="bigbtn__label">See the menu</span>
+      <i class="bigbtn__fill" aria-hidden="true"></i>
+    </a>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot" id="foot">
+  <canvas class="foot__canvas" id="footCanvas" aria-hidden="true"></canvas>
+  <div class="foot__inner">
+    <p class="foot__word" data-split-hold>SHRIMPARTY</p>
+
+    <div class="foot__grid mono">
+      <div>
+        <h4>Find us</h4>
+        <p>Pier 7, Dubai Marina Walk<br>Dubai, United Arab Emirates</p>
+      </div>
+      <div>
+        <h4>Hours</h4>
+        <p>Daily, 18:00 — 01:00<br>Kitchen closes 00:30</p>
+      </div>
+      <div>
+        <h4>The site</h4>
+        <p><a href="../menu/">Menu</a><br><a href="../signatures/">Signatures</a><br>
+           <a href="../sourcing/">Sourcing</a></p>
+      </div>
+      <div>
+        <h4>Table</h4>
+        <p><a href="../reserve/">Reserve</a><br><a href="../visit/">Visit</a><br>
+           <a href="tel:+97140000000">+971 4 000 0000</a></p>
+      </div>
+    </div>
+
+    <p class="foot__fine mono">
+      An unofficial design concept. SHRIMPARTY is an invented restaurant — the name,
+      the marks, the prices, the addresses and the telephone number on this site are
+      made up, the reservation form sends nothing anywhere, and every object you can
+      see is drawn in code. No photograph appears anywhere on the site.
+    </p>
+  </div>
+</footer>
+
+<script src="../assets/js/math.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/site.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -7,6 +7,9 @@
 <meta name="description" content="A Cajun seafood house on the Dubai water. Boiled by the bucket, served by the handful, eaten with your hands.">
 <meta name="theme-color" content="#090909">
 <meta name="color-scheme" content="dark">
+<meta property="og:title" content="SHRIMPARTY — Cajun Seafood, Dubai">
+<meta property="og:description" content="A Cajun seafood house on the Dubai water. Boiled by the bucket, served by the handful, eaten with your hands.">
+<meta property="og:type" content="website">
 <link rel="stylesheet" href="assets/css/shrimparty.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23090909'/><path d='M9 21c0-6 4-10 9-10 3 0 5 2 5 4s-2 4-5 4c-2 0-3-1-3-2' stroke='%23F2792B' stroke-width='2.4' fill='none' stroke-linecap='round'/></svg>">
 
@@ -17,19 +20,13 @@
   document.documentElement.className += ' js';
 </script>
 </head>
-<body>
+<body data-page="home">
 
-<!-- ══ boot ══════════════════════════════════════════════════
-     The page opens on black with one droplet hanging in it. The
-     overlay is removed once the first frame of the film has been
-     drawn, so there is never a flash of undrawn canvas. -->
-<div id="boot" class="boot" aria-hidden="true">
-  <div class="boot__drop"></div>
-  <div class="boot__word">SHRIMPARTY</div>
-</div>
+<!-- The page transition. Three layers of water on staggered delays:
+     they rise to cover as a page leaves and drain as one arrives.
+     Purely decorative, and skipped entirely for reduced motion. -->
+<div class="wash" aria-hidden="true"><i></i><i></i><i></i></div>
 
-<!-- the cursor: a ring that lags, a dot that does not, and a
-     canvas that keeps the ripples it leaves behind -->
 <canvas class="cursorfx" id="cursorfx" aria-hidden="true"></canvas>
 <div class="cursor" id="cursor" aria-hidden="true">
   <div class="cursor__ring"></div>
@@ -37,10 +34,10 @@
   <div class="cursor__label"></div>
 </div>
 
-<a class="skip" href="#menu">Skip to the menu</a>
+<a class="skip" href="#main">Skip to content</a>
 
 <header class="nav" id="nav">
-  <a class="nav__mark" href="#top" data-magnetic aria-label="SHRIMPARTY, back to top">
+  <a class="nav__mark" href="" aria-label="SHRIMPARTY, home" data-magnetic>
     <svg viewBox="0 0 44 32" aria-hidden="true" focusable="false">
       <path d="M7 23c0-8 5.6-14 12.6-14 4.2 0 7.4 2.6 7.4 5.8 0 3-2.6 5.2-6.4 5.2-2.6 0-4.2-1.2-4.2-2.6"
             fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
@@ -49,49 +46,53 @@
     </svg>
     <span>SHRIMPARTY</span>
   </a>
-  <nav class="nav__links" aria-label="Sections">
-    <a href="#menu" data-magnetic>Menu</a>
-    <a href="#dishes" data-magnetic>Signatures</a>
-    <a href="#deep" data-magnetic>Sourcing</a>
-    <a href="#book" class="nav__cta" data-magnetic>Reserve</a>
+
+  <nav class="nav__links" aria-label="Primary">
+    <a class="nav__link is-on" href="" aria-current="page" data-magnetic>Home</a>
+    <a class="nav__link" href="menu/" data-magnetic>Menu</a>
+    <a class="nav__link" href="signatures/" data-magnetic>Signatures</a>
+    <a class="nav__link" href="sourcing/" data-magnetic>Sourcing</a>
+    <a class="nav__link" href="visit/" data-magnetic>Visit</a>
+    <a class="nav__cta" href="reserve/" data-magnetic>Reserve</a>
   </nav>
+
+  <button class="nav__burger" id="navToggle" type="button"
+          aria-expanded="false" aria-controls="navDrawer">
+    <span class="nav__burger-lines" aria-hidden="true"><i></i><i></i></span>
+    <span class="visually-hidden">Menu</span>
+  </button>
 </header>
 
-<span id="top"></span>
+<nav class="drawer" id="navDrawer" aria-label="Primary, small screens">
+    <a href="" aria-current="page">Home</a>
+    <a href="menu/">Menu</a>
+    <a href="signatures/">Signatures</a>
+    <a href="sourcing/">Sourcing</a>
+    <a href="visit/">Visit</a>
+    <a href="reserve/">Reserve a table</a>
+</nav>
 
-<!-- ══ the film ══════════════════════════════════════════════
-     Nine acts on one scroll value. The canvas is sticky inside a
-     tall track; everything layered over it is ordinary markup
-     positioned by act. -->
 <section class="film" id="film" aria-label="Opening film">
   <div class="film__stick">
     <canvas id="gl" aria-hidden="true"></canvas>
-
     <div class="film__fallback" aria-hidden="true"></div>
 
     <div class="film__ui">
-      <!-- captions, each keyed to a range of the film -->
       <figure class="cap cap--open" data-from="0.000" data-to="0.075">
         <p class="cap__line mono" data-split>ONE DROP</p>
       </figure>
-
       <figure class="cap" data-from="0.090" data-to="0.165">
         <p class="cap__line mono" data-split>THE WATER REMEMBERS</p>
       </figure>
-
       <figure class="cap" data-from="0.180" data-to="0.275">
         <h2 class="cap__big" data-split>NINE MILES OUT</h2>
         <p class="cap__sub" data-split>and nothing above the surface yet</p>
       </figure>
-
       <figure class="cap" data-from="0.292" data-to="0.388">
         <h2 class="cap__big" data-split>IT COMES UP HOT</h2>
         <p class="cap__sub" data-split>thirty litres of Gulf water, cayenne and butter</p>
       </figure>
 
-      <!-- the wordmark: driven directly by the film's own
-           `wordmark` value rather than by a scroll range, so it
-           lands on the beat the camera completes its circle -->
       <div class="wordmark" id="wordmark" aria-hidden="true">
         <div class="wordmark__row">
           <span>S</span><span>H</span><span>R</span><span>I</span><span>M</span>
@@ -104,18 +105,15 @@
         <h2 class="cap__big" data-split>TAKE IT APART</h2>
         <p class="cap__sub" data-split>the bucket is a serving suggestion, not a rule</p>
       </figure>
-
       <figure class="cap" data-from="0.645" data-to="0.755">
         <h2 class="cap__big" data-split>EVERY PIECE</h2>
         <p class="cap__sub" data-split>corn, andouille, garlic, lemon, and the whole Gulf</p>
       </figure>
-
       <figure class="cap" data-from="0.775" data-to="0.870">
         <h2 class="cap__big" data-split>PUT IT DOWN</h2>
         <p class="cap__sub" data-split>and get your hands into it</p>
       </figure>
 
-      <!-- act rail: a live readout of where the film is -->
       <ol class="rail mono" aria-hidden="true" id="rail">
         <li data-from="0.000"><i></i>DROP</li>
         <li data-from="0.078"><i></i>FOG</li>
@@ -128,21 +126,14 @@
         <li data-from="0.880"><i></i>DESCENT</li>
       </ol>
 
-      <div class="hint mono" id="hint" aria-hidden="true">
-        <span>SCROLL</span>
-        <i></i>
-      </div>
+      <div class="hint mono" id="hint" aria-hidden="true"><span>SCROLL</span><i></i></div>
     </div>
   </div>
 </section>
 
-<main>
+<main id="main">
 
-<!-- ══ the legend ════════════════════════════════════════════
-     A tide sweeps left to right across the block; each character
-     it passes lifts, un-blurs and settles. The wave position is
-     the scroll. -->
-<section class="legend" id="legend" aria-labelledby="legend-h">
+<section class="legend" aria-labelledby="legend-h">
   <div class="legend__inner">
     <p class="eyebrow mono">01 — THE HOUSE</p>
     <h2 class="legend__h" id="legend-h" data-tide>
@@ -163,10 +154,6 @@
       </p>
     </div>
     <ul class="stat" aria-label="At a glance">
-      <!-- The final value is in the markup, not a zero. The counter
-           overwrites it on the first frame and animates up from
-           there; with scripting off the page states the number
-           rather than claiming the kitchen uses no spices. -->
       <li><b data-count="11">11</b><span class="mono">hours of stock</span></li>
       <li><b data-count="34">34</b><span class="mono">spices in the blend</span></li>
       <li><b data-count="4">4</b><span class="mono">heat levels</span></li>
@@ -175,254 +162,69 @@
   </div>
 </section>
 
-<!-- ══ the menu ══════════════════════════════════════════════
-     Floating glass panels. Each drifts on its own phase, tilts
-     toward the pointer on a spring, and carries a plume that
-     never stops. -->
-<section class="menu" id="menu" aria-labelledby="menu-h">
-  <div class="menu__head">
-    <p class="eyebrow mono">02 — THE BOARD</p>
-    <h2 class="section-h" id="menu-h" data-stagger>THE BOARD</h2>
-    <p class="section-sub">Priced by the pound. Ordered by the pail. Served the moment it is lifted.</p>
+<!-- The doors. Each one is the page it opens, described in the
+     fewest words that are still true. -->
+<section class="doors" aria-labelledby="doors-h">
+  <div class="doors__head">
+    <p class="eyebrow mono">02 — THE REST OF IT</p>
+    <h2 class="section-h" id="doors-h" data-stagger>WHERE TO NEXT</h2>
   </div>
 
-  <div class="panels" id="panels">
-    <article class="panel" data-panel data-art="bucket" data-drift="0">
-      <div class="panel__art"><canvas data-art-canvas></canvas><div class="panel__steam"><i></i><i></i><i></i></div></div>
-      <div class="panel__body">
-        <h3>The Seafood Bucket</h3>
-        <p class="panel__desc">Snow crab, tiger prawn, black mussel, andouille, corn, new potato. The whole argument, in one pail.</p>
-        <p class="panel__meta mono"><span>SERVES 2–3</span><b>AED 395</b></p>
-      </div>
-      <button class="panel__cta" data-magnetic type="button">Add to the table</button>
-    </article>
+  <div class="doors__grid">
+    <a class="door" href="menu/" data-door>
+      <span class="door__no mono">01</span>
+      <h3 class="door__h">The Menu</h3>
+      <p class="door__p">Seven buckets, the coals, the plates, the sides, and every price on the board.</p>
+      <span class="door__go mono">Open the board <i aria-hidden="true">→</i></span>
+    </a>
 
-    <article class="panel" data-panel data-art="shrimp" data-drift="0.35">
-      <div class="panel__art"><canvas data-art-canvas></canvas><div class="panel__steam"><i></i><i></i><i></i></div></div>
-      <div class="panel__body">
-        <h3>The Shrimp Bucket</h3>
-        <p class="panel__desc">A kilo of head-on Gulf prawn in garlic butter, cayenne and lemon. Nothing else in the pail to hide behind.</p>
-        <p class="panel__meta mono"><span>SERVES 2</span><b>AED 265</b></p>
-      </div>
-      <button class="panel__cta" data-magnetic type="button">Add to the table</button>
-    </article>
+    <a class="door" href="signatures/" data-door>
+      <span class="door__no mono">02</span>
+      <h3 class="door__h">Signatures</h3>
+      <p class="door__p">Seven plates on a turntable. Push them around with the cursor.</p>
+      <span class="door__go mono">Turn them over <i aria-hidden="true">→</i></span>
+    </a>
 
-    <article class="panel" data-panel data-art="salmon" data-drift="0.7">
-      <div class="panel__art"><canvas data-art-canvas></canvas><div class="panel__steam"><i></i><i></i><i></i></div></div>
-      <div class="panel__body">
-        <h3>Grilled Salmon</h3>
-        <p class="panel__desc">Over coals, skin down, blackened on one side only. Charred lemon, dill butter, burnt scallion.</p>
-        <p class="panel__meta mono"><span>SINGLE</span><b>AED 145</b></p>
-      </div>
-      <button class="panel__cta" data-magnetic type="button">Add to the table</button>
-    </article>
+    <a class="door" href="sourcing/" data-door>
+      <span class="door__no mono">03</span>
+      <h3 class="door__h">Sourcing</h3>
+      <p class="door__p">Where the prawn is landed, what is in the butter, and how hot the top level really is.</p>
+      <span class="door__go mono">Go under <i aria-hidden="true">→</i></span>
+    </a>
 
-    <article class="panel" data-panel data-art="thermidor" data-drift="0.15">
-      <div class="panel__art"><canvas data-art-canvas></canvas><div class="panel__steam"><i></i><i></i><i></i></div></div>
-      <div class="panel__body">
-        <h3>Lobster Thermidor</h3>
-        <p class="panel__desc">Half a lobster, mustard cream, gratinated in the shell. The one dish here that keeps its manners.</p>
-        <p class="panel__meta mono"><span>SINGLE</span><b>AED 320</b></p>
-      </div>
-      <button class="panel__cta" data-magnetic type="button">Add to the table</button>
-    </article>
-
-    <article class="panel" data-panel data-art="pasta" data-drift="0.55">
-      <div class="panel__art"><canvas data-art-canvas></canvas><div class="panel__steam"><i></i><i></i><i></i></div></div>
-      <div class="panel__body">
-        <h3>Seafood Pasta</h3>
-        <p class="panel__desc">Linguine, clam, prawn, calamari, a spoon of the boil stock and far too much butter.</p>
-        <p class="panel__meta mono"><span>SINGLE</span><b>AED 130</b></p>
-      </div>
-      <button class="panel__cta" data-magnetic type="button">Add to the table</button>
-    </article>
-
-    <article class="panel" data-panel data-art="tagine" data-drift="0.85">
-      <div class="panel__art"><canvas data-art-canvas></canvas><div class="panel__steam"><i></i><i></i><i></i></div></div>
-      <div class="panel__body">
-        <h3>Shrimp Tagine</h3>
-        <p class="panel__desc">Prawn, preserved lemon, olive and chermoula, cooked and served under the cone. Lifted at the table.</p>
-        <p class="panel__meta mono"><span>SERVES 2</span><b>AED 185</b></p>
-      </div>
-      <button class="panel__cta" data-magnetic type="button">Add to the table</button>
-    </article>
-
-    <article class="panel" data-panel data-art="soup" data-drift="0.45">
-      <div class="panel__art"><canvas data-art-canvas></canvas><div class="panel__steam"><i></i><i></i><i></i></div></div>
-      <div class="panel__body">
-        <h3>Sea Carnival Soup</h3>
-        <p class="panel__desc">Everything the boil gave up, reduced for six hours, finished with cream and a little of the shell butter.</p>
-        <p class="panel__meta mono"><span>BOWL</span><b>AED 85</b></p>
-      </div>
-      <button class="panel__cta" data-magnetic type="button">Add to the table</button>
-    </article>
+    <a class="door" href="visit/" data-door>
+      <span class="door__no mono">04</span>
+      <h3 class="door__h">Visit</h3>
+      <p class="door__p">Pier 7, on the Marina walk. Hours, parking, and what to expect at the table.</p>
+      <span class="door__go mono">Find the room <i aria-hidden="true">→</i></span>
+    </a>
   </div>
 </section>
 
-<!-- ══ signature dishes ══════════════════════════════════════
-     A second, smaller WebGL stage. One dish at a time on a
-     turntable, scrubbed by the scroll and pushed by the pointer.
-     It runs only while it is on screen, and the film stops while
-     this one runs — the two are never drawing at once. -->
-<section class="dishes" id="dishes" aria-labelledby="dishes-h">
-  <div class="dishes__head">
-    <p class="eyebrow mono">03 — SIGNATURES</p>
-    <h2 class="section-h" id="dishes-h" data-stagger>SEVEN PLATES</h2>
-  </div>
-
-  <div class="dishes__track" id="dishTrack">
-    <div class="dishes__stick">
-      <canvas id="studio" aria-hidden="true"></canvas>
-      <div class="dishes__fallback" aria-hidden="true"></div>
-
-      <div class="dish-card" data-dish="0">
-        <p class="dish-card__no mono">01 / 07</p>
-        <h3 class="dish-card__h" data-split-hold>Seafood Bucket</h3>
-        <p class="dish-card__desc">Thirty litres of stock, one pail, and no plate anywhere near it.</p>
-        <ul class="dish-card__spec mono"><li>Snow crab</li><li>Tiger prawn</li><li>Andouille</li><li>Sweetcorn</li></ul>
-      </div>
-      <div class="dish-card" data-dish="1">
-        <p class="dish-card__no mono">02 / 07</p>
-        <h3 class="dish-card__h" data-split-hold>Shrimp Bucket</h3>
-        <p class="dish-card__desc">A kilo of head-on prawn and the butter they were pulled through.</p>
-        <ul class="dish-card__spec mono"><li>Gulf prawn</li><li>Garlic</li><li>Cayenne</li><li>Lemon</li></ul>
-      </div>
-      <div class="dish-card" data-dish="2">
-        <p class="dish-card__no mono">03 / 07</p>
-        <h3 class="dish-card__h" data-split-hold>Grilled Salmon</h3>
-        <p class="dish-card__desc">Blackened on the skin side only, so one bite is char and the next is not.</p>
-        <ul class="dish-card__spec mono"><li>Coal grill</li><li>Dill butter</li><li>Charred lemon</li><li>Scallion</li></ul>
-      </div>
-      <div class="dish-card" data-dish="3">
-        <p class="dish-card__no mono">04 / 07</p>
-        <h3 class="dish-card__h" data-split-hold>Lobster Thermidor</h3>
-        <p class="dish-card__desc">Mustard cream, back in the shell, under the salamander until it blisters.</p>
-        <ul class="dish-card__spec mono"><li>Half lobster</li><li>Mustard cream</li><li>Gruyère</li><li>Tarragon</li></ul>
-      </div>
-      <div class="dish-card" data-dish="4">
-        <p class="dish-card__no mono">05 / 07</p>
-        <h3 class="dish-card__h" data-split-hold>Seafood Pasta</h3>
-        <p class="dish-card__desc">Linguine finished in the boil stock, which is the only shortcut we take.</p>
-        <ul class="dish-card__spec mono"><li>Linguine</li><li>Clam</li><li>Calamari</li><li>Boil stock</li></ul>
-      </div>
-      <div class="dish-card" data-dish="5">
-        <p class="dish-card__no mono">06 / 07</p>
-        <h3 class="dish-card__h" data-split-hold>Shrimp Tagine</h3>
-        <p class="dish-card__desc">The cone comes off at the table and the whole thing arrives at once.</p>
-        <ul class="dish-card__spec mono"><li>Chermoula</li><li>Preserved lemon</li><li>Green olive</li><li>Coriander</li></ul>
-      </div>
-      <div class="dish-card" data-dish="6">
-        <p class="dish-card__no mono">07 / 07</p>
-        <h3 class="dish-card__h" data-split-hold>Sea Carnival Soup</h3>
-        <p class="dish-card__desc">Six hours of shells, reduced until it is nearly a sauce, then loosened with cream.</p>
-        <ul class="dish-card__spec mono"><li>Shell stock</li><li>Cream</li><li>Saffron</li><li>Shell butter</li></ul>
-      </div>
-
-      <div class="dishes__progress" aria-hidden="true"><i id="dishBar"></i></div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ the deep ══════════════════════════════════════════════
-     The page goes under. A 2D canvas: shafts from a surface
-     overhead, fish crossing at three depths, bubbles rising, and
-     the ingredients turning over in the current. Everything in it
-     is a function of the scroll. -->
-<section class="deep" id="deep" aria-labelledby="deep-h">
-  <canvas class="deep__canvas" id="deepCanvas" aria-hidden="true"></canvas>
-  <div class="deep__inner">
-    <p class="eyebrow mono">04 — SOURCING</p>
-    <h2 class="section-h deep__h" id="deep-h" data-stagger>WHERE IT COMES FROM</h2>
-    <div class="deep__notes">
-      <article data-tide-soft>
-        <h3 class="mono">Gulf prawn</h3>
-        <p>Landed at Deira and on ice within the hour. Head on, always — the head is where the flavour of the boil actually comes from.</p>
-      </article>
-      <article data-tide-soft>
-        <h3 class="mono">Snow crab</h3>
-        <p>Cold water, flown in, cooked once at sea and once here. The second cook is short, and it is the only one that matters.</p>
-      </article>
-      <article data-tide-soft>
-        <h3 class="mono">The butter</h3>
-        <p>Cultured, clarified, then rebuilt with shell stock and thirty-four spices. It is not a sauce. It is the dish.</p>
-      </article>
-      <article data-tide-soft>
-        <h3 class="mono">The heat</h3>
-        <p>Four levels, and the top one is not a joke. Cayenne, two chillies and a long pepper that arrives late and stays.</p>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ══ reservation ═══════════════════════════════════════════ -->
-<section class="book" id="book" aria-labelledby="book-h">
-  <div class="book__inner">
-    <div class="book__copy">
-      <p class="eyebrow mono">05 — THE TABLE</p>
-      <h2 class="section-h" id="book-h" data-stagger>RESERVE</h2>
-      <p class="section-sub">Dubai Marina, on the water. Service from 18:00 until the pails run out.</p>
-      <dl class="book__facts mono">
-        <div><dt>Address</dt><dd>Pier 7, Dubai Marina Walk</dd></div>
-        <div><dt>Hours</dt><dd>18:00 — 01:00, daily</dd></div>
-        <div><dt>Telephone</dt><dd>+971 4 000 0000</dd></div>
-      </dl>
-    </div>
-
-    <form class="book__form" id="bookForm" novalidate>
-      <div class="field" data-field>
-        <input id="f-name" name="name" type="text" required autocomplete="name" placeholder=" ">
-        <label for="f-name">Name</label>
-        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
-      </div>
-      <div class="field" data-field>
-        <input id="f-mail" name="email" type="email" required autocomplete="email" placeholder=" ">
-        <label for="f-mail">Email</label>
-        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
-      </div>
-      <div class="field field--half" data-field>
-        <input id="f-date" name="date" type="date" required placeholder=" ">
-        <label for="f-date">Date</label>
-        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
-      </div>
-      <div class="field field--half" data-field>
-        <input id="f-size" name="guests" type="number" min="1" max="14" value="2" required placeholder=" ">
-        <label for="f-size">Guests</label>
-        <svg class="field__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="0.5" width="99" height="99" pathLength="100"/></svg>
-      </div>
-
-      <fieldset class="heat">
-        <legend class="mono">Heat</legend>
-        <div class="heat__row" id="heatRow">
-          <label><input type="radio" name="heat" value="1"><span>Mild</span></label>
-          <label><input type="radio" name="heat" value="2" checked><span>Medium</span></label>
-          <label><input type="radio" name="heat" value="3"><span>Cajun</span></label>
-          <label><input type="radio" name="heat" value="4"><span>Carnival</span></label>
-          <i class="heat__ink" id="heatInk" aria-hidden="true"></i>
-        </div>
-      </fieldset>
-
-      <button class="submit" type="submit" data-magnetic>
-        <span class="submit__label">Request the table</span>
-        <span class="submit__done" aria-hidden="true">Held for you</span>
-        <i class="submit__fill" aria-hidden="true"></i>
-      </button>
-      <p class="book__note mono" id="bookNote" role="status">
-        Nothing is sent anywhere — this page is a design concept and the form is
-        part of the demonstration.
+<section class="strip">
+  <div class="strip__inner">
+    <div>
+      <p class="eyebrow mono">03 — THE TABLE</p>
+      <h2 class="section-h" data-stagger>COME HUNGRY</h2>
+      <p class="section-sub">
+        Service from 18:00 until the pails run out. Tables of two to fourteen;
+        anything larger is a conversation.
       </p>
-    </form>
+    </div>
+    <a class="bigbtn" href="reserve/" data-magnetic>
+      <span class="bigbtn__label">Reserve a table</span>
+      <i class="bigbtn__fill" aria-hidden="true"></i>
+    </a>
   </div>
 </section>
 
 </main>
 
-<!-- ══ footer ════════════════════════════════════════════════
-     The camera lifts and the room goes under. The particles in
-     here never stop, because the site is never completely still. -->
 <footer class="foot" id="foot">
   <canvas class="foot__canvas" id="footCanvas" aria-hidden="true"></canvas>
   <div class="foot__inner">
     <p class="foot__word" data-split-hold>SHRIMPARTY</p>
+
     <div class="foot__grid mono">
       <div>
         <h4>Find us</h4>
@@ -433,14 +235,22 @@
         <p>Daily, 18:00 — 01:00<br>Kitchen closes 00:30</p>
       </div>
       <div>
-        <h4>Elsewhere</h4>
-        <p><a href="#book" data-magnetic>Reserve</a><br><a href="#menu" data-magnetic>The board</a></p>
+        <h4>The site</h4>
+        <p><a href="menu/">Menu</a><br><a href="signatures/">Signatures</a><br>
+           <a href="sourcing/">Sourcing</a></p>
+      </div>
+      <div>
+        <h4>Table</h4>
+        <p><a href="reserve/">Reserve</a><br><a href="visit/">Visit</a><br>
+           <a href="tel:+97140000000">+971 4 000 0000</a></p>
       </div>
     </div>
+
     <p class="foot__fine mono">
-      An unofficial design concept. SHRIMPARTY is an invented restaurant —
-      the name, the marks, the prices and the addresses on this page are made up,
-      and every object in it is drawn in code. No photograph appears anywhere.
+      An unofficial design concept. SHRIMPARTY is an invented restaurant — the name,
+      the marks, the prices, the addresses and the telephone number on this site are
+      made up, the reservation form sends nothing anywhere, and every object you can
+      see is drawn in code. No photograph appears anywhere on the site.
     </p>
   </div>
 </footer>
@@ -452,7 +262,7 @@
 <script src="assets/js/stage.js"></script>
 <script src="assets/js/film.js"></script>
 <script src="assets/js/art.js"></script>
-<script src="assets/js/studio.js"></script>
+<script src="assets/js/chrome.js"></script>
 <script src="assets/js/site.js"></script>
 <script src="assets/js/main.js"></script>
 </body>

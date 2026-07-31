@@ -172,6 +172,54 @@
       return { el: el, m: null, x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, on: 0 };
     });
 
+    /* ── the page hero ────────────────────────────────────────
+       Every inner page opens on one of these, and it is on screen
+       before a wheel has been touched — so it runs off its own
+       clock rather than off the scroll. A scroll-driven entrance
+       for something already in view either plays instantly or
+       never plays at all, and both are worse than an entrance. */
+    var heroes = $('[data-hero]').map(function (el) {
+      return { el: el, letters: split(el), t: 0 };
+    });
+
+    /* ── grouped reveals ──────────────────────────────────────
+       Six lists across four pages that all want the same thing:
+       measure each item, drive it from its own position, and add
+       an index delay so a *grid* still reads as a sequence rather
+       than as one block appearing. Vertical lists get the stagger
+       from their geometry for free; the doors and the spice grid
+       do not, which is the whole reason the index term exists. */
+    var GROUPS = [
+      { sel: '.door',             motion: 'lift',  step: 0.10 },
+      { sel: '.row',              motion: 'row',   step: 0.05 },
+      { sel: '.chain__list li',   motion: 'slide', step: 0.09 },
+      { sel: '.blend__grid li',   motion: 'pop',   step: 0.014 },
+      { sel: '.faq details',      motion: 'lift',  step: 0.06 },
+      { sel: '.siglist__list li', motion: 'slide', step: 0.07 }
+    ];
+    var groupItems = [];
+    GROUPS.forEach(function (g) {
+      $(g.sel).forEach(function (el, i) {
+        groupItems.push({
+          el: el, motion: g.motion, m: null, at: 0,
+          delay: Math.min(i * g.step, 0.55),
+          lead: el.querySelector('.row__lead'),
+          price: el.querySelector('.row__price')
+        });
+      });
+    });
+
+    /* ── drawn SVG ────────────────────────────────────────────
+       `pathLength="100"` in the markup normalises every stroke to
+       the same nominal length, which is why one dash offset draws
+       a 90-pixel tower bar and a 900-pixel bank at the same rate. */
+    var drawings = $('[data-draw]').map(function (el) {
+      return {
+        el: el, m: null, at: 0,
+        strokes: [].slice.call(el.querySelectorAll('[pathLength]'))
+      };
+    });
+
     /* ── measurement ───────────────────────────────────────── */
     var trackM = null, deepM = null, footM = null, menuM = null;
 
@@ -186,6 +234,8 @@
       for (i = 0; i < deepNotes.length; i++) deepNotes[i].m = box(deepNotes[i].el);
       for (i = 0; i < panels.length; i++) panels[i].m = box(panels[i].el);
       for (i = 0; i < magnets.length; i++) magnets[i].m = box(magnets[i].el);
+      for (i = 0; i < groupItems.length; i++) groupItems[i].m = box(groupItems[i].el);
+      for (i = 0; i < drawings.length; i++) drawings[i].m = box(drawings[i].el);
       if (dishTrack) trackM = box(dishTrack);
       var deepEl = doc.getElementById('deep');
       if (deepEl) deepM = box(deepEl);
@@ -513,28 +563,65 @@
     }
 
     /* ═══ the studio (signature dishes) ════════════════════ */
+    /* Only pages that carry a `#studio` canvas get a turntable.
+       The guard has to be on the *element*, not just on the
+       module being loaded: `Studio.create(null)` returns null,
+       which the old code read as "no WebGL" and stamped `no-gl`
+       on the document — so every page without a turntable
+       declared itself GPU-less and hid its own film. */
     var studio = null;
-    if (SHRIMP.Studio && !root.classList.contains('no-gl')) {
-      studio = SHRIMP.Studio.create(doc.getElementById('studio'), tier, reduced);
+    var studioCanvas = doc.getElementById('studio');
+    if (SHRIMP.Studio && studioCanvas && !root.classList.contains('no-gl')) {
+      studio = SHRIMP.Studio.create(studioCanvas, tier, reduced);
       if (!studio) root.classList.add('no-gl');
     }
 
-    /* ═══ panel art ════════════════════════════════════════ */
+    /* A dish card's heading is a `data-split-hold`, so the generic
+       heading driver picks it up — and when the turntable is live
+       the dish loop drives the same letters from the turntable's
+       progress instead. Two loops writing one element's transform
+       every frame is not a crash, but it is a coin flip about
+       which one wins, so the generic driver stands down where the
+       specific one is running. Where the turntable is *not*
+       running the generic driver is exactly the fallback wanted:
+       without it, a GPU-less visitor gets seven invisible
+       headings above seven visible descriptions. */
+    if (studio) {
+      staggers = staggers.filter(function (o) { return !o.el.closest('.dish-card'); });
+    }
+
+    /* ═══ drawn dish art ═══════════════════════════════════
+       Any canvas marked `data-art-canvas` gets an illustration,
+       whether it is inside a floating menu panel or sitting in a
+       board heading on the menu page. The dish name comes off the
+       canvas itself or off the nearest ancestor that names one,
+       so the same drawing code serves both layouts without either
+       knowing about the other.
+
+       Redrawn only when the backing store size actually changes.
+       A resize that does not change the pixel size — an address
+       bar collapsing on a phone — must not re-run seven
+       illustrations. */
+    var artCanvases = $('[data-art-canvas]').map(function (el) {
+      var owner = el.dataset.art ? el : el.closest('[data-art]');
+      return { el: el, name: owner ? owner.dataset.art : null, drawn: false };
+    }).filter(function (a) { return !!a.name; });
+
     function drawPanelArt() {
       if (!SHRIMP.Art) return;
-      for (var i = 0; i < panels.length; i++) {
-        var p = panels[i];
-        if (!p.canvas) continue;
-        var r = p.canvas.getBoundingClientRect();
+      for (var i = 0; i < artCanvases.length; i++) {
+        var a = artCanvases[i];
+        var r = a.el.getBoundingClientRect();
         if (r.width < 4) continue;
         var w = Math.round(r.width * CDPR), h = Math.round(r.height * CDPR);
-        if (p.canvas.width !== w || p.canvas.height !== h) {
-          p.canvas.width = w; p.canvas.height = h;
-          SHRIMP.Art.draw(p.canvas, p.art, CDPR);
-        } else if (!p.__drawn) {
-          SHRIMP.Art.draw(p.canvas, p.art, CDPR);
+        if (a.el.width !== w || a.el.height !== h) {
+          a.el.width = w; a.el.height = h;
+          SHRIMP.Art.draw(a.el, a.name, CDPR);
+          a.drawn = true;
+        } else if (!a.drawn) {
+          SHRIMP.Art.draw(a.el, a.name, CDPR);
+          a.drawn = true;
         }
-        p.__drawn = true;
       }
     }
 
@@ -749,6 +836,69 @@
         var de = E.outQuint(o.at);
         o.el.style.opacity = o.at.toFixed(3);
         tx(o.el, 'translate3d(0,' + ((1 - de) * 34).toFixed(2) + 'px,0) rotateX(' + ((1 - de) * 12).toFixed(2) + 'deg)');
+      }
+
+      /* ── the page hero ──
+         A mask wipe: each word is a clipping box and the letters
+         ride up into it, with a skew that unwinds as they land.
+         Deliberately not the motion the in-page headings use, so
+         arriving at a page and scrolling down it are different
+         gestures. */
+      for (i = 0; i < heroes.length; i++) {
+        var hr = heroes[i];
+        if (hr.t >= 1.0001) continue;
+        hr.t = Math.min(hr.t + dt / 1.25, 1.0001);
+        var ht = reduced ? 1 : E.outQuint(sat(hr.t));
+        for (var hl = 0; hl < hr.letters.length; hl++) {
+          var HL = hr.letters[hl];
+          var ha = sat((ht - HL.__d * 0.34) / 0.66);
+          HL.style.opacity = ha.toFixed(3);
+          tx(HL, 'translate3d(0,' + ((1 - ha) * 108).toFixed(2) + '%,0)' +
+                 ' skewY(' + ((1 - ha) * 7).toFixed(2) + 'deg)');
+        }
+      }
+
+      /* ── grouped reveals ── */
+      for (i = 0; i < groupItems.length; i++) {
+        var gi = groupItems[i];
+        if (!gi.m) continue;
+        var gp = range(scrollY + vh * 0.90, gi.m.top, gi.m.top + vh * 0.24);
+        gi.at = damp(gi.at, gp, 7, dt);
+        var ga = sat((gi.at - gi.delay) / (1 - gi.delay));
+        var ge = E.outQuint(ga);
+        gi.el.style.opacity = ga.toFixed(3);
+        if (gi.motion === 'lift') {
+          tx(gi.el, 'translate3d(0,' + ((1 - ge) * 40).toFixed(2) + 'px,0) scale(' + (0.97 + ge * 0.03).toFixed(3) + ')');
+        } else if (gi.motion === 'slide') {
+          tx(gi.el, 'translate3d(' + ((1 - ge) * -34).toFixed(2) + 'px,0,0) skewX(' + ((1 - ge) * 3.5).toFixed(2) + 'deg)');
+        } else if (gi.motion === 'pop') {
+          tx(gi.el, 'scale(' + (0.86 + ge * 0.14).toFixed(3) + ')');
+        } else {
+          /* a menu row: the name arrives, then the leader draws
+             across to the price, then the price slides in behind
+             it — the order the eye reads them in */
+          tx(gi.el, 'translate3d(0,' + ((1 - ge) * 22).toFixed(2) + 'px,0)');
+          if (gi.lead) tx(gi.lead, 'scaleX(' + E.outQuart(sat((ge - 0.25) / 0.75)).toFixed(3) + ')');
+          if (gi.price) {
+            var pa = sat((ge - 0.45) / 0.55);
+            gi.price.style.opacity = pa.toFixed(3);
+            tx(gi.price, 'translate3d(' + ((1 - E.outQuint(pa)) * 16).toFixed(2) + 'px,0,0)');
+          }
+        }
+      }
+
+      /* ── drawn SVG ── */
+      for (i = 0; i < drawings.length; i++) {
+        var dw = drawings[i];
+        if (!dw.m) continue;
+        var wp = range(scrollY + vh * 0.86, dw.m.top, dw.m.top + dw.m.h * 0.55);
+        dw.at = damp(dw.at, wp, 5, dt);
+        var we = E.outQuint(dw.at);
+        for (var st = 0; st < dw.strokes.length; st++) {
+          var d2 = Math.min(st * 0.035, 0.5);
+          var sa = sat((we - d2) / (1 - d2));
+          dw.strokes[st].style.strokeDashoffset = ((1 - sa) * 100).toFixed(2);
+        }
       }
 
       /* ── the panels ──

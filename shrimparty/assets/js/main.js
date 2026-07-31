@@ -1,6 +1,15 @@
 /* ═══════════════════════════════════════════════════════════
    main.js — boot, the scroll store, one clock.
 
+   Every page of this site loads this file, and most of them have
+   no film on them. The loop is therefore unconditional and the
+   film is optional: the DOM layer needs a clock whether or not
+   there is a GPU scene to drive, because every reveal on every
+   page starts at opacity zero and is brought back by the loop.
+   Returning early when `#gl` is missing — which an earlier
+   version did — leaves a correct, fully populated, completely
+   invisible page.
+
    The rules the whole repository runs on:
 
      · scroll, pointer and resize handlers park a number and
@@ -148,102 +157,79 @@
     };
   }
 
-  /* ═══ boot ══════════════════════════════════════════════════ */
+
+  /* ═══ boot ══════════════════════════════════════════════════
+
+     One loop, on every page. What it drives depends on what the
+     page has in it:
+
+       · the momentum scroll, always
+       · the DOM layer (reveals, panels, canvases), always
+       · the film, only where `#gl` and `#film` are both present
+         and WebGL2 is available
+
+     The three are stages of the same boot rather than three
+     boots, which is what stops the no-GPU path and the no-film
+     path from drifting apart as separate copies of the loop.
+     ═══════════════════════════════════════════════════════════ */
 
   function boot() {
     var canvas = doc.getElementById('gl');
-    var film = doc.getElementById('film');
+    var filmEl = doc.getElementById('film');
     var bootEl = doc.getElementById('boot');
-    if (!canvas || !film) return;
 
     var reduced = global.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var tier = detectTier();
     var debug = /[?&]debug/.test(global.location.search);
 
-    var stage = SHRIMP.Stage.create(canvas, {
-      shadowSize: tier.shadowSize,
-      oceanRings: tier.oceanRings,
-      oceanSpokes: tier.oceanSpokes,
-      maxParticles: tier.counts.particles
-    });
-
-    /* ── the page without a GPU ──────────────────────────────
-       No WebGL2, or the film failed to build. The sections below
-       the film are ordinary markup and the film's container falls
-       back to a painted gradient — but the DOM layer still needs
-       a clock, because every reveal on the page starts at opacity
-       zero and is brought back by the frame loop. Initialising
-       the site and then returning without one leaves a correct,
-       fully populated, completely invisible page. */
-    function bootWithoutGL(err) {
-      root.classList.add('no-gl');
-      root.classList.remove('is-booting');
-      if (bootEl) bootEl.classList.add('is-done');
-      if (debug && err) console.error(err);
-      if (!SHRIMP.Site) return;
-
-      var site = SHRIMP.Site.init({ reduced: reduced, tier: tier, film: null });
-      var momentum = MomentumScroll(reduced);
-      var last = 0, clock = 0, alive = true;
-
-      function measure() { momentum.measure(); site.measure(); }
-      var rt = 0;
-      global.addEventListener('resize', function () {
-        clearTimeout(rt); rt = setTimeout(measure, 120);
-      }, { passive: true });
-      global.addEventListener('pointermove', function (e) {
-        site.pointer(e.clientX, e.clientY);
-      }, { passive: true });
-      doc.addEventListener('visibilitychange', function () {
-        if (doc.hidden) alive = false;
-        else if (!alive) { alive = true; last = 0; global.requestAnimationFrame(tick); }
-      });
-
-      function tick(ts) {
-        if (!alive) return;
-        global.requestAnimationFrame(tick);
-        var dt = last ? (ts - last) / 1000 : 0.016;
-        last = ts;
-        if (dt > 0.1) dt = 0.1;
-        momentum.step(dt);
-        clock += reduced ? 0 : dt;
-        site.frame(global.scrollY || 0, dt, clock);
+    /* ── the film, if this page has one ────────────────────── */
+    var stage = null, filmCtl = null;
+    if (canvas && filmEl) {
+      try {
+        stage = SHRIMP.Stage.create(canvas, {
+          shadowSize: tier.shadowSize,
+          oceanRings: tier.oceanRings,
+          oceanSpokes: tier.oceanSpokes,
+          maxParticles: tier.counts.particles
+        });
+        if (stage) filmCtl = SHRIMP.Film.create(stage, tier);
+      } catch (err) {
+        if (debug) console.error(err);
+        stage = null; filmCtl = null;
       }
-
-      measure();
-      if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(measure);
-      global.requestAnimationFrame(tick);
+      if (!filmCtl) root.classList.add('no-gl');
+      else root.classList.add('has-gl');
     }
+    /* A page whose only GPU work is the dish turntable says
+       nothing here. The studio decides for itself in site.js and
+       stamps `no-gl` only if it cannot get a context — claiming
+       `has-gl` up front just produces documents carrying both
+       classes at once. */
 
-    if (!stage) { bootWithoutGL(); return; }
-    root.classList.add('has-gl');
+    /* ── the DOM layer ─────────────────────────────────────── */
+    var site = SHRIMP.Site ? SHRIMP.Site.init({
+      reduced: reduced, tier: tier, film: filmCtl
+    }) : null;
 
-    var filmCtl;
-    try {
-      filmCtl = SHRIMP.Film.create(stage, tier);
-    } catch (err) {
-      bootWithoutGL(err);
-      return;
-    }
+    var momentum = MomentumScroll(reduced);
 
-    /* ── the scroll store ────────────────────────────────────── */
+    /* ── the scroll store ────────────────────────────────────
+       One number, written by the scroll handler, read once a
+       frame. Nothing below this line reads layout. */
     var scrollY = global.scrollY || 0;
     var vh = global.innerHeight;
     var filmTop = 0, filmRange = 1;
     var raw = 0, smooth = 0;
     var renderScale = tier.maxScale, scaleTarget = renderScale;
-    var momentum = MomentumScroll(reduced);
-
-    var site = SHRIMP.Site ? SHRIMP.Site.init({
-      reduced: reduced, tier: tier, film: filmCtl
-    }) : null;
 
     function measure() {
       vh = global.innerHeight;
-      var box = film.getBoundingClientRect();
-      filmTop = box.top + (global.scrollY || 0);
-      filmRange = Math.max(film.offsetHeight - vh, 1);
-      stage.resize(global.innerWidth, vh, renderScale);
+      if (filmEl) {
+        var box = filmEl.getBoundingClientRect();
+        filmTop = box.top + (global.scrollY || 0);
+        filmRange = Math.max(filmEl.offsetHeight - vh, 1);
+      }
+      if (stage) stage.resize(global.innerWidth, vh, renderScale);
       momentum.measure();
       if (site) site.measure();
     }
@@ -287,8 +273,10 @@
       scrollY = global.scrollY || 0;
       clock += reduced ? 0 : dt;
 
-      /* the DOM layer runs whether the film is on screen or not */
+      /* the DOM layer runs on every page, film or no film */
       if (site) site.frame(scrollY, dt, clock);
+
+      if (!filmCtl) { budget(ts, t0, dt); return; }
 
       /* ── cull the film when it is off screen ──
          The stage is sticky inside `.film`, so it is visible for
@@ -317,11 +305,16 @@
       stage.render(state);
       if (site) site.filmState(state, smooth);
 
+      budget(ts, t0, dt);
+    }
+
+    function budget(ts, t0, dt) {
       var ms = now() - t0;
       emaMs = emaMs * 0.94 + ms * 0.06;
       frames++; fpsAcc += dt;
       if (fpsAcc >= 0.5) { fps = Math.round(frames / fpsAcc); frames = 0; fpsAcc = 0; if (hud) writeHud(); }
 
+      if (!stage) return;
       if (ts - lastScaleChange > 1400) {
         if (emaMs > 19 && scaleTarget > 0.55) { scaleTarget = Math.max(0.55, scaleTarget - 0.12); lastScaleChange = ts; }
         else if (emaMs < 9.5 && scaleTarget < tier.maxScale) { scaleTarget = Math.min(tier.maxScale, scaleTarget + 0.08); lastScaleChange = ts; }
@@ -336,24 +329,25 @@
     var hud = null;
     function writeHud() {
       hud.textContent = tier.name + ' · ' + fps + ' fps · ' + emaMs.toFixed(1) + ' ms · ' +
-        renderScale.toFixed(2) + '× · ' + filmCtl.state.act + ' ' +
-        filmCtl.state.actProgress.toFixed(2) + ' · t ' + smooth.toFixed(3) + ' · ' +
-        filmCtl.state.particleCount + ' parts';
+        renderScale.toFixed(2) + '× · ' +
+        (filmCtl ? filmCtl.state.act + ' ' + filmCtl.state.actProgress.toFixed(2) +
+                   ' · t ' + smooth.toFixed(3) : 'no film');
     }
     if (debug) {
       hud = doc.createElement('div');
       hud.className = 'hud mono';
       doc.body.appendChild(hud);
-      /* handles for poking at the film from a console — gated, so
+      /* handles for poking at the page from a console — gated, so
          the ordinary page exposes nothing on window but SHRIMP */
       global.__film = {
-        stage: stage, film: filmCtl, tier: tier,
+        stage: stage, film: filmCtl, tier: tier, site: site,
         seek: function (target) { global.scrollTo(0, filmTop + filmRange * target); },
         /* Jump the damped value straight to a mark and run the
            simulation forward in fixed steps, so a frame grab lands
            on an exact t with the springs settled rather than
            wherever the machine got to in real time. */
         settle: function (target, steps) {
+          if (!filmCtl) return;
           if (target !== undefined) { raw = smooth = M.sat(target); }
           for (var i = 0; i < (steps || 140); i++) filmCtl.update(smooth, 1 / 60, 4.2);
           stage.render(filmCtl.state);
@@ -371,9 +365,11 @@
 
     /* Prime the springs so the first painted frame is the film
        rather than two hundred ingredients falling into place. */
-    raw = smooth = M.sat((scrollY - filmTop) / filmRange);
-    for (var w = 0; w < 110; w++) filmCtl.update(smooth, 1 / 60, 4.2);
-    stage.render(filmCtl.update(smooth, 1 / 60, 4.2));
+    if (filmCtl) {
+      raw = smooth = M.sat((scrollY - filmTop) / filmRange);
+      for (var w = 0; w < 110; w++) filmCtl.update(smooth, 1 / 60, 4.2);
+      stage.render(filmCtl.update(smooth, 1 / 60, 4.2));
+    }
 
     global.requestAnimationFrame(frame);
 

@@ -1,17 +1,59 @@
 # SHRIMPARTY — a design concept
 
-A Cajun seafood restaurant on the Dubai water, built around a nine-act film in
-WebGL2 and a page that never holds still.
+A Cajun seafood restaurant on the Dubai water: six pages, a nine-act film in
+WebGL2, and a menu board you could actually order from.
 
-Open `shrimparty/index.html` in a browser. No build step, no dependencies, no
-network calls, no image files.
+No build step, no dependencies, no network calls, no image files.
 
 ```bash
 python3 -m http.server 8000   # then visit localhost:8000/shrimparty/
 ```
 
-Add `?debug` for a frame-time readout and a `__film` handle on `window` for
-seeking and settling the film from a console.
+Add `?debug` to any page for a frame-time readout, plus a `__film` handle on
+`window` for seeking and settling the film from a console.
+
+## The six pages
+
+```
+/                  the film, then the doors into the rest
+/menu/             the full board — seven sections, every price
+/signatures/       seven dishes on a live turntable
+/sourcing/         the deep, the eleven-hour day, the thirty-four spices
+/reserve/          the booking form and the house rules
+/visit/            a drawn map, the hours, and what people ask
+```
+
+Every one of them is a real document at a real URL. There is no router and no
+client-side navigation, which is the reason the back button, middle-click,
+"open in new tab" and find-in-page all work without a line of code spent on
+them.
+
+**The header and footer are duplicated into all six files rather than injected
+at runtime.** Injecting them would mean a page with scripting disabled has no
+navigation, which is the one thing a website cannot do without. They are
+assembled from a single source string at authoring time and the *output* is
+what lives in the repository — the deploy is still the checkout.
+
+## Page transitions
+
+A click on an internal link is intercepted, the page goes under — three layers
+of water rise, the content sinks and blurs — and only then does the navigation
+happen. The next document runs the second half on load and the water drains.
+
+The two halves are separate documents and cannot share state, so they agree by
+construction rather than by handshake: the same three elements and the same
+CSS transition, one direction each. The outgoing half is capped at 300 ms, and
+if the animation has not finished by then the navigation happens anyway —
+nobody should be held at a full-screen wash because a transition event did not
+fire.
+
+Cross-document view transitions would do this in four lines of CSS and are the
+right answer on a site that can require a current Chromium. This one cannot,
+so the fallback would need writing regardless, and then there would be two
+transition systems to keep in agreement instead of one.
+
+With scripting off the links are links. With reduced motion the wash is skipped
+entirely.
 
 **This is an unofficial portfolio exercise.** SHRIMPARTY is an invented
 restaurant. The name, the mark, the prices, the addresses and the phone number
@@ -179,6 +221,21 @@ Nothing on this page fades in, and no two sections arrive the same way:
 | the deep | a canvas whose current is the scroll velocity |
 | booking | the field border is an SVG rect drawn from one corner |
 | the footer | particles that never stop, because the page is never still |
+| page heroes | a mask wipe: each word is a clipping box, letters ride up into it |
+| menu rows | the name arrives, the leader draws across, the price slides in behind it |
+| the map | every stroke draws itself, normalised by `pathLength` |
+| the doors | a bar of boil light wipes across from the left |
+
+The page hero runs off its own clock rather than off the scroll, because it is
+on screen before a wheel has been touched — a scroll-driven entrance for
+something already in view either plays instantly or never plays at all.
+
+The menu board's leader dots are worth a note. The name, the leader and the
+price are siblings rather than a name block beside a price, because the leader
+has to be the element that absorbs the slack and it cannot do that from inside
+a wrapper that has already taken all of it. Give the flexible column to the
+name and the leader collapses to a two-centimetre stub floating next to the
+number, which is worse than no leader at all.
 
 The reservation form's heat switch slides on a spring rather than a transition,
 so holding an arrow key gives one continuous slide instead of four separate
@@ -218,6 +275,14 @@ render scale at runtime, because a slightly softer image at rate beats a sharp
 one that stutters. Off-screen scenes are culled, and the loop stops entirely
 when the tab is hidden.
 
+The loop is unconditional and the film is optional. Four of the six pages have
+no GPU scene on them at all, and they still need a clock — every reveal on
+every page starts at opacity zero and is brought back by the frame loop.
+Returning early when `#gl` is missing, which an earlier version of this did,
+leaves a correct, fully populated, completely invisible page. Each page loads
+only the modules it needs: the menu takes the 2D illustrator, the turntable
+takes the renderer, and sourcing, reserve and visit take neither.
+
 ## Typography
 
 There is no webfont, because there is no network request anywhere in this
@@ -236,8 +301,12 @@ rather than a letterform.
 
 `prefers-reduced-motion` is honoured throughout: the momentum scroll is off,
 scenes hold representative end states, every reveal resolves to its finished
-form, the ambient canvases stop and the boot overlay is skipped. Nothing is
-hidden behind a preference.
+form, the ambient canvases stop, page transitions are skipped and the boot
+overlay never appears. Nothing is hidden behind a preference.
+
+Below 860 px the header collapses to a button and a full-screen list. It is a
+button and a list, so it works from the keyboard, closes on Escape, and needs
+no library.
 
 An inline head script sets a `js` class before first paint, and every
 reveal-on-scroll style is gated behind it, so with scripting unavailable the
@@ -246,13 +315,24 @@ WebGL2 the film and the dish stage fall back to painted gradients and their
 tracks collapse to normal height; the rest of the page is unaffected.
 
 The custom cursor only replaces the system one where a fine pointer exists.
-Focus styles are visible, the skip link works, and the form reports validation
-in a live region.
+Focus styles are visible, the skip link works, the current page is marked with
+`aria-current` in the markup rather than derived by script, and the form
+reports validation in a live region.
+
+The signature dishes page carries the same seven dishes as plain text under
+the turntable. That list is the content; the turntable is the presentation.
+Without a GPU, without a pointer or without scripting, the seven dishes and
+their prices are still all there.
 
 ## Files
 
 ```
-shrimparty/index.html
+shrimparty/index.html                  home
+shrimparty/menu/index.html             the board
+shrimparty/signatures/index.html       the turntable
+shrimparty/sourcing/index.html         the deep
+shrimparty/reserve/index.html          booking
+shrimparty/visit/index.html            map, hours, FAQ
 shrimparty/assets/css/shrimparty.css   cascade layers: tokens → base → … → responsive
 shrimparty/assets/js/math.js           vectors, matrices, quaternions, easing, springs
 shrimparty/assets/js/gl.js             the thin layer over WebGL2
@@ -263,6 +343,7 @@ shrimparty/assets/js/film.js           the nine acts, on one number
 shrimparty/assets/js/studio.js         the signature dishes, on a turntable
 shrimparty/assets/js/art.js            the menu illustrations, on a 2D canvas
 shrimparty/assets/js/site.js           everything that is not the film
+shrimparty/assets/js/chrome.js         page transitions, header state, the drawer
 shrimparty/assets/js/main.js           boot, tiers, the scroll store, one clock
 ```
 

@@ -938,7 +938,12 @@
       po2.bloom = lerp(0.34, 0.72, smoothstep(0.05, 0.36, t)) + breaking * 0.16;
       po2.bloomThreshold = lerp(0.72, 1.10, smoothstep(0.02, 0.30, t));
       po2.shafts = lerp(0.15, 0.62, smoothstep(0.05, 0.30, t)) * (1 - orbiting * 0.45) + descent * 0.35;
-      po2.aberration = 0.032 + breaking * 0.075 + drifting * 0.055;
+      /* Aberration scales with how much is in frame, not with how
+         dramatic the act is. The break puts two hundred small
+         bright objects on screen at once and every one of them
+         gets its own red and cyan edge — what reads as a lens on
+         a single pail reads as a broken display on a cloud. */
+      po2.aberration = 0.028 + breaking * 0.030 + drifting * 0.024;
       po2.vignette = lerp(0.86, 0.54, smoothstep(0.02, 0.28, t)) + descent * 0.22;
       po2.grain = 0.030 + (1 - smoothstep(0.0, 0.16, t)) * 0.020;
       /* the film opens and closes on black, and both are the same
