@@ -464,6 +464,51 @@
     return Math.atan2((b[1] - a[1]) * sgn, (b[0] - a[0]) * sgn);
   }
 
+  /* The moving frame the body is swept in, recovered at one
+     station so things can be hung off the shell rather than
+     guessed at in world axes. Same construction as `sweep`, or
+     the legs would grow out of the side of the animal. */
+  function shrimpFrame(t, P, R, U, T) {
+    var a = [0, 0, 0], c = [0, 0, 0];
+    shrimpPath(t, P);
+    shrimpPath(Math.max(0, t - 0.02), a);
+    shrimpPath(Math.min(1, t + 0.02), c);
+    T[0] = c[0] - a[0]; T[1] = c[1] - a[1]; T[2] = c[2] - a[2];
+    var l = Math.hypot(T[0], T[1], T[2]) || 1;
+    T[0] /= l; T[1] /= l; T[2] /= l;
+    R[0] = T[1]; R[1] = -T[0]; R[2] = 0;            /* T × [0,0,1] */
+    var rl = Math.hypot(R[0], R[1], R[2]) || 1;
+    R[0] /= rl; R[1] /= rl; R[2] /= rl;
+    U[0] = R[1] * T[2] - R[2] * T[1];
+    U[1] = R[2] * T[0] - R[0] * T[2];
+    U[2] = R[0] * T[1] - R[1] * T[0];
+  }
+
+  /* One walking leg, or one antenna, as a tapered tube growing off
+     the belly at station `t`. The ring is built in the R/T plane
+     because the limb runs mostly along -U, and at this radius the
+     shear from not re-orthogonalising per ring is smaller than a
+     pixel. */
+  function shrimpLimb(t, side, len, drop, sweepBack, rad0, taper) {
+    var P = [0, 0, 0], R = [0, 0, 0], U = [0, 0, 0], T = [0, 0, 0];
+    var o2 = [0, 0];
+    shrimpFrame(t, P, R, U, T);
+    shrimpShape(t, 0.5, o2);              /* u=0.5 is the belly */
+    var base = o2[1];
+    return parametric(function (u, v, o) {
+      var th = u * TAU;
+      var rad = rad0 * (1 - v * taper) + 0.0015;
+      var cu = base - v * drop - v * v * len * 0.22;
+      var cr = side * (0.045 + v * len);
+      var ct = -v * v * sweepBack;
+      for (var k = 0; k < 3; k++) {
+        o[k] = P[k] + U[k] * cu +
+               R[k] * (cr + Math.cos(th) * rad) +
+               T[k] * (ct + Math.sin(th) * rad);
+      }
+    }, 6, 5, true);
+  }
+
   function shrimp(nu, nv) {
     var b = sweep(shrimpPath, shrimpShape, nu, nv, false);
     var p = [0, 0, 0];
@@ -516,6 +561,33 @@
       blade.rotateZ(tailAng);
       blade.translate(p[0], p[1], p[2]);
       b.merge(blade);
+    }
+
+    /* ── legs and antennae ───────────────────────────────────
+       The note at the top of this section — that modelled legs
+       read as noise and are not worth forty times the triangles —
+       is true of the pail, where a prawn is forty pixels across.
+       It stops being true in the break, where one fills a third
+       of the frame and its silhouette is the entire read: with no
+       legs and no feelers a prawn is a peeled tail, and a peeled
+       tail is not what is being sold. Ten legs and two antennae
+       at six sides each come to about a fifth of the body. */
+    var LEGS = [0.19, 0.27, 0.35, 0.43, 0.51];
+    for (var li = 0; li < LEGS.length; li++) {
+      /* front legs are the longest and the rearmost the stubbiest,
+         and they all trail backwards, as they do on an animal that
+         has been swimming */
+      var f = 1 - li / (LEGS.length - 1);
+      var s;
+      for (s = -1; s <= 1; s += 2) {
+        b.merge(shrimpLimb(LEGS[li], s, 0.10 + f * 0.09,
+                           0.20 + f * 0.13, 0.10 + f * 0.06,
+                           0.019, 0.80));
+      }
+    }
+    /* the antennae, off the head and swept forward past the snout */
+    for (var sa = -1; sa <= 1; sa += 2) {
+      b.merge(shrimpLimb(0.055, sa, 0.16, -0.02, -1.35, 0.014, 0.92));
     }
 
     /* Centre the whole animal on its own bounding box. Instances

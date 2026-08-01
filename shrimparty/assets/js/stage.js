@@ -38,12 +38,18 @@
      the number that separates food from props. */
 
   var MAT = {
-    shell:   { rough: 0.30, metal: 0.00, coat: 0.55, trans: 0.85, relief: 0.75 },
-    claw:    { rough: 0.24, metal: 0.00, coat: 0.70, trans: 0.42, relief: 0.85 },
+    /* Translucency is the difference between prawn and gummy
+       sweet, and it wants to be far lower than it looks like it
+       should. A cooked prawn is opaque through the body and
+       scatters only at the thin edges of the tail; run at 0.85 the
+       whole shell lights from within and two hundred of them read
+       as a bag of pick-and-mix. */
+    shell:   { rough: 0.34, metal: 0.00, coat: 0.55, trans: 0.26, relief: 0.75 },
+    claw:    { rough: 0.26, metal: 0.00, coat: 0.70, trans: 0.16, relief: 0.85 },
     steel:   { rough: 0.47, metal: 0.86, coat: 0.14, trans: 0.00, relief: 0.05 },
-    veg:     { rough: 0.46, metal: 0.00, coat: 0.30, trans: 0.55, relief: 0.55 },
-    citrus:  { rough: 0.38, metal: 0.00, coat: 0.42, trans: 1.25, relief: 0.40 },
-    herb:    { rough: 0.52, metal: 0.00, coat: 0.22, trans: 1.05, relief: 0.30 },
+    veg:     { rough: 0.52, metal: 0.00, coat: 0.22, trans: 0.14, relief: 0.62 },
+    citrus:  { rough: 0.40, metal: 0.00, coat: 0.42, trans: 0.48, relief: 0.40 },
+    herb:    { rough: 0.56, metal: 0.00, coat: 0.18, trans: 0.34, relief: 0.30 },
     liquid:  { rough: 0.045, metal: 0.00, coat: 1.00, trans: 0.90, relief: 0.00 },
     stone:   { rough: 0.72, metal: 0.00, coat: 0.05, trans: 0.00, relief: 0.22 }
   };

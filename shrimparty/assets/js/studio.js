@@ -52,10 +52,10 @@
     claw:    [0.94, 0.145, 0.085],
     mussel:  [0.078, 0.082, 0.118],
     corn:    [1.00, 0.72, 0.075],
-    lemon:   [0.99, 0.92, 0.135],
+    lemon:   [0.98, 0.855, 0.205],
     garlic:  [0.96, 0.92, 0.815],
     potato:  [0.83, 0.585, 0.265],
-    herb:    [0.135, 0.425, 0.125],
+    herb:    [0.082, 0.228, 0.076],
     sausage: [0.60, 0.135, 0.075],
     salmon:  [1.00, 0.40, 0.225],
     pasta:   [1.00, 0.735, 0.415],
@@ -65,6 +65,19 @@
     stone:   [0.205, 0.195, 0.190],
     clay:    [0.52, 0.21, 0.115]
   };
+
+  /* Per-piece colour variation, same rule as film.js: a value and
+     a chroma jitter around the base, fixed at build time. */
+  function vary(base, rnd) {
+    var v = 0.68 + rnd() * 0.40;
+    var c = 0.80 + rnd() * 0.42;
+    var l = (base[0] + base[1] + base[2]) / 3;
+    return [
+      M.clamp((l + (base[0] - l) * c) * v, 0, 1),
+      M.clamp((l + (base[1] - l) * c) * v, 0, 1),
+      M.clamp((l + (base[2] - l) * c) * v, 0, 1)
+    ];
+  }
 
   /* ── the seven ───────────────────────────────────────────────
      Each dish is a vessel, a scatter recipe, and a camera. The
@@ -217,6 +230,10 @@
             spin: rnd() * TAU,
             rate: (rnd() - 0.5) * 0.32,
             bob: rnd() * TAU,
+            /* same reason as the film: a garnish where every piece
+               is the identical colour is the tell that gives a
+               render away */
+            albedo: vary(A[sc.kind], rnd),
             seed: rnd() * 10
           });
         }
@@ -301,11 +318,11 @@
       bodies: bodies, crowds: crowds,
       particles: pdata, particleCount: 0,
       post: {
-        exposure: 1.16, bloom: 0.42, bloomThreshold: 1.70, shafts: 0.16,
+        exposure: 1.16, bloom: 0.22, bloomThreshold: 1.85, shafts: 0.16,
         aberration: 0.030, vignette: 0.52, grain: 0.020, fade: 1,
         warp: 0, warpAt: [0.5, 0.5],
         lift: [0.010, 0.018, 0.032], gain: [1.02, 0.975, 0.945],
-        saturation: 1.34, contrast: 1.12
+        saturation: 1.17, contrast: 1.16
       }
     };
 
@@ -417,7 +434,7 @@
         dd[o + 3] = it.s * fit * shrink;
         quat.fromAxisAngle(axisq, it.spinAxis[0], it.spinAxis[1], it.spinAxis[2], it.spin + yaw * 0.35);
         dd[o + 4] = axisq[0]; dd[o + 5] = axisq[1]; dd[o + 6] = axisq[2]; dd[o + 7] = axisq[3];
-        var alb = A[it.kind];
+        var alb = it.albedo;
         dd[o + 8] = alb[0]; dd[o + 9] = alb[1]; dd[o + 10] = alb[2];
         dd[o + 11] = BAND_OF[it.kind] || 0;
         dd[o + 12] = 1.25;

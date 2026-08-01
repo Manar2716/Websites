@@ -156,9 +156,12 @@
     '  float NoH = max(dot(N,Hv), 0.0);',
     '  float VoH = max(dot(V,Hv), 0.0);',
 
-    /* wrapped diffuse — the wrap width is the softness of the
-       terminator, and food has a very soft one */
-    '  float w = 0.35;',
+    /* Wrapped diffuse — the wrap width is the softness of the
+       terminator. 0.35 lights the shadow side all the way down to
+       N·L = -0.35, which leaves every object evenly lit and
+       therefore shapeless. Food has a soft terminator, not an
+       absent one. */
+    '  float w = 0.13;',
     '  float diff = max((NoL + w) / ((1.0+w)*(1.0+w)), 0.0);',
 
     '  float a = max(rough*rough, 0.0016);',
@@ -421,7 +424,11 @@
        else. No constant fill — a constant fill is what makes CG
        food look like plastic. */
     '  float up = N.y*0.5+0.5;',
-    '  vec3 amb = mix(uBoilColor*0.055, uMoonColor*0.11, up);',
+    /* Enough to keep form in the shadows and no more. With a
+       terminator this tight, a shadowed face lit by 0.055 is a
+       hole in the frame rather than a dark side — and nothing in
+       a photograph of food is ever actually black. */
+    '  vec3 amb = mix(uBoilColor*0.105, uMoonColor*0.205, up);',
     '  col += albedo * amb * (1.0 - uMetal*0.85);',
 
     /* A cheap environment along the reflection vector. Metal with

@@ -69,10 +69,10 @@
     claw:    [0.94, 0.145, 0.085],
     mussel:  [0.078, 0.082, 0.118],
     corn:    [1.00, 0.72, 0.075],
-    lemon:   [0.99, 0.92, 0.135],
+    lemon:   [0.98, 0.855, 0.205],
     garlic:  [0.96, 0.92, 0.815],
     potato:  [0.83, 0.585, 0.265],
-    herb:    [0.135, 0.425, 0.125],
+    herb:    [0.082, 0.228, 0.076],
     sausage: [0.60, 0.135, 0.075],
     steel:   [0.415, 0.455, 0.520]
   };
@@ -158,6 +158,26 @@
     { name: 'garlic',  mesh: 'garlic',  material: 'veg',   albedo: ALBEDO.garlic,  size: 0.125, share: 0.07, band: 0.00 },
     { name: 'herb',    mesh: 'herb',    material: 'herb',  albedo: ALBEDO.herb,    size: 0.150, share: 0.05, band: 0.00 }
   ];
+
+  /* No two prawns out of the same pot are the same colour. One
+     took more of the boil than its neighbour, one sat at the top
+     and stayed pale, one caught the bottom of the pan. Handing
+     every instance of a kind the identical albedo is the single
+     thing that makes a render of food read as a render, so each
+     piece gets its own value and its own chroma around the base.
+     The variation is per-piece and fixed at build time, not per
+     frame — a prawn that changes colour as it tumbles is worse
+     than two hundred identical ones. */
+  function vary(base, rnd) {
+    var v = 0.68 + rnd() * 0.40;   /* how far it cooked   */
+    var c = 0.80 + rnd() * 0.42;   /* how much colour took */
+    var l = (base[0] + base[1] + base[2]) / 3;
+    return [
+      M.clamp((l + (base[0] - l) * c) * v, 0, 1),
+      M.clamp((l + (base[1] - l) * c) * v, 0, 1),
+      M.clamp((l + (base[2] - l) * c) * v, 0, 1)
+    ];
+  }
 
   function buildItems(count, seed) {
     var rnd = M.rng(seed);
@@ -247,6 +267,7 @@
         spin: 0,
         spinRate: (rnd() - 0.5) * 2.2,
         scale: kind.size * (0.78 + rnd() * 0.50),
+        albedo: vary(kind.albedo, rnd),
         seed: rnd() * 10,
         wobble: rnd() * TAU,
         stiff: stiff,
@@ -518,11 +539,11 @@
       particles: pool.data,
       particleCount: 0,
       post: {
-        exposure: 1.0, bloom: 0.62, bloomThreshold: 1.05, shafts: 0.5,
+        exposure: 1.0, bloom: 0.28, bloomThreshold: 1.45, shafts: 0.5,
         aberration: 0.14, vignette: 0.62, grain: 0.030, fade: 1,
         warp: 0, warpAt: [0.5, 0.55],
         lift: [0.010, 0.020, 0.036], gain: [1.00, 0.96, 0.94],
-        saturation: 1.42, contrast: 1.10
+        saturation: 1.18, contrast: 1.16
       },
       /* read by the page, not by the renderer */
       act: 'DROP', actProgress: 0, wordmark: 0
@@ -764,7 +785,7 @@
         var d = c.data;
         d[o] = it.pos[0]; d[o + 1] = it.pos[1]; d[o + 2] = it.pos[2]; d[o + 3] = it.scale;
         d[o + 4] = it.quat[0]; d[o + 5] = it.quat[1]; d[o + 6] = it.quat[2]; d[o + 7] = it.quat[3];
-        var alb = KINDS[it.kind].albedo;
+        var alb = it.albedo;
         d[o + 8] = alb[0]; d[o + 9] = alb[1]; d[o + 10] = alb[2];
         d[o + 11] = KINDS[it.kind].band;
         /* wetness: soaking as it comes out of the pail, drying a
@@ -950,10 +971,17 @@
          water, and the colour is the payoff for having waited. */
       po2.exposure = lerp(0.60, 1.34, smoothstep(0.008, 0.20, t)) *
                      lerp(1, 1.20, orbiting) * lerp(1, 0.86, descent);
-      po2.saturation = lerp(1.14, 1.52, smoothstep(0.10, 0.34, t));
-      po2.contrast = 1.10;
-      po2.bloom = lerp(0.34, 0.72, smoothstep(0.05, 0.36, t)) + breaking * 0.16;
-      po2.bloomThreshold = lerp(0.72, 1.10, smoothstep(0.02, 0.30, t));
+      po2.saturation = lerp(1.04, 1.20, smoothstep(0.10, 0.34, t));
+      po2.contrast = 1.16;
+      /* Bloom is for the handful of pixels that are genuinely
+         brighter than the frame can hold — the moon path, the
+         boil, a specular hit on wet shell. Run wide and low it
+         becomes a veil that lifts the blacks and softens every
+         edge, which is exactly the difference between a render
+         that looks photographed and one that looks lit by a
+         screensaver. */
+      po2.bloom = lerp(0.16, 0.30, smoothstep(0.05, 0.36, t)) + breaking * 0.06;
+      po2.bloomThreshold = lerp(1.05, 1.60, smoothstep(0.02, 0.30, t));
       po2.shafts = lerp(0.15, 0.62, smoothstep(0.05, 0.30, t)) * (1 - orbiting * 0.45) + descent * 0.35;
       /* Aberration scales with how much is in frame, not with how
          dramatic the act is. The break puts two hundred small
