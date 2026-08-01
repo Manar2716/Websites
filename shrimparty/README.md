@@ -55,10 +55,13 @@ transition systems to keep in agreement instead of one.
 With scripting off the links are links. With reduced motion the wash is skipped
 entirely.
 
-**This is an unofficial portfolio exercise.** SHRIMPARTY is an invented
-restaurant. The name, the mark, the prices, the addresses and the phone number
-are made up, the reservation form sends nothing anywhere, and every object on
-the page — every shrimp, every claw, every plate — is generated in code.
+**This is a design proposal, built on spec.** SHRIMPARTY is a real
+restaurant; this site is not its official one and was not commissioned by it.
+Every dish, price, address and telephone number here is placeholder content
+chosen to exercise the layout, and would be replaced with the restaurant's own
+before anything went live. The reservation form is a demonstration and sends
+nothing anywhere. Every object on the page — every shrimp, every claw, every
+plate — is generated in code.
 
 ## The constraint
 
