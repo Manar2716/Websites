@@ -40,27 +40,30 @@
   var sat = M.sat, lerp = M.lerp, smoothstep = M.smoothstep, damp = M.damp;
   var TAU = M.TAU;
 
-  var MOON = [0.60, 0.76, 1.00];
-  var BOIL = [1.00, 0.44, 0.12];
+  /* Kept in step with film.js by hand — the two scenes share the
+     lighting rule and have to share the palette, or a dish looks
+     like a different dish on its own page. */
+  var MOON = [0.46, 0.70, 1.00];
+  var BOIL = [1.00, 0.36, 0.055];
 
   var A = {
-    shrimp:  [0.88, 0.30, 0.185],
-    crab:    [0.92, 0.38, 0.245],
-    claw:    [0.80, 0.215, 0.155],
-    mussel:  [0.075, 0.085, 0.135],
-    corn:    [0.96, 0.70, 0.155],
-    lemon:   [0.94, 0.87, 0.26],
-    garlic:  [0.91, 0.87, 0.775],
-    potato:  [0.70, 0.545, 0.335],
-    herb:    [0.215, 0.50, 0.205],
-    sausage: [0.43, 0.155, 0.115],
-    salmon:  [0.94, 0.44, 0.30],
-    pasta:   [0.90, 0.76, 0.46],
-    cream:   [0.95, 0.88, 0.70],
-    stock:   [0.72, 0.26, 0.10],
-    steel:   [0.315, 0.345, 0.395],
-    stone:   [0.185, 0.175, 0.170],
-    clay:    [0.36, 0.19, 0.13]
+    shrimp:  [0.99, 0.26, 0.115],
+    crab:    [1.00, 0.34, 0.170],
+    claw:    [0.94, 0.145, 0.085],
+    mussel:  [0.078, 0.082, 0.118],
+    corn:    [1.00, 0.72, 0.075],
+    lemon:   [0.99, 0.92, 0.135],
+    garlic:  [0.96, 0.92, 0.815],
+    potato:  [0.83, 0.585, 0.265],
+    herb:    [0.135, 0.425, 0.125],
+    sausage: [0.60, 0.135, 0.075],
+    salmon:  [1.00, 0.40, 0.225],
+    pasta:   [1.00, 0.735, 0.415],
+    cream:   [0.99, 0.91, 0.685],
+    stock:   [0.615, 0.150, 0.042],
+    steel:   [0.340, 0.385, 0.460],
+    stone:   [0.205, 0.195, 0.190],
+    clay:    [0.52, 0.21, 0.115]
   };
 
   /* ── the seven ───────────────────────────────────────────────
@@ -133,7 +136,10 @@
     },
     {
       name: 'soup', vessel: 'bowl', fit: 0.76, vy: -0.42, camR: 2.8, camY: 1.46, look: 0.42, steam: [0.80, 2.1, 1.0],
-      pool: { r: 1.14, y: 0.80, tint: A.stock, emissive: 0.10 },
+      /* The bowl's inner wall is at r≈1.107 where y=0.82, so the
+         surface has to stop short of that or the soup overhangs
+         its own bowl. */
+      pool: { r: 1.062, y: 0.82, tint: A.stock, emissive: 0.10 },
       scatter: [
         { kind: 'shrimp', n: 6, r0: 0.15, r1: 0.72, y0: 0.80, y1: 0.90, s: 0.135 },
         { kind: 'mussel', n: 5, r0: 0.20, r1: 0.78, y0: 0.79, y1: 0.88, s: 0.135 },
@@ -295,10 +301,11 @@
       bodies: bodies, crowds: crowds,
       particles: pdata, particleCount: 0,
       post: {
-        exposure: 0.94, bloom: 0.42, bloomThreshold: 1.70, shafts: 0.16,
-        aberration: 0.030, vignette: 0.70, grain: 0.024, fade: 1,
+        exposure: 1.16, bloom: 0.42, bloomThreshold: 1.70, shafts: 0.16,
+        aberration: 0.030, vignette: 0.52, grain: 0.020, fade: 1,
         warp: 0, warpAt: [0.5, 0.5],
-        lift: [0.010, 0.018, 0.032], gain: [1.02, 0.975, 0.945]
+        lift: [0.010, 0.018, 0.032], gain: [1.02, 0.975, 0.945],
+        saturation: 1.34, contrast: 1.12
       }
     };
 
@@ -503,7 +510,7 @@
       /* ── light ──
          Same two lights as the film, and the same rule: the boil
          is inside the vessel, the moon is high and behind. */
-      var moonI = 1.15;
+      var moonI = 1.34;
       state.moon.color[0] = MOON[0] * moonI;
       state.moon.color[1] = MOON[1] * moonI;
       state.moon.color[2] = MOON[2] * moonI;
@@ -515,7 +522,7 @@
       state.boil.color[2] = BOIL[2] * 1.25;
       var fit = d.fit || 1;
       state.boil.pos[1] = (d.vy + d.steam[0] * 0.5) * fit;
-      state.boil.power = 0.40;
+      state.boil.power = 0.52;
 
       state.shadowFocus[1] = (d.vy + 0.5) * fit;
       state.shadowExtent = 2.4 * fit + 0.5;

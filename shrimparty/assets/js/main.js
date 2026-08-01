@@ -63,19 +63,27 @@
     if (coarse) score -= 2;
     if (w < 700) score -= 1;
 
+    /* `maxScale` is the ceiling on the backing store, expressed as
+       a multiple of CSS pixels. Capping it below the device pixel
+       ratio renders under native and then lets the browser
+       upscale — which on a 4K panel is the difference between a
+       sharp frame and a soft one. The cap is now 2.0, which is
+       native on every retina and 4K display in use; the frame
+       timer still drops it on a machine that cannot hold rate, so
+       raising the ceiling costs nothing where it cannot be paid. */
     if (score >= 4) return {
       name: 'high',
       counts: { items: 210, particles: 2600 },
-      segments: { lo: 8, md: 14, hi: 22, bucket: 72 },
-      shadowSize: 1024, oceanRings: 150, oceanSpokes: 168,
-      maxScale: Math.min(dpr, 1.6)
+      segments: { lo: 10, md: 20, hi: 30, bucket: 96 },
+      shadowSize: 2048, oceanRings: 170, oceanSpokes: 192,
+      maxScale: Math.min(dpr, 2.0)
     };
     if (score >= 2) return {
       name: 'mid',
       counts: { items: 140, particles: 1500 },
-      segments: { lo: 7, md: 11, hi: 16, bucket: 56 },
-      shadowSize: 768, oceanRings: 110, oceanSpokes: 128,
-      maxScale: Math.min(dpr, 1.3)
+      segments: { lo: 8, md: 14, hi: 20, bucket: 64 },
+      shadowSize: 1024, oceanRings: 120, oceanSpokes: 140,
+      maxScale: Math.min(dpr, 1.5)
     };
     return {
       name: 'low',

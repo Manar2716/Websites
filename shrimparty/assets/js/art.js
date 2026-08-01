@@ -26,28 +26,28 @@
   var TAU = Math.PI * 2;
 
   var C = {
-    shell:   '#E4703F',
-    shellHi: '#F9A272',
-    shellLo: '#8E3418',
+    shell:   '#F4642A',
+    shellHi: '#FFB07A',
+    shellLo: '#9E2D0B',
     band:    '#B84A22',
-    crab:    '#EE8451',
+    crab:    '#FF7A38',
     mussel:  '#25293A',
-    musselHi:'#4A5372',
+    musselHi:'#4E5A8C',
     pearl:   '#C9B79E',
-    corn:    '#E9B441',
-    cornHi:  '#F7DA8B',
-    lemon:   '#E4CE4A',
-    lemonHi: '#F6EDA0',
+    corn:    '#F7BE24',
+    cornHi:  '#FFE68A',
+    lemon:   '#F2DD2C',
+    lemonHi: '#FCF4A2',
     garlic:  '#E8E1D2',
     potato:  '#B08A56',
-    herb:    '#4C7B3A',
-    herbHi:  '#7FB05E',
-    sausage: '#7A2C1E',
-    salmon:  '#E9765A',
-    salmonHi:'#FBB196',
+    herb:    '#3E9B32',
+    herbHi:  '#7FCE55',
+    sausage: '#94270F',
+    salmon:  '#FF7351',
+    salmonHi:'#FFBFA4',
     pasta:   '#E2C489',
     cream:   '#EFE0BE',
-    stock:   '#B4491C',
+    stock:   '#D4470F',
     steel:   '#5A626E',
     steelHi: '#96A1B2',
     clay:    '#7A4028',
@@ -340,15 +340,15 @@
 
   function ground(ctx, w, h) {
     var g = ctx.createRadialGradient(w * .5, h * .58, 0, w * .5, h * .58, Math.max(w, h) * .72);
-    g.addColorStop(0, 'rgba(36,22,14,1)');
-    g.addColorStop(.55, 'rgba(12,14,20,1)');
-    g.addColorStop(1, 'rgba(5,7,11,1)');
+    g.addColorStop(0, 'rgba(58,32,16,1)');
+    g.addColorStop(.55, 'rgba(16,19,27,1)');
+    g.addColorStop(1, 'rgba(6,8,13,1)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
 
     /* the boil, glowing up through the dish from below */
     var bg = ctx.createRadialGradient(w * .5, h * .62, 0, w * .5, h * .62, w * .48);
-    bg.addColorStop(0, 'rgba(242,121,43,.30)');
+    bg.addColorStop(0, 'rgba(255,120,30,.44)');
     bg.addColorStop(1, 'rgba(242,121,43,0)');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
@@ -630,7 +630,7 @@
     /* a soft vignette to seat the dish in the panel */
     var vg = ctx.createRadialGradient(w * .5, h * .5, Math.min(w, h) * .25, w * .5, h * .5, Math.max(w, h) * .72);
     vg.addColorStop(0, 'rgba(0,0,0,0)');
-    vg.addColorStop(1, 'rgba(0,0,0,.55)');
+    vg.addColorStop(1, 'rgba(0,0,0,.40)');
     ctx.fillStyle = vg;
     ctx.fillRect(0, 0, w, h);
   }

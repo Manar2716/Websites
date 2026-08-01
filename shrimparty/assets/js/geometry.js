@@ -1040,12 +1040,16 @@
   function pastaNest(nu, nv) {
     return centred(parametric(function (u, v, o) {
       var a = u * TAU, b = v * TAU;
-      var R = 0.86, r = 0.34;
+      /* The ring radius is barely larger than the tube radius, so
+         the hole through the middle closes to a dimple. A wider
+         ring leaves a void you can see the bowl through, which
+         reads as a doughnut and not as a nest. */
+      var R = 0.60, r = 0.46;
       /* strands wind around the ring: the ridge phase advances
          with both parameters, which is what makes them spiral
          rather than stripe */
-      var strand = Math.sin(b * 9 + a * 5.5) * 0.055 +
-                   Math.sin(b * 15 - a * 3.1) * 0.028;
+      var strand = Math.sin(b * 11 + a * 9.0) * 0.105 +
+                   Math.sin(b * 17 - a * 5.0) * 0.046;
       var rr = r + strand;
       /* flattened, because a nest sits in a bowl */
       o[0] = (R + rr * Math.cos(b)) * Math.cos(a);

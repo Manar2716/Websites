@@ -47,23 +47,34 @@
      shrimp reads as appetising in act five and as wreckage in act
      nine without a single value changing. */
 
-  var MOON = [0.60, 0.76, 1.00];
-  var BOIL = [1.00, 0.44, 0.12];
-  var FOG  = [0.028, 0.058, 0.094];
-  var DEEP = [0.006, 0.022, 0.044];
+  /* The lights carry more chroma than before: the moon is bluer
+     and the boil is a harder orange, so the two ends of every
+     surface are further apart and the food has something to be
+     colourful *against*. The rule is unchanged — still two
+     lights, still nothing else — it is turned up. */
+  var MOON = [0.46, 0.70, 1.00];
+  var BOIL = [1.00, 0.36, 0.055];
+  var FOG  = [0.030, 0.072, 0.125];
+  var DEEP = [0.008, 0.032, 0.070];
 
+  /* Albedos pushed well clear of grey. These had been chosen for a
+     restrained frame and the frame is no longer restrained: the
+     shrimp are a real coral, the corn is a real yellow, the herb
+     is a real green. Nothing here exceeds 1.0 — a diffuse albedo
+     above one is a surface reflecting more light than it
+     receives, and it turns the tonemap into a bleach filter. */
   var ALBEDO = {
-    shrimp:  [0.88, 0.30, 0.185],
-    crab:    [0.92, 0.38, 0.245],
-    claw:    [0.80, 0.215, 0.155],
-    mussel:  [0.075, 0.085, 0.135],
-    corn:    [0.96, 0.70, 0.155],
-    lemon:   [0.94, 0.87, 0.26],
-    garlic:  [0.91, 0.87, 0.775],
-    potato:  [0.70, 0.545, 0.335],
-    herb:    [0.215, 0.50, 0.205],
-    sausage: [0.43, 0.155, 0.115],
-    steel:   [0.315, 0.345, 0.395]
+    shrimp:  [0.99, 0.26, 0.115],
+    crab:    [1.00, 0.34, 0.170],
+    claw:    [0.94, 0.145, 0.085],
+    mussel:  [0.078, 0.082, 0.118],
+    corn:    [1.00, 0.72, 0.075],
+    lemon:   [0.99, 0.92, 0.135],
+    garlic:  [0.96, 0.92, 0.815],
+    potato:  [0.83, 0.585, 0.265],
+    herb:    [0.135, 0.425, 0.125],
+    sausage: [0.60, 0.135, 0.075],
+    steel:   [0.415, 0.455, 0.520]
   };
 
   /* ── the swell, transcribed from the vertex shader ───────────
@@ -510,7 +521,8 @@
         exposure: 1.0, bloom: 0.62, bloomThreshold: 1.05, shafts: 0.5,
         aberration: 0.14, vignette: 0.62, grain: 0.030, fade: 1,
         warp: 0, warpAt: [0.5, 0.55],
-        lift: [0.010, 0.020, 0.036], gain: [1.00, 0.96, 0.94]
+        lift: [0.010, 0.020, 0.036], gain: [1.00, 0.96, 0.94],
+        saturation: 1.42, contrast: 1.10
       },
       /* read by the page, not by the renderer */
       act: 'DROP', actProgress: 0, wordmark: 0
@@ -602,10 +614,10 @@
       state.stars = smoothstep(0.03, 0.22, t) * (1 - descent * 0.35);
 
       var boilI = smoothstep(ACT.RISE - 0.02, ACT.RISE + 0.10, t) * (1 - descent * 0.88);
-      state.boil.color[0] = BOIL[0] * 1.85;
-      state.boil.color[1] = BOIL[1] * 1.85;
-      state.boil.color[2] = BOIL[2] * 1.85;
-      state.boil.power = boilI * 0.90;
+      state.boil.color[0] = BOIL[0] * 1.55;
+      state.boil.color[1] = BOIL[1] * 1.55;
+      state.boil.color[2] = BOIL[2] * 1.55;
+      state.boil.power = boilI * 0.58;
 
       var fogI = fog * (1 - crossing * 0.18);
       state.fog.color[0] = FOG[0] * (0.35 + fogI * 1.5);
@@ -614,8 +626,8 @@
       /* the fog thins as the camera commits to the pail and
          thickens again as it leaves — density is the depth cue
          doing the emotional work in the last act */
-      state.fog.density = lerp(0.115, 0.030, smoothstep(0.10, 0.42, t)) +
-                          descent * 0.075;
+      state.fog.density = lerp(0.100, 0.018, smoothstep(0.10, 0.42, t)) +
+                          descent * 0.060;
 
       state.skyAmount = smoothstep(0.004, 0.10, t);
       state.oceanAmount = smoothstep(0.000, 0.030, t) * (1 - smoothstep(0.86, 0.98, t) * 0.0);
@@ -933,8 +945,13 @@
          pushed as the boil arrives, which is the difference
          between a dark frame and an underexposed one. */
       var po2 = state.post;
-      po2.exposure = lerp(0.55, 1.06, smoothstep(0.008, 0.20, t)) *
-                     lerp(1, 1.16, orbiting) * lerp(1, 0.80, descent);
+      /* Brighter overall, and the saturation eases up as the boil
+         arrives — the opening is meant to be near-monochrome
+         water, and the colour is the payoff for having waited. */
+      po2.exposure = lerp(0.60, 1.34, smoothstep(0.008, 0.20, t)) *
+                     lerp(1, 1.20, orbiting) * lerp(1, 0.86, descent);
+      po2.saturation = lerp(1.14, 1.52, smoothstep(0.10, 0.34, t));
+      po2.contrast = 1.10;
       po2.bloom = lerp(0.34, 0.72, smoothstep(0.05, 0.36, t)) + breaking * 0.16;
       po2.bloomThreshold = lerp(0.72, 1.10, smoothstep(0.02, 0.30, t));
       po2.shafts = lerp(0.15, 0.62, smoothstep(0.05, 0.30, t)) * (1 - orbiting * 0.45) + descent * 0.35;
@@ -944,7 +961,7 @@
          gets its own red and cyan edge — what reads as a lens on
          a single pail reads as a broken display on a cloud. */
       po2.aberration = 0.028 + breaking * 0.030 + drifting * 0.024;
-      po2.vignette = lerp(0.86, 0.54, smoothstep(0.02, 0.28, t)) + descent * 0.22;
+      po2.vignette = lerp(0.80, 0.40, smoothstep(0.02, 0.28, t)) + descent * 0.18;
       po2.grain = 0.030 + (1 - smoothstep(0.0, 0.16, t)) * 0.020;
       /* the film opens and closes on black, and both are the same
          two lines */

@@ -38,14 +38,14 @@
      the number that separates food from props. */
 
   var MAT = {
-    shell:   { rough: 0.30, metal: 0.00, coat: 0.55, trans: 0.85 },
-    claw:    { rough: 0.24, metal: 0.00, coat: 0.70, trans: 0.42 },
-    steel:   { rough: 0.47, metal: 0.86, coat: 0.14, trans: 0.00 },
-    veg:     { rough: 0.46, metal: 0.00, coat: 0.30, trans: 0.55 },
-    citrus:  { rough: 0.38, metal: 0.00, coat: 0.42, trans: 1.25 },
-    herb:    { rough: 0.52, metal: 0.00, coat: 0.22, trans: 1.05 },
-    liquid:  { rough: 0.045, metal: 0.00, coat: 1.00, trans: 0.90 },
-    stone:   { rough: 0.72, metal: 0.00, coat: 0.05, trans: 0.00 }
+    shell:   { rough: 0.30, metal: 0.00, coat: 0.55, trans: 0.85, relief: 0.75 },
+    claw:    { rough: 0.24, metal: 0.00, coat: 0.70, trans: 0.42, relief: 0.85 },
+    steel:   { rough: 0.47, metal: 0.86, coat: 0.14, trans: 0.00, relief: 0.05 },
+    veg:     { rough: 0.46, metal: 0.00, coat: 0.30, trans: 0.55, relief: 0.55 },
+    citrus:  { rough: 0.38, metal: 0.00, coat: 0.42, trans: 1.25, relief: 0.40 },
+    herb:    { rough: 0.52, metal: 0.00, coat: 0.22, trans: 1.05, relief: 0.30 },
+    liquid:  { rough: 0.045, metal: 0.00, coat: 1.00, trans: 0.90, relief: 0.00 },
+    stone:   { rough: 0.72, metal: 0.00, coat: 0.05, trans: 0.00, relief: 0.22 }
   };
 
   var INSTANCE_FLOATS = 16;
@@ -78,6 +78,7 @@
       up:       GL.program(gl, SH.fsVert, SH.upFrag, 'up'),
       shaft:    GL.program(gl, SH.fsVert, SH.shaftFrag, 'shaft'),
       comp:     GL.program(gl, SH.fsVert, SH.compFrag, 'comp'),
+      fxaa:     GL.program(gl, SH.fsVert, SH.fxaaFrag, 'fxaa'),
       blit:     GL.program(gl, SH.fsVert, SH.head +
                   'in vec2 vUv; uniform sampler2D uTex; out vec4 o;' +
                   'void main(){ o = texture(uTex, vUv); }', 'blit')
@@ -122,11 +123,12 @@
 
     /* ── targets ─────────────────────────────────────────────── */
 
-    var scene = null, sceneColor = null, steamT = null, shaftT = null, tmpT = null;
+    var scene = null, sceneColor = null, steamT = null, shaftT = null, tmpT = null, ldrT = null;
     var chain = [];
     var shadow = GL.shadowTarget(gl, shadowSize);
 
     function disposeTargets() {
+      if (ldrT) ldrT.dispose();
       if (sceneColor) sceneColor.dispose();
       if (scene) scene.dispose();
       if (steamT) steamT.dispose();
@@ -152,6 +154,12 @@
       steamT = GL.target(gl, Math.max(2, W >> 1), Math.max(2, H >> 1), { half: half });
       shaftT = GL.target(gl, Math.max(2, W >> 2), Math.max(2, H >> 2), { half: half });
       tmpT = GL.target(gl, Math.max(2, W >> 2), Math.max(2, H >> 2), { half: half });
+      /* The composite lands here rather than on the screen, so
+         FXAA has a tonemapped image to read neighbours from.
+         Deliberately 8-bit: it is the final display-referred
+         picture, and giving FXAA a float buffer to chew on costs
+         bandwidth for a precision nobody can see. */
+      ldrT = GL.target(gl, W, H, { half: false });
       /* five levels: the bright pass plus four halvings */
       var cw = W, ch = H;
       for (var i = 0; i < 5; i++) {
@@ -188,7 +196,8 @@
     function material(p, name) {
       var m = MAT[name] || MAT.shell;
       p.f('uRough', m.rough).f('uMetal', m.metal)
-       .f('uCoat', m.coat).f('uTranslucency', m.trans);
+       .f('uCoat', m.coat).f('uTranslucency', m.trans)
+       .f('uRelief', m.relief === undefined ? 0 : m.relief);
     }
 
     /* ── shadow pass ─────────────────────────────────────────────
@@ -463,8 +472,7 @@
       }
 
       /* ── composite ─────────────────────────────────────────── */
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      gl.viewport(0, 0, W, H);
+      ldrT.bind();
       var po = s.post;
       P.comp.use()
         .tex('uScene', scene.color, 0)
@@ -482,7 +490,21 @@
         .v2('uResolution', W, H)
         .v3('uLift', po.lift)
         .v3('uGain', po.gain)
+        .f('uSaturation', po.saturation === undefined ? 1 : po.saturation)
+        .f('uContrast', po.contrast === undefined ? 1 : po.contrast)
         .f('uTime', s.time);
+      fs.draw();
+
+      /* ── resolve ───────────────────────────────────────────────
+         The last thing before the screen. Without it every
+         silhouette in the film is one pixel wide and hard —
+         which, on a shrimp seen against black water, is the most
+         artificial thing in the frame. */
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, W, H);
+      P.fxaa.use()
+        .v2('uTexel', 1 / W, 1 / H)
+        .tex('uTex', ldrT.color, 0);
       fs.draw();
     }
 

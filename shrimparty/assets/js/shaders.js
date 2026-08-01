@@ -169,18 +169,36 @@
     /* clearcoat: a second, much tighter lobe with a fixed IOR.
        This is the difference between "shrimp" and "wet shrimp",
        and it is almost the whole read on the hero object. */
-    '  float ca = max(0.055*0.055, 1e-4);',
+    /* 0.105, not the 0.055 a lacquer would have. A film of water
+       on a lumpy pile of shell is not a mirror, and at 0.055 the
+       boil overhead lands on every up-facing facet at the same
+       instant and caps the whole pail in white. */
+    '  float ca = max(0.105*0.105, 1e-4);',
     '  float cspec = D_GGX(NoH, ca) * V_Smith(NoV, max(NoL,0.0), ca);',
     '  float cF = 0.04 + 0.96*pow(1.0-VoH, 5.0);',
 
     /* light coming through the object from behind */
     '  float back = pow(clamp(dot(V, -L) * 0.5 + 0.5, 0.0, 1.0), 3.0);',
-    '  vec3 trans = lc * translucency * back * exp(-thickness*2.2);',
+    /* Tinted by the albedo, because light that goes *through*
+       shrimp comes out the colour of shrimp. Un-tinted, every
+       translucent thing glows with the raw colour of the lamp and
+       a wet pile of shell reads as a pile of ice. */
+    '  vec3 trans = lc * albedo * translucency * back * exp(-thickness*2.2);',
 
     '  vec3 kd = albedo * (1.0-metal) * diff;',
     '  vec3 ks = F * spec * max(NoL,0.0);',
-    '  vec3 kc = vec3(cF * cspec * max(NoL,0.0) * coat);',
-    '  return lc * (kd + ks + kc) + trans;',
+    /* What the coat reflects, the layers under it never receive.
+       Adding the coat on top instead of over the base is what
+       turns wet shrimp white: at wet=1 the food keeps its full
+       diffuse *and* gains a mirror, so the albedo stops showing
+       through the water at all. */
+    '  float kcAmt = cF * coat;',
+    /* The coat lobe peaks in the tens of thousands. ACES maps that
+       to the same white as 30 does, but bloom runs before the
+       tonemap and would smear the spike across the whole dish, so
+       it is clamped to a highlight rather than a floodlight. */
+    '  vec3 kc = vec3(min(cF * cspec * max(NoL,0.0) * coat, 12.0));',
+    '  return lc * ((kd + ks) * (1.0 - kcAmt) + kc) + trans;',
     '}'
   ].join('\n');
 
@@ -273,6 +291,7 @@
     'uniform float uMetal;',
     'uniform float uCoat;',
     'uniform float uTranslucency;',
+    'uniform float uRelief;',
     'uniform float uWaterLine;',   /* world Y of the surface; below it, tint */
     'uniform sampler2D uShadowMap;',
     'uniform float uShadowStrength;',
@@ -284,8 +303,15 @@
     'float shadow(vec4 sc, float NoL){',
     '  vec3 p = sc.xyz / sc.w * 0.5 + 0.5;',
     '  if(p.z > 1.0 || p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0) return 1.0;',
-    '  float bias = max(0.0035 * (1.0 - NoL), 0.0009);',
+    /* Slope-scaled and sized off the actual map, not a constant.
+       The 3×3 taps are offset in XY, so on a surface tilted away
+       from the light they land at depths the centre bias never
+       covers, and a curved surface stipples itself. Both terms
+       are in texels, so raising the shadow resolution tightens
+       the bias instead of turning it into acne. */
     '  float texel = 1.0 / float(textureSize(uShadowMap, 0).x);',
+    '  float slope = min(sqrt(max(0.0, 1.0 - NoL*NoL)) / max(NoL, 0.10), 6.0);',
+    '  float bias = texel * (1.8 + 3.4 * slope);',
     '  float s = 0.0;',
     '  for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){',
     '    float d = texture(uShadowMap, p.xy + vec2(float(x),float(y))*texel).r;',
@@ -327,6 +353,39 @@
     '    float seam = exp(-pow((sgm - 0.03)/0.10, 2.0));',
     '    albedo = mix(albedo, albedo*vec3(0.46,0.26,0.30), seam*band*0.85);',
     '    albedo = mix(albedo, albedo*vec3(1.22,0.90,0.82), pow(sgm,2.4)*band*0.60);',
+    '  }',
+
+    /* ── micro-relief ──
+       The grain above tints the albedo and roughens the surface,
+       but it does not move the *normal* — and a surface whose
+       colour varies while its normal stays perfectly smooth reads
+       as painted plastic no matter how good the colour is. Shell
+       is not smooth; it is pitted, and the pits are what catch
+       the boil.
+
+       The gradient comes from screen-space derivatives of a
+       height field rather than from a tangent-space normal map,
+       because none of these meshes have a tangent frame or a UV
+       unwrap worth sampling — they are swept and revolved
+       surfaces. This is the surface-gradient formulation, which
+       needs neither. */
+    '  if(uRelief > 0.001){',
+    '    float hgt = fbm3(vWorld*44.0 + seed*5.0, 3);',
+    '    vec3 dpx = dFdx(vWorld), dpy = dFdy(vWorld);',
+    '    float dhx = dFdx(hgt), dhy = dFdy(hgt);',
+    /* One pixel covers this much of the noise. Past about a
+       quarter period the height field is undersampled and the
+       gradient turns into per-pixel confetti that no amount of
+       FXAA will settle, so it is faded out rather than aliased —
+       the same reason a texture gets mipped. */
+    '    float foot = max(length(dpx), length(dpy)) * 44.0;',
+    '    float fade = 1.0 - smoothstep(0.16, 0.55, foot);',
+    '    vec3 r1 = cross(dpy, N), r2 = cross(N, dpx);',
+    '    float det = dot(dpx, r1);',
+    '    vec3 grad = (r1*dhx + r2*dhy) * (abs(det) > 1e-9 ? sign(det)/abs(det) : 0.0);',
+    /* wet shell fills its own pits, so the relief eases off as
+       the water sheets over it */
+    '    N = normalize(N - grad * uRelief * fade * 0.055 * (1.0 - wet*0.30));',
     '  }',
 
     '  float rough = clamp(uRough * (0.86 + grain*0.30) - wet*0.34, 0.030, 1.0);',
@@ -594,9 +653,9 @@
     '  float md = dot(D, normalize(uMoonDir));',
     '  float disc = smoothstep(1.0 - uMoonSize, 1.0 - uMoonSize*0.55, md);',
     '  float limb = pow(clamp((md - (1.0-uMoonSize))/max(uMoonSize,1e-4), 0.0, 1.0), 0.42);',
-    '  col += uMoonColor * disc * (1.3 + limb*1.7);',
-    '  col += uMoonColor * pow(max(md,0.0), 320.0) * 0.9;',
-    '  col += uMoonColor * pow(max(md,0.0), 26.0) * 0.075;',
+    '  col += uMoonColor * disc * (1.05 + limb*1.25);',
+    '  col += uMoonColor * pow(max(md,0.0), 420.0) * 0.55;',
+    '  col += uMoonColor * pow(max(md,0.0), 52.0) * 0.035;',
 
     /* cloud band, slow, low contrast — depth for the sky */
     '  float cl = fbm3(vec3(D.xz*2.4/max(h+0.14,0.06), uTime*0.014), 4);',
@@ -874,6 +933,56 @@
     '}'
   ].join('\n');
 
+
+  /* ── FXAA ────────────────────────────────────────────────────
+     The context is created with `antialias: false` because the
+     scene is rendered into a float target and resolved in post —
+     but the resolve was never written, so every silhouette in the
+     film has been hard-aliased from the beginning. On a shrimp
+     seen against black water that is the single most artificial
+     thing on screen: real edges are never one pixel wide.
+
+     This is the classic luma-based FXAA, run on the tonemapped
+     image as the last thing before the screen. It has to be after
+     the tonemap, because it steers on perceived luminance and HDR
+     values do not have one. */
+
+  var FXAA_FS = [
+    'in vec2 vUv;',
+    'uniform sampler2D uTex;',
+    'uniform vec2 uTexel;',
+    'out vec4 outColor;',
+    'float luma(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }',
+    'void main(){',
+    '  vec3 rgbM = texture(uTex, vUv).rgb;',
+    '  float lM  = luma(rgbM);',
+    '  float lNW = luma(texture(uTex, vUv + vec2(-1.0,-1.0)*uTexel).rgb);',
+    '  float lNE = luma(texture(uTex, vUv + vec2( 1.0,-1.0)*uTexel).rgb);',
+    '  float lSW = luma(texture(uTex, vUv + vec2(-1.0, 1.0)*uTexel).rgb);',
+    '  float lSE = luma(texture(uTex, vUv + vec2( 1.0, 1.0)*uTexel).rgb);',
+
+    '  float lMin = min(lM, min(min(lNW,lNE), min(lSW,lSE)));',
+    '  float lMax = max(lM, max(max(lNW,lNE), max(lSW,lSE)));',
+    /* a flat neighbourhood is left exactly alone, which is what
+       keeps the grain and the star field from being smeared */
+    '  if(lMax - lMin < max(0.028, lMax * 0.115)){ outColor = vec4(rgbM, 1.0); return; }',
+
+    '  vec2 dir = vec2(-((lNW + lNE) - (lSW + lSE)), ((lNW + lSW) - (lNE + lSE)));',
+    '  float reduce = max((lNW + lNE + lSW + lSE) * 0.03125, 0.0078125);',
+    '  float rcp = 1.0 / (min(abs(dir.x), abs(dir.y)) + reduce);',
+    '  dir = clamp(dir * rcp, -8.0, 8.0) * uTexel;',
+
+    '  vec3 rgbA = 0.5 * (texture(uTex, vUv + dir*(1.0/3.0 - 0.5)).rgb',
+    '                   + texture(uTex, vUv + dir*(2.0/3.0 - 0.5)).rgb);',
+    '  vec3 rgbB = rgbA * 0.5 + 0.25 * (texture(uTex, vUv - dir*0.5).rgb',
+    '                                 + texture(uTex, vUv + dir*0.5).rgb);',
+    /* the wider tap is only trusted while it stays inside the
+       local luma range; outside it, it is overshooting an edge */
+    '  float lB = luma(rgbB);',
+    '  outColor = vec4((lB < lMin || lB > lMax) ? rgbA : rgbB, 1.0);',
+    '}'
+  ].join('\n');
+
   /* ── composite ───────────────────────────────────────────────
      Aberration, then the grade, then the tonemap, then the
      vignette and the grain. Order matters: tonemapping after the
@@ -898,6 +1007,8 @@
     'uniform vec2 uResolution;',
     'uniform vec3 uLift;',
     'uniform vec3 uGain;',
+    'uniform float uSaturation;',
+    'uniform float uContrast;',
     'out vec4 outColor;',
     NOISE,
 
@@ -922,10 +1033,14 @@
     '    uv += normalize(d + 1e-6) * w * 0.022 * min(uWarp*3.0,1.0) / vec2(aspect,1.0);',
     '  }',
 
-    /* chromatic aberration, growing toward the corners */
+    /* Chromatic aberration, growing toward the corners. The 0.18
+       is what keeps it lens-like: without it the strongest act
+       splits the channels by nearly thirty pixels at the corner,
+       which stops reading as glass and starts reading as a fault
+       in the display. */
     '  vec2 ctr = uv - 0.5;',
     '  float rr = dot(ctr,ctr);',
-    '  vec2 off = ctr * rr * uAberration;',
+    '  vec2 off = ctr * rr * uAberration * 0.18;',
     '  vec3 col;',
     '  col.r = texture(uScene, uv + off).r;',
     '  col.g = texture(uScene, uv).g;',
@@ -941,6 +1056,17 @@
     '  col = col*uGain + uLift*(1.0 - col);',
 
     '  col = aces(col);',
+
+    /* ── saturation and contrast ──
+       After the tonemap, not before. Saturating in linear light
+       pushes values past the shoulder and clips them to hue-
+       shifted mush; doing it here behaves the way a colourist's
+       control does, and the ACES shoulder has already protected
+       the highlights. Luminance is weighted, so pushing the
+       saturation does not also brighten the frame. */
+    '  float lum0 = dot(col, vec3(0.2126, 0.7152, 0.0722));',
+    '  col = mix(vec3(lum0), col, uSaturation);',
+    '  col = clamp((col - 0.5) * uContrast + 0.5, 0.0, 1.0);',
 
     /* vignette, and a slight barrel darkening at the very corner */
     '  float vig = 1.0 - uVignette*pow(rr*2.0, 1.35);',
@@ -989,7 +1115,8 @@
     downFrag: H + DOWN_FS,
     upFrag: H + UP_FS,
     shaftFrag: H + SHAFT_FS,
-    compFrag: H + COMP_FS
+    compFrag: H + COMP_FS,
+    fxaaFrag: H + FXAA_FS
   };
 
 })(window);
