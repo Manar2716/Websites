@@ -6,8 +6,27 @@
 # `/` is the printer page, `/peets/` is the coffee one and
 # `/shrimparty/` is the seafood one.
 #
-# `enablement: true` turns Pages on the first time this runs, so the
-# repository does not have to be configured by hand beforehand.
+# ── BEFORE THIS CAN EVER SUCCEED ──────────────────────────────────
+#
+# GitHub Pages must be switched on for the repository *by a human*,
+# once:
+#
+#   Settings → Pages → Build and deployment → Source: GitHub Actions
+#
+# `enablement: true` below was documented here as doing that
+# automatically. It does not, and every run of this workflow has
+# failed on it:
+#
+#   Get Pages site failed.    Error: Not Found
+#   Create Pages site failed. Error: Resource not accessible by integration
+#
+# Creating a Pages site needs repository-administration scope, and
+# the automatic GITHUB_TOKEN never has it — `permissions:` below
+# already grants everything a workflow token can be given. So the
+# flag is harmless once Pages exists and useless before then.
+#
+# After the setting above is flipped, re-run this workflow from the
+# Actions tab (it has `workflow_dispatch`) or push again.
 name: Pages
 
 on:
