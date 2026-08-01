@@ -2,14 +2,14 @@
    film.js — the nine acts, on one number.
 
      0.000  DROP       black. one droplet falls. the screen ripples.
-     0.078  FOG        fog blooms out of the impact; the moon arrives
-     0.170  CROSSING   flying low over the swell, moon streak running
+     0.078  FOG        fog blooms out of the impact; the sun burns through
+     0.170  CROSSING   flying low over the swell, sun path running
      0.290  THE RISE   the pail breaks the surface, water sheeting off
      0.400  ORBIT      the camera circles it; steam; the wordmark
      0.520  BREAK      the pail comes apart, the boil hangs in the air
      0.640  DRIFT      lobster past the lens, garlic at the lens
      0.770  REFORM     the whole boil collapses onto the platter
-     0.880  DESCENT    the camera lifts; the scene sinks; moonlight closes
+     0.880  DESCENT    the camera lifts; the scene sinks; the light goes long
 
    Hand `update` a t of 0.42 and you get the frame at 0.42 —
    scrolled there, jumped there, or holding still. That property
@@ -41,21 +41,28 @@
   };
 
   /* ── the palette ─────────────────────────────────────────────
-     Two lights, and every albedo below is chosen for how it sits
-     between them. The shell reds go orange under the boil and
-     violet under the moon, which is the whole reason the same
-     shrimp reads as appetising in act five and as wreckage in act
-     nine without a single value changing. */
+     The film used to run at night, lit by a moon and the boil.
+     It now runs in late afternoon over open water, because that
+     is the light the brief's reference is shot in and no amount
+     of shader work makes midnight look like four o'clock.
 
-  /* The lights carry more chroma than before: the moon is bluer
-     and the boil is a harder orange, so the two ends of every
-     surface are further apart and the food has something to be
-     colourful *against*. The rule is unchanged — still two
-     lights, still nothing else — it is turned up. */
-  var MOON = [0.46, 0.70, 1.00];
+     Two lights still, and still nothing else. The key is a low
+     sun — warm, and strong enough that the water is the brightest
+     thing in the frame. The fill is the sky itself, which is a
+     far bigger and softer source than the boil ever was, and is
+     what stops the shadow sides going to ink. The boil survives
+     as a third, local, warm source under the pail; it earns its
+     place in one act rather than lighting the whole film. */
+  var SUN  = [1.00, 0.815, 0.590];
   var BOIL = [1.00, 0.36, 0.055];
-  var FOG  = [0.030, 0.072, 0.125];
-  var DEEP = [0.008, 0.032, 0.070];
+  /* Horizon haze: where the sky washes out to. Everything distant
+     tends to this, so it doubles as the aerial-perspective
+     colour, which is why it is warm rather than neutral. */
+  var FOG  = [0.700, 0.790, 0.880];
+  /* What comes back up through the water. Not navy — open sea
+     under a bright sky is a deep green-teal, and the green is
+     what keeps it from reading as ink. */
+  var DEEP = [0.013, 0.072, 0.108];
 
   /* Albedos pushed well clear of grey. These had been chosen for a
      restrained frame and the frame is no longer restrained: the
@@ -519,7 +526,13 @@
     var state = {
       time: 0,
       camera: { pos: [0, 0, 3], target: [0, 0, 0], fov: 0.8, roll: 0 },
-      moon: { dir: v3.norm([0, 0, 0], [-0.34, 0.46, -0.82]), color: [0, 0, 0], size: 0.016 },
+      /* Up and to the left, and slightly behind the camera rather
+         than in front of it. Straight into the sun gives a
+         spectacular sea and a silhouetted subject; a little over
+         the shoulder keeps the glitter path on the left of frame
+         and still puts the key on the side of the food the camera
+         can see. */
+      sun: { dir: v3.norm([0, 0, 0], [-0.79, 0.475, -0.39]), color: [0, 0, 0], size: 0.020 },
       boil: { pos: [0, 0.9, 0], color: [0, 0, 0], power: 0 },
       fog: { color: FOG.slice(), density: 0.055 },
       deep: DEEP.slice(),
@@ -540,7 +553,7 @@
       particleCount: 0,
       post: {
         exposure: 1.0, bloom: 0.28, bloomThreshold: 1.45, shafts: 0.5,
-        aberration: 0.14, vignette: 0.62, grain: 0.030, fade: 1,
+        aberration: 0.14, vignette: 0.30, grain: 0.030, fade: 1,
         warp: 0, warpAt: [0.5, 0.55],
         lift: [0.010, 0.020, 0.036], gain: [1.00, 0.96, 0.94],
         saturation: 1.18, contrast: 1.16
@@ -623,32 +636,45 @@
       state.post.warp = t < IMPACT ? 0 : Math.max(0, 1 - (t - IMPACT) * 14) * 1.5 + age * 0.06 * Math.exp(-age * 0.5);
 
       /* ── light ───────────────────────────────────────────────
-         The moon arrives on the fog and never leaves. The boil is
-         lit the instant the pail breaks surface and is the only
-         warm thing in the film until the platter. */
-      var moonUp = lerp(0.10, 1.0, smoothstep(0.010, 0.20, t));
-      var moonI = 0.30 + moonUp * 1.55;
-      state.moon.color[0] = MOON[0] * moonI;
-      state.moon.color[1] = MOON[1] * moonI;
-      state.moon.color[2] = MOON[2] * moonI;
-      state.moon.size = lerp(0.010, 0.026, smoothstep(0.10, 0.55, t));
-      state.stars = smoothstep(0.03, 0.22, t) * (1 - descent * 0.35);
+         The sun is up for the whole film and does not change
+         colour; what changes is how much haze sits between it and
+         the camera. The first act opens inside the haze, which is
+         what makes the water arrive rather than simply be there.
+         The boil lights the instant the pail breaks surface and
+         is the only source that is not the sky. */
+      var clear = smoothstep(0.010, 0.20, t);
+      var sunI = 2.15 + clear * 1.35;
+      state.sun.color[0] = SUN[0] * sunI;
+      state.sun.color[1] = SUN[1] * sunI;
+      state.sun.color[2] = SUN[2] * sunI;
+      state.sun.size = 0.017;
+      state.stars = 0;
 
       var boilI = smoothstep(ACT.RISE - 0.02, ACT.RISE + 0.10, t) * (1 - descent * 0.88);
-      state.boil.color[0] = BOIL[0] * 1.55;
-      state.boil.color[1] = BOIL[1] * 1.55;
-      state.boil.color[2] = BOIL[2] * 1.55;
-      state.boil.power = boilI * 0.58;
+      state.boil.color[0] = BOIL[0] * 1.30;
+      state.boil.color[1] = BOIL[1] * 1.30;
+      state.boil.color[2] = BOIL[2] * 1.30;
+      /* Far weaker than it was at night. A gas ring does not
+         compete with the sun, and letting it try is what makes a
+         daylight scene look like it has a second, wrong sun in
+         it. It reads as warm bounce under the pail, nothing more. */
+      state.boil.power = boilI * 0.20;
 
+      /* Haze burns off as the film opens out. It never reaches
+         zero — the horizon of a real sea is always washed. The
+         mist particles downstream fade with the same number, so
+         they thin out as the air clears rather than hanging in a
+         sky that no longer has any haze in it. */
       var fogI = fog * (1 - crossing * 0.18);
-      state.fog.color[0] = FOG[0] * (0.35 + fogI * 1.5);
-      state.fog.color[1] = FOG[1] * (0.35 + fogI * 1.5);
-      state.fog.color[2] = FOG[2] * (0.35 + fogI * 1.5);
-      /* the fog thins as the camera commits to the pail and
-         thickens again as it leaves — density is the depth cue
-         doing the emotional work in the last act */
-      state.fog.density = lerp(0.100, 0.018, smoothstep(0.10, 0.42, t)) +
-                          descent * 0.060;
+      var hazeI = 0.72 + fog * 0.55 - clear * 0.30;
+      state.fog.color[0] = FOG[0] * hazeI;
+      state.fog.color[1] = FOG[1] * hazeI;
+      state.fog.color[2] = FOG[2] * hazeI;
+      /* Density is the depth cue doing the emotional work: thick
+         at the open, thin once the camera commits to the pail,
+         thickening again as it leaves. */
+      state.fog.density = lerp(0.058, 0.011, smoothstep(0.10, 0.42, t)) +
+                          descent * 0.030;
 
       state.skyAmount = smoothstep(0.004, 0.10, t);
       state.oceanAmount = smoothstep(0.000, 0.030, t) * (1 - smoothstep(0.86, 0.98, t) * 0.0);
@@ -937,18 +963,18 @@
 
         var cr, cg, cb, streak = 0, kindf = 0;
         if (pp.kind === 0) {
-          cr = MOON[0] * 0.30; cg = MOON[1] * 0.34; cb = MOON[2] * 0.42;
+          cr = SUN[0] * 0.30; cg = SUN[1] * 0.34; cb = SUN[2] * 0.42;
           a *= 0.32 * fogI;
         } else if (pp.kind === 1) {
-          cr = MOON[0] * 1.15 + BOIL[0] * 0.30;
-          cg = MOON[1] * 1.15 + BOIL[1] * 0.30;
-          cb = MOON[2] * 1.15 + BOIL[2] * 0.30;
+          cr = SUN[0] * 1.15 + BOIL[0] * 0.30;
+          cg = SUN[1] * 1.15 + BOIL[1] * 0.30;
+          cb = SUN[2] * 1.15 + BOIL[2] * 0.30;
           a *= 0.90; streak = M.clamp(Math.abs(pp.vy) * 0.35, 0, 2.2); kindf = 1;
         } else if (pp.kind === 2) {
           cr = BOIL[0] * 2.1; cg = BOIL[1] * 1.7; cb = BOIL[2] * 1.2;
           a *= 0.62;
         } else {
-          cr = MOON[0] * 0.55; cg = MOON[1] * 0.70; cb = MOON[2] * 0.95;
+          cr = SUN[0] * 0.55; cg = SUN[1] * 0.70; cb = SUN[2] * 0.95;
           a *= 0.30;
         }
 
@@ -962,27 +988,31 @@
       state.particleCount = pc;
 
       /* ── grade and post ──────────────────────────────────────
-         Exposure is pulled down through the black opening and
-         pushed as the boil arrives, which is the difference
-         between a dark frame and an underexposed one. */
+         A daylight scene is exposed for the sky, not for the
+         subject: the water is the brightest thing in frame and
+         everything else falls where it falls. Exposure lives
+         around a third of what the night cut used, because the
+         sun is roughly an order of magnitude on the moon it
+         replaced and the tonemap does the rest. */
       var po2 = state.post;
-      /* Brighter overall, and the saturation eases up as the boil
-         arrives — the opening is meant to be near-monochrome
-         water, and the colour is the payoff for having waited. */
-      po2.exposure = lerp(0.60, 1.34, smoothstep(0.008, 0.20, t)) *
-                     lerp(1, 1.20, orbiting) * lerp(1, 0.86, descent);
-      po2.saturation = lerp(1.04, 1.20, smoothstep(0.10, 0.34, t));
-      po2.contrast = 1.16;
-      /* Bloom is for the handful of pixels that are genuinely
-         brighter than the frame can hold — the moon path, the
-         boil, a specular hit on wet shell. Run wide and low it
-         becomes a veil that lifts the blacks and softens every
-         edge, which is exactly the difference between a render
-         that looks photographed and one that looks lit by a
-         screensaver. */
-      po2.bloom = lerp(0.16, 0.30, smoothstep(0.05, 0.36, t)) + breaking * 0.06;
-      po2.bloomThreshold = lerp(1.05, 1.60, smoothstep(0.02, 0.30, t));
-      po2.shafts = lerp(0.15, 0.62, smoothstep(0.05, 0.30, t)) * (1 - orbiting * 0.45) + descent * 0.35;
+      po2.exposure = lerp(0.30, 0.52, smoothstep(0.008, 0.20, t)) *
+                     lerp(1, 1.12, orbiting) * lerp(1, 0.90, descent);
+      po2.saturation = lerp(1.02, 1.14, smoothstep(0.10, 0.34, t));
+      po2.contrast = 1.13;
+      /* Bloom is for the handful of pixels genuinely brighter than
+         the frame can hold — the sun, its path on the water, a
+         specular hit on wet shell. Run wide and low it becomes a
+         veil that lifts the blacks and softens every edge, which
+         is the difference between a frame that looks photographed
+         and one that looks lit by a screensaver. The threshold
+         sits above the sky, or the entire sky blooms. */
+      po2.bloom = lerp(0.20, 0.34, smoothstep(0.05, 0.36, t)) + breaking * 0.05;
+      po2.bloomThreshold = 2.6;
+      /* Shafts are a night-time device: a bright wedge dragged
+         out of the key light reads as moonlight through haze. In
+         daylight the same pass just washes the frame white, so it
+         survives only as a trace of atmospheric glare. */
+      po2.shafts = lerp(0.05, 0.14, smoothstep(0.05, 0.30, t)) * (1 - orbiting * 0.45) + descent * 0.08;
       /* Aberration scales with how much is in frame, not with how
          dramatic the act is. The break puts two hundred small
          bright objects on screen at once and every one of them
@@ -1029,6 +1059,6 @@
     };
   }
 
-  SHRIMP.Film = { create: create, ACT: ACT, ALBEDO: ALBEDO, MOON: MOON, BOIL: BOIL, FOG: FOG, DEEP: DEEP };
+  SHRIMP.Film = { create: create, ACT: ACT, ALBEDO: ALBEDO, SUN: SUN, BOIL: BOIL, FOG: FOG, DEEP: DEEP };
 
 })(window);

@@ -67,12 +67,20 @@ plate — is generated in code.
 
 **There are two lights in this project and only two.**
 
-A cold moon, high and behind. A warm boil, low and inside the frame. Every
-colour anywhere on the page is one of those two reflected off something: the
-deep ocean blue is moonlight on water, the gold is the boil seen through steam,
-the orange is the boil direct. The small glowing red is a specular on wet
-shell — it appears in the fresnel term of the object shader and nowhere else,
-and it is never used as a fill.
+A low afternoon sun, warm and off to one side, and the sky it hangs in — which
+is a light in its own right and by far the larger of the two by area. Every
+colour anywhere on the page is one of those reflected off something: the
+turquoise is sky and depth through water, the white glitter is the sun on
+wavelets, the orange is shell taking a warm key. A boil under the pail is the
+one local exception and it lights a single act. The small glowing red is a
+specular on wet shell — it appears in the fresnel term of the object shader and
+nowhere else, and it is never used as a fill.
+
+The sky is a single function, `skyColor`. The sky pass draws it, the ocean
+reflects it, and every object's environment term samples it. Two different
+skies in one frame is the fastest way to make water look pasted onto a
+backdrop, and it is why the horizon reads as a change of material rather than
+as a seam between two pictures.
 
 That rule is why the palette holds across nine acts shot in completely
 different places, and why the same shrimp reads as appetising under the pail in
@@ -93,14 +101,14 @@ there, jumped there, or holding still.
 
 ```
 0.000  DROP       black. one droplet falls. the screen ripples.
-0.078  FOG        fog blooms out of the impact; the moon arrives
-0.170  CROSSING   flying low over the swell, moon streak running
+0.078  FOG        fog blooms out of the impact; the sun burns through
+0.170  CROSSING   flying low over the swell, sun path running
 0.290  THE RISE   the pail breaks the surface, water sheeting off
 0.400  ORBIT      the camera circles it; steam; the wordmark lands
 0.520  BREAK      the pail comes apart, the boil hangs in the air
 0.640  DRIFT      lobster past the lens, garlic at the lens
 0.770  REFORM     the whole boil collapses onto the platter
-0.880  DESCENT    the camera lifts; the scene sinks; moonlight closes
+0.880  DESCENT    the camera lifts; the scene sinks; the light goes long
 ```
 
 Three things are deliberately *not* pure functions of `t`: the springs that
@@ -156,7 +164,7 @@ Nine passes, once a frame, in `stage.js`:
 5  steam              raymarched at half res, reads scene depth
 6  particles          additive billboards, soft against depth
 7  bright → mips      4 down, 4 up — dual filter bloom
-8  moon shafts        radial blur at quarter res
+8  sun shafts        radial blur at quarter res
 9  composite          warp, aberration, grade, ACES, vignette, grain
 ```
 

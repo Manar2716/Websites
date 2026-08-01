@@ -9,15 +9,23 @@
 
    THE LIGHTING RULE, which every material below obeys:
 
-     There are two lights in this film and only two. A cold moon,
-     high and behind. A warm boil, low and inside the frame.
-     Every colour on screen is one of those two reflected off
-     something, and the only red in the project is a specular on
-     wet shell — never a fill.
+     There are two lights in this film and only two. A low sun,
+     warm and off to one side, and the sky it hangs in — which is
+     a source in its own right and the larger of the two by area.
+     A warm boil under the pail is the one local exception and it
+     lights a single act. Every colour on screen is one of those
+     reflected off something, and the only red in the project is a
+     specular on wet shell — never a fill.
 
      That is why the palette holds together across nine acts shot
      in completely different places. Take the constraint away and
      it becomes a page with a lot of orange on it.
+
+     The sky is not a gradient approximating a sky: `skyColor` is
+     one function, and the sky pass, the ocean's reflection and
+     every object's environment term all call it. Two different
+     skies in one frame is the fastest way to make water look
+     pasted onto a backdrop.
    ═══════════════════════════════════════════════════════════ */
 (function (global) {
   'use strict';
@@ -282,12 +290,13 @@
     'in float vDepthFade;',
 
     'uniform vec3 uCamera;',
-    'uniform vec3 uMoonDir;',
-    'uniform vec3 uMoonColor;',
+    'uniform vec3 uSunDir;',
+    'uniform vec3 uSunColor;',
     'uniform vec3 uBoilPos;',
     'uniform vec3 uBoilColor;',
     'uniform float uBoilPower;',
     'uniform vec3 uFogColor;',
+    'uniform vec3 uDeepColor;',
     'uniform float uFogDensity;',
     'uniform float uTime;',
     'uniform float uRough;',
@@ -406,10 +415,10 @@
 
     '  vec3 col = vec3(0.0);',
 
-    /* the moon */
-    '  vec3 L1 = normalize(uMoonDir);',
+    /* the sun */
+    '  vec3 L1 = normalize(uSunDir);',
     '  float sh = mix(1.0, shadow(vShadow, max(dot(N,L1),0.0)), uShadowStrength);',
-    '  col += lobe(N,V,L1, uMoonColor, albedo, rough, uMetal, coat, uTranslucency, 0.35) * sh;',
+    '  col += lobe(N,V,L1, uSunColor, albedo, rough, uMetal, coat, uTranslucency, 0.35) * sh;',
 
     /* the boil — a point light with inverse-square falloff and a
        slow flicker, because a still flame is a lamp */
@@ -424,22 +433,31 @@
        else. No constant fill — a constant fill is what makes CG
        food look like plastic. */
     '  float up = N.y*0.5+0.5;',
-    /* Enough to keep form in the shadows and no more. With a
-       terminator this tight, a shadowed face lit by 0.055 is a
-       hole in the frame rather than a dark side — and nothing in
-       a photograph of food is ever actually black. */
-    '  vec3 amb = mix(uBoilColor*0.105, uMoonColor*0.205, up);',
+    /* Outdoors in daylight the fill is the sky, and the sky is a
+       hemisphere the size of the world — far larger and far
+       stronger than the two point lights. Up-facing surfaces see
+       haze; down-facing ones see the sea, which is why the
+       undersides here go green rather than simply dark. Getting
+       this wrong is what makes an outdoor render look like a
+       studio render of the same objects. */
+    '  vec3 amb = mix(uDeepColor*0.90 + uBoilColor*0.045, uFogColor*0.62, up);',
     '  col += albedo * amb * (1.0 - uMetal*0.85);',
 
-    /* A cheap environment along the reflection vector. Metal with
+    /* The environment along the reflection vector. Metal lit by
        two point lights and nothing else is a black object with two
-       dots on it — the pail needs *something* to reflect, and this
-       is the same horizon-to-zenith ramp the sky shader draws,
-       evaluated per pixel. It is not an IBL; it is the four terms
-       that make galvanised steel read as galvanised steel. */
+       dots on it — the pail needs something to reflect, and
+       outdoors that something is the actual sky, evaluated by the
+       same function the sky pass draws and the ocean mirrors. It
+       is not an IBL, but it is the real sky rather than a ramp
+       that approximates one, which is what lets galvanised steel
+       read as galvanised steel instead of as grey plastic.
+
+       Downward reflections see the sea, not the sky, or the
+       underside of every object reflects a sky that is not there. */
     '  vec3 R = reflect(-V, N);',
-    '  vec3 env = mix(uFogColor*1.05, uMoonColor*0.085, smoothstep(-0.12, 0.62, R.y));',
-    '  env += uMoonColor * pow(max(dot(R, normalize(uMoonDir)), 0.0), 56.0) * 1.15;',
+    '  vec3 env = R.y > 0.0',
+    '    ? skyColor(R, normalize(uSunDir), uSunColor, uFogColor)',
+    '    : mix(uDeepColor*1.6, uFogColor*0.70, smoothstep(-0.75, 0.0, R.y));',
     '  env += uBoilColor * 0.045 * smoothstep(0.25, -0.55, R.y);',
     '  float envF = 0.045 + 0.955*pow(1.0 - max(dot(N,V),0.0), 5.0);',
     /* Non-metals take a much smaller share of this: they already
@@ -447,10 +465,13 @@
        colour out of every shell in the frame. */
     '  col += env * mix(vec3(envF*0.42), albedo, uMetal) * mix(0.34, 1.25, uMetal) * (1.0 - rough*0.55);',
 
-    /* rim: the moon catching the wet edge. The red in the palette
-       lives here and nowhere else. */
+    /* Rim: the sun catching the wet edge. The red in the palette
+       lives here and nowhere else. Scaled well down from the night
+       cut — the key is roughly an order of magnitude brighter now,
+       and a rim tuned against a moon becomes a white outline
+       around every object under a sun. */
     '  float fres = pow(1.0 - max(dot(N,V),0.0), 4.0);',
-    '  col += fres * (uMoonColor*0.24 + vec3(0.40,0.042,0.028)*wet*0.85);',
+    '  col += fres * (uSunColor*0.075 + vec3(0.40,0.042,0.028)*wet*0.55);',
 
     '  col += albedo * emissive;',
 
@@ -503,7 +524,7 @@
 
   /* ── the ocean ───────────────────────────────────────────────
      A displaced grid, densest near the camera. What sells it is
-     not the waves — it is the moon streak, and the streak is a
+     not the waves — it is the sun path, and the path is a
      GGX lobe on a *disc* light rather than a point, so it
      stretches down the swell in a wedge instead of sitting on the
      water as a dot. */
@@ -540,8 +561,8 @@
     'in vec3 vWorld;',
     'in vec2 vGrid;',
     'uniform vec3 uCamera;',
-    'uniform vec3 uMoonDir;',
-    'uniform vec3 uMoonColor;',
+    'uniform vec3 uSunDir;',
+    'uniform vec3 uSunColor;',
     'uniform vec3 uBoilPos;',
     'uniform vec3 uBoilColor;',
     'uniform float uBoilPower;',
@@ -571,23 +592,54 @@
     '  float c1 = fbm3(cp, 3), c2 = fbm3(cp*2.7 + 13.0, 2);',
     '  N = normalize(N + vec3(c1-0.5, 0.0, c2-0.5) * 0.52);',
 
+    /* Detail normals, three scales, each fading out as its own
+       period drops under a couple of pixels. Without the fade the
+       far water boils with per-pixel noise; without the detail the
+       near water is moving glass. The fade is why the horizon
+       stays calm while the foreground stays sharp. */
+    '  float dist0 = length(uCamera - vWorld);',
+    '  float lodF = 1.0 / (1.0 + dist0 * dist0 * 0.0016);',
+    '  vec3 dp = vec3(vGrid * 11.0, uTime * 0.55);',
+    '  float d1 = fbm3(dp, 3), d2 = fbm3(dp * 3.1 + 27.0, 2);',
+    '  N = normalize(N + vec3(d1 - 0.5, 0.0, d2 - 0.5) * 0.42 * lodF);',
+
     '  float NoV = max(dot(N,V), 1e-4);',
+    /* Water's real index of refraction, not a made-up f0. It is
+       what makes the sea mirror-bright at the horizon and nearly
+       transparent underfoot, which is most of a sea's depth cue. */
     '  float fres = 0.02 + 0.98*pow(1.0-NoV, 5.0);',
 
-    /* the moon streak: GGX with a wide roughness, which is what
-       spreads a point into a wedge down the swell */
-    '  vec3 L = normalize(uMoonDir);',
+    '  vec3 L = normalize(uSunDir);',
     '  vec3 Hv = normalize(V+L);',
     '  float NoH = max(dot(N,Hv),0.0);',
     '  float NoL = max(dot(N,L), 0.0);',
-    '  float a = 0.062;',
-    '  float spec = D_GGX(NoH, a) * V_Smith(NoV, NoL, a) * NoL;',
-    '  vec3 col = uMoonColor * spec * fres * 2.1;',
 
-    /* sky reflected off the surface, and the deep seen through it */
-    '  vec3 skyRefl = mix(uFogColor, uMoonColor*0.16, pow(max(reflect(-V,N).y,0.0), 1.4));',
-    '  col += skyRefl * fres * 0.80;',
-    '  col += uDeepColor * (1.0 - fres) * 0.70;',
+    /* Two specular lobes, not one. The tight lobe is the hard
+       glitter — the individual sparks that only exist where a
+       wavelet happens to face the sun exactly. The wide lobe is
+       the sheet of light down the swell that joins them up. A
+       single medium lobe gives neither: it is a smear. */
+    '  float aT = 0.018, aW = 0.115;',
+    '  float sT = D_GGX(NoH, aT) * V_Smith(NoV, NoL, aT) * NoL;',
+    '  float sW = D_GGX(NoH, aW) * V_Smith(NoV, NoL, aW) * NoL;',
+    '  vec3 col = uSunColor * (sT * 1.35 + sW * 0.55) * fres;',
+
+    /* The sky it is actually standing under, evaluated along the
+       reflected ray. Same function the sky pass draws, so the
+       horizon line is a change of texture and not a change of
+       world. */
+    '  vec3 R = reflect(-V, N);',
+    '  R.y = abs(R.y);',
+    '  col += skyColor(R, L, uSunColor, uFogColor) * fres;',
+
+    /* What comes back up through the surface: the deep colour,
+       plus the sub-surface glow in the backs of waves that are
+       between the eye and the sun. That glow is the green-teal in
+       a lifted wave and it is most of what says "water" rather
+       than "blue floor". */
+    '  float thin = smoothstep(0.02, 0.22, max(N.y, 0.0) * 0.30 + max(0.0, dot(-V, L)) * 0.55);',
+    '  vec3 through = uDeepColor + uSunColor * uDeepColor * thin * 1.30;',
+    '  col += through * (1.0 - fres);',
 
     /* the boil throwing warm light onto the water under the pail */
     '  vec3 dL = uBoilPos - vWorld;',
@@ -602,11 +654,15 @@
     /* foam where the surface is steep — crests only, and only
        where the chop agrees, so it does not stripe the swell */
     '  float steep = smoothstep(0.965, 0.80, N.y);',
-    '  float foam = steep * smoothstep(0.58, 0.90, c1) * 0.18;',
-    '  foam += smoothstep(0.02, 0.16, abs(r0)) * 0.26;',
-    '  col = mix(col, uMoonColor*0.20 + uBoilColor*0.03, clamp(foam,0.0,0.40));',
+    '  float foam = steep * smoothstep(0.58, 0.90, c1) * 0.30;',
+    '  foam += smoothstep(0.02, 0.16, abs(r0)) * 0.34;',
+    /* Foam is a diffuse white sitting in the same light as
+       everything else, not a fixed colour — lit foam under a low
+       sun is warm, and foam in the trough is sky-blue. */
+    '  vec3 foamCol = uSunColor * (0.30 + NoL * 0.55) + uFogColor * 0.30;',
+    '  col = mix(col, foamCol, clamp(foam, 0.0, 0.55));',
 
-    '  float d = length(uCamera - vWorld);',
+    '  float d = dist0;',
     '  float fog = 1.0 - exp(-pow(d*uFogDensity, 2.0));',
     '  col = mix(col, uFogColor, clamp(fog,0.0,0.99));',
     '  outColor = vec4(col, 1.0);',
@@ -615,60 +671,113 @@
 
   /* ── sky ─────────────────────────────────────────────────────
      Drawn on the fullscreen triangle with the inverse view-proj,
-     so it is a real direction per pixel and the moon stays put
-     when the camera rolls. */
+     so it is a real direction per pixel and the sun stays put when
+     the camera rolls.
+
+     A daylight sky is not a gradient with a dot on it. Three
+     things have to be there or the water below has nothing
+     convincing to reflect:
+
+       · Rayleigh — the blue is strongest at the zenith and washes
+         to near-white at the horizon, because the horizon is
+         kilometres more air.
+       · Mie — a broad forward-scattering halo tens of degrees wide
+         around the sun. This is most of what makes a low sun look
+         hot, and it is the part a plain sun disc misses.
+       · Ground haze — the bottom of the sky is lit from below by
+         the sea, so it never goes to the same blue as the top.
+
+     `skyColor` is factored out because the ocean reflects this
+     exact function rather than an approximation of it. Two
+     different skies — one drawn, one reflected — is the single
+     fastest way to make water look pasted on. */
+
+  var SKY_FN = [
+    'vec3 skyColor(vec3 D, vec3 sunDir, vec3 sunCol, vec3 haze){',
+    '  float h = D.y;',
+    /* Rayleigh: deep at the top, thin and bright at the horizon */
+    '  float t = pow(clamp(1.0 - max(h, 0.0), 0.0, 1.0), 2.6);',
+    '  vec3 zenith = vec3(0.115, 0.265, 0.520);',
+    '  vec3 col = mix(zenith, haze, t);',
+    /* below the horizon the sky is really the sea's own light */
+    '  col = mix(haze * 0.72, col, smoothstep(-0.14, 0.02, h));',
+    /* Mie forward scatter — wide, warm, and centred on the sun */
+    '  float md = max(dot(D, sunDir), 0.0);',
+    '  col += sunCol * pow(md, 11.0) * 0.055;',
+    '  col += sunCol * pow(md, 46.0) * 0.135;',
+    /* The disc lives in here rather than in the sky pass, because
+       a metal pail with no sun in its reflection is a grey object,
+       and the specular highlight on wet shell outdoors *is* the
+       reflected sun. Putting it in the shared function is what
+       gives every surface the same one. */
+    '  col += sunCol * smoothstep(0.99965, 0.99988, md) * 30.0;',
+    '  return col;',
+    '}'
+  ].join('\n');
 
   var SKY_FS = [
     'in vec2 vUv;',
     'uniform mat4 uInvViewProj;',
     'uniform vec3 uCamera;',
-    'uniform vec3 uMoonDir;',
-    'uniform vec3 uMoonColor;',
+    'uniform vec3 uSunDir;',
+    'uniform vec3 uSunColor;',
     'uniform vec3 uFogColor;',
     'uniform vec3 uDeepColor;',
     'uniform float uTime;',
-    'uniform float uMoonSize;',
+    'uniform float uSunSize;',
     'uniform float uStars;',
+    /* How bright the sky *draws*, independent of how brightly it
+       lights. The dish pages want a daylight key and fill but a
+       dark backdrop to stand a plate against — the same thing a
+       photographer gets by putting a black flag behind the subject
+       without touching the lights. Coupling the two forces a
+       choice between correctly lit food and a readable page. */
+    'uniform float uSkyDim;',
     'out vec4 outColor;',
     NOISE,
+    SKY_FN,
     'void main(){',
     '  vec4 ndc = vec4(vUv*2.0-1.0, 1.0, 1.0);',
     '  vec4 wp = uInvViewProj * ndc;',
     '  vec3 D = normalize(wp.xyz/wp.w - uCamera);',
 
     '  float h = D.y;',
-    /* the band: near-black at the zenith, the fog colour at the
-       horizon. The horizon being the *brightest* part of the
-       frame is what gives the sea something to be dark against. */
-    '  vec3 col = mix(uFogColor*0.72, vec3(0.0035,0.0065,0.013), smoothstep(-0.02, 0.42, h));',
-    '  col = mix(uDeepColor*0.40, col, smoothstep(-0.30, 0.0, h));',
+    '  vec3 S = normalize(uSunDir);',
+    '  vec3 col = skyColor(D, S, uSunColor, uFogColor);',
 
-    /* Stars, thinned toward the horizon haze. Hashing the cell
-        index alone gives a *square* the size of the cell, which at
-        any usable density is a several-pixel block — and the
-        composite's chromatic aberration then splits every block
-        into red and blue confetti. Falling off from the cell
-        centre makes them round and sub-pixel instead. */
-    '  vec3 sd = D * 340.0;',
-    '  vec3 sc = floor(sd), sf = fract(sd) - 0.5;',
-    '  float st = pow(hash13(sc), 78.0) * 1.5;',
-    '  st *= smoothstep(0.40, 0.02, length(sf));',
-    '  st *= smoothstep(0.02, 0.42, h) * uStars;',
-    '  col += vec3(0.70,0.80,1.0) * st;',
+    /* The disc itself comes from skyColor, so the sky, the water's
+       reflection and every metal surface agree on where the sun is
+       and how bright it is. uSunSize survives as a widener for the
+       acts that want a hazier sun. */
+    '  float md = dot(D, S);',
+    '  col += uSunColor * smoothstep(1.0 - uSunSize, 1.0 - uSunSize*0.35, md) * 3.0;',
 
-    /* the moon: a disc with a limb darkening and a wide halo */
-    '  float md = dot(D, normalize(uMoonDir));',
-    '  float disc = smoothstep(1.0 - uMoonSize, 1.0 - uMoonSize*0.55, md);',
-    '  float limb = pow(clamp((md - (1.0-uMoonSize))/max(uMoonSize,1e-4), 0.0, 1.0), 0.42);',
-    '  col += uMoonColor * disc * (1.05 + limb*1.25);',
-    '  col += uMoonColor * pow(max(md,0.0), 420.0) * 0.55;',
-    '  col += uMoonColor * pow(max(md,0.0), 52.0) * 0.035;',
+    /* Cloud band, lit from the sun side and shadowed away from it.
+       The second noise sample offset toward the sun is the whole
+       trick: the difference between the two is a cheap stand-in
+       for how deep the cloud is along the light, which gives it a
+       bright edge and a grey underside instead of reading as a
+       flat stain. Kept thin — the subject is the water. */
+    '  float ch = max(h, 0.035);',
+    '  vec2 cuv = D.xz / ch * 1.5;',
+    '  float cl = fbm3(vec3(cuv + uTime*0.010, uTime*0.008), 4);',
+    '  float cs = fbm3(vec3(cuv + S.xz*0.60 + uTime*0.010, uTime*0.008), 4);',
+    '  float cd = smoothstep(0.50, 0.88, cl) * smoothstep(0.015, 0.28, h);',
+    '  vec3 lit = mix(uFogColor*0.80, uSunColor*1.25, clamp((cl-cs)*2.6+0.5, 0.0, 1.0));',
+    '  col = mix(col, lit, cd * 0.60);',
 
-    /* cloud band, slow, low contrast — depth for the sky */
-    '  float cl = fbm3(vec3(D.xz*2.4/max(h+0.14,0.06), uTime*0.014), 4);',
-    '  col = mix(col, uFogColor*0.9, smoothstep(0.48,0.86,cl)*smoothstep(0.5,0.05,h)*0.5);',
+    /* Stars survive for whatever runs at night — uStars is zero in
+       daylight and the whole block folds away. */
+    '  if(uStars > 0.001){',
+    '    vec3 sd = D * 340.0;',
+    '    vec3 sc = floor(sd), sf = fract(sd) - 0.5;',
+    '    float st = pow(hash13(sc), 78.0) * 1.5;',
+    '    st *= smoothstep(0.40, 0.02, length(sf));',
+    '    st *= smoothstep(0.02, 0.42, h) * uStars;',
+    '    col += vec3(0.70,0.80,1.0) * st;',
+    '  }',
 
-    '  outColor = vec4(col, 1.0);',
+    '  outColor = vec4(col * uSkyDim, 1.0);',
     '}'
   ].join('\n');
 
@@ -681,15 +790,15 @@
 
      The density field is a curl-warped fbm advected upward, with
      the plume widening and cooling as it goes — cooling meaning
-     it loses the boil's colour and takes the moon's. */
+     it loses the boil's colour and takes the sky's. */
 
   var STEAM_FS = [
     'in vec2 vUv;',
     'uniform sampler2D uDepth;',
     'uniform mat4 uInvViewProj;',
     'uniform vec3 uCamera;',
-    'uniform vec3 uMoonDir;',
-    'uniform vec3 uMoonColor;',
+    'uniform vec3 uSunDir;',
+    'uniform vec3 uSunColor;',
     'uniform vec3 uBoilColor;',
     'uniform vec3 uOrigin;',
     'uniform float uTime;',
@@ -761,14 +870,14 @@
     '    float d = density(p);',
     '    if(d > 0.001){',
     '      float hgt = clamp((p.y - uOrigin.y)/max(uHeight,1e-3), 0.0, 1.0);',
-    /* the plume cools as it rises: boil-lit at the base, moonlit
+    /* the plume cools as it rises: boil-lit at the base, sky-lit
        at the top, and never both at once in the same voxel */
-    '      vec3 lit = mix(uBoilColor*1.25, uMoonColor*0.72, smoothstep(0.05, 0.72, hgt));',
+    '      vec3 lit = mix(uBoilColor*1.25, uSunColor*0.72, smoothstep(0.05, 0.72, hgt));',
     /* Cheap single scatter: a Henyey-Greenstein-ish forward lobe
        on the angle between the view ray and the moon. Looking
        into the light through the plume is where steam is
        brightest, and a constant term misses exactly that. */
-    '      float cosT = dot(D, normalize(uMoonDir));',
+    '      float cosT = dot(D, normalize(uSunDir));',
     '      lit *= 0.42 + 0.90*pow(max(cosT,0.0), 2.6) + 0.22*max(-cosT,0.0);',
     '      float ai = d * dt * uStrength * 1.35;',
     '      acc += lit * ai * trans;',
@@ -1100,8 +1209,11 @@
       return H + (instanced ? '#define INSTANCED\n' : '') +
         OBJ_VS_HEAD + '\n' + (instanced ? '' : OBJ_VS_UNIFORMS + '\n') + OBJ_VS_BODY;
     },
+    /* Objects carry SKY_FN for the same reason the ocean does:
+       what a wet shell reflects has to be the sky the scene is
+       actually standing under. */
     objFrag: function () {
-      return H + NOISE + '\n' + SHADE + '\n' + OBJ_FS;
+      return H + NOISE + '\n' + SHADE + '\n' + SKY_FN + '\n' + OBJ_FS;
     },
     depthVert: function (instanced) {
       return H + (instanced ? '#define INSTANCED\n' : '') + DEPTH_VS;
@@ -1109,7 +1221,9 @@
     depthFrag: H + DEPTH_FS,
 
     oceanVert: H + OCEAN_VS,
-    oceanFrag: H + NOISE + '\n' + SHADE + '\n' + SWELL + '\n' + OCEAN_FS,
+    /* The ocean carries SKY_FN because it reflects the same sky the
+       sky pass draws, rather than an approximation of it. */
+    oceanFrag: H + NOISE + '\n' + SHADE + '\n' + SWELL + '\n' + SKY_FN + '\n' + OCEAN_FS,
 
     fsVert: H + FS_VS,
     skyFrag: H + SKY_FS,

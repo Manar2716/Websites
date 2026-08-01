@@ -43,8 +43,15 @@
   /* Kept in step with film.js by hand — the two scenes share the
      lighting rule and have to share the palette, or a dish looks
      like a different dish on its own page. */
-  var MOON = [0.46, 0.70, 1.00];
+  var SUN  = [1.00, 0.815, 0.590];
   var BOIL = [1.00, 0.36, 0.055];
+  /* Same haze and same water as the film, so a dish shot on its
+     own page is standing in the same weather as the pail. What
+     differs is `skyDim` below: the light is identical, the
+     backdrop is flagged down so a plate has something dark to sit
+     against and the white page chrome stays readable. */
+  var HAZE = [0.700, 0.790, 0.880];
+  var DEEP = [0.013, 0.072, 0.108];
 
   var A = {
     shrimp:  [0.99, 0.26, 0.115],
@@ -300,29 +307,29 @@
     var state = {
       time: 0,
       camera: { pos: [0, 1.6, 3.4], target: [0, 0.7, 0], fov: 0.72, roll: 0 },
-      moon: { dir: v3.norm([0, 0, 0], [-0.42, 0.68, 0.52]), color: [0, 0, 0], size: 0.0035 },
+      sun: { dir: v3.norm([0, 0, 0], [-0.58, 0.63, 0.52]), color: [0, 0, 0], size: 0.014 },
       boil: { pos: [0, 0.6, 0], color: [0, 0, 0], power: 0.55 },
-      /* The sky shader is on here even though there is no sky:
-         with the stars off and the moon shrunk to nothing it is a
-         horizon-to-zenith gradient, which is exactly the backdrop
-         a plate needs. Clearing to black instead leaves the dish
-         floating in a void, and a void reads as an asset on a
-         transparent background rather than as a room. */
-      fog: { color: [0.055, 0.080, 0.115], density: 0.020 },
-      deep: [0.020, 0.026, 0.036],
+      /* The sky shader is on here even though there is no sea:
+         it is the backdrop the plate sits against and the thing
+         every wet surface reflects. Clearing to a flat colour
+         instead leaves the dish floating in a void, and a void
+         reads as an asset on a transparent background rather
+         than as a place. */
+      fog: { color: HAZE.slice(), density: 0.020 },
+      deep: DEEP.slice(),
       waterLine: -99,
-      oceanAmp: 1, oceanAmount: 0, skyAmount: 1, stars: 0,
+      oceanAmp: 1, oceanAmount: 0, skyAmount: 1, skyDim: 0.20, stars: 0,
       ripple: { at: [0, 0], age: 0, strength: 0 },
       shadowFocus: [0, 0.5, 0], shadowExtent: 2.6, shadowStrength: 0.85,
       steam: { origin: [0, 0.8, 0], radius: 0.8, height: 2.2, strength: 0 },
       bodies: bodies, crowds: crowds,
       particles: pdata, particleCount: 0,
       post: {
-        exposure: 1.16, bloom: 0.22, bloomThreshold: 1.85, shafts: 0.16,
-        aberration: 0.030, vignette: 0.52, grain: 0.020, fade: 1,
+        exposure: 0.42, bloom: 0.20, bloomThreshold: 2.6, shafts: 0.05,
+        aberration: 0.030, vignette: 0.28, grain: 0.020, fade: 1,
         warp: 0, warpAt: [0.5, 0.5],
         lift: [0.010, 0.018, 0.032], gain: [1.02, 0.975, 0.945],
-        saturation: 1.17, contrast: 1.16
+        saturation: 1.12, contrast: 1.13
       }
     };
 
@@ -527,10 +534,10 @@
       /* ── light ──
          Same two lights as the film, and the same rule: the boil
          is inside the vessel, the moon is high and behind. */
-      var moonI = 1.34;
-      state.moon.color[0] = MOON[0] * moonI;
-      state.moon.color[1] = MOON[1] * moonI;
-      state.moon.color[2] = MOON[2] * moonI;
+      var sunI = 3.10;
+      state.sun.color[0] = SUN[0] * sunI;
+      state.sun.color[1] = SUN[1] * sunI;
+      state.sun.color[2] = SUN[2] * sunI;
       /* A close-up needs a fraction of the light a wide shot
           does: the same lamp that reads as a boil across four
           metres of ocean is a blowtorch at half a metre. */
@@ -539,7 +546,7 @@
       state.boil.color[2] = BOIL[2] * 1.25;
       var fit = d.fit || 1;
       state.boil.pos[1] = (d.vy + d.steam[0] * 0.5) * fit;
-      state.boil.power = 0.52;
+      state.boil.power = 0.18;
 
       state.shadowFocus[1] = (d.vy + 0.5) * fit;
       state.shadowExtent = 2.4 * fit + 0.5;
@@ -566,7 +573,7 @@
           pdata[o + 4] = BOIL[0] * 2.0; pdata[o + 5] = BOIL[1] * 1.5; pdata[o + 6] = BOIL[2] * 1.0;
           pdata[o + 7] = fade * 0.42;
         } else {
-          pdata[o + 4] = MOON[0] * 0.8; pdata[o + 5] = MOON[1] * 0.9; pdata[o + 6] = MOON[2] * 1.0;
+          pdata[o + 4] = SUN[0] * 0.8; pdata[o + 5] = SUN[1] * 0.9; pdata[o + 6] = SUN[2] * 1.0;
           pdata[o + 7] = fade * 0.20;
         }
         pdata[o + 8] = p.w; pdata[o + 9] = 0; pdata[o + 10] = 0; pdata[o + 11] = p.r;

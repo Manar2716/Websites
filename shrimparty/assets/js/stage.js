@@ -187,8 +187,8 @@
     /* ── shared uniform block ────────────────────────────────── */
 
     function lightUniforms(p, s) {
-      p.v3('uMoonDir', s.moon.dir)
-       .v3('uMoonColor', s.moon.color)
+      p.v3('uSunDir', s.sun.dir)
+       .v3('uSunColor', s.sun.color)
        .v3('uBoilPos', s.boil.pos)
        .v3('uBoilColor', s.boil.color)
        .f('uBoilPower', s.boil.power)
@@ -214,7 +214,7 @@
     function shadowPass(s) {
       var f = s.shadowFocus || s.boil.pos;
       var ext = s.shadowExtent || 4.2;
-      v3.addScaled(lightEye, f, s.moon.dir, 16);
+      v3.addScaled(lightEye, f, s.sun.dir, 16);
       m4.lookAt(lightView, lightEye, f, up);
       m4.ortho(lightProj, -ext, ext, -ext, ext, 0.5, 34);
       m4.mul(lightVP, lightProj, lightView);
@@ -337,11 +337,12 @@
         P.sky.use()
           .m4('uInvViewProj', invViewProj)
           .v3('uCamera', eye)
-          .v3('uMoonDir', s.moon.dir)
-          .v3('uMoonColor', s.moon.color)
+          .v3('uSunDir', s.sun.dir)
+          .v3('uSunColor', s.sun.color)
           .v3('uFogColor', s.fog.color)
           .v3('uDeepColor', s.deep)
-          .f('uMoonSize', s.moon.size)
+          .f('uSunSize', s.sun.size)
+          .f('uSkyDim', s.skyDim === undefined ? 1 : s.skyDim)
           .f('uStars', s.stars * s.skyAmount)
           .f('uTime', s.time);
         fs.draw();
@@ -375,8 +376,8 @@
         P.steam.use()
           .m4('uInvViewProj', invViewProj)
           .v3('uCamera', eye)
-          .v3('uMoonDir', s.moon.dir)
-          .v3('uMoonColor', s.moon.color)
+          .v3('uSunDir', s.sun.dir)
+          .v3('uSunColor', s.sun.color)
           .v3('uBoilColor', s.boil.color)
           .v3('uOrigin', s.steam.origin)
           .f('uTime', s.time)
@@ -454,9 +455,9 @@
 
       /* ── moon shafts ───────────────────────────────────────── */
       if (s.post.shafts > 0.001) {
-        /* project the moon: it is a direction, so put it a long
+        /* project the sun: it is a direction, so put it a long
            way off along that direction and transform the point */
-        v3.addScaled(tmp3, eye, s.moon.dir, 300);
+        v3.addScaled(tmp3, eye, s.sun.dir, 300);
         var cx = viewProj[0] * tmp3[0] + viewProj[4] * tmp3[1] + viewProj[8] * tmp3[2] + viewProj[12];
         var cy = viewProj[1] * tmp3[0] + viewProj[5] * tmp3[1] + viewProj[9] * tmp3[2] + viewProj[13];
         var cw = viewProj[3] * tmp3[0] + viewProj[7] * tmp3[1] + viewProj[11] * tmp3[2] + viewProj[15];

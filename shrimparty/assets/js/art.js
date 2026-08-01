@@ -13,7 +13,7 @@
    the panel turns out to be, so the art is resolution-independent
    and is simply redrawn on resize rather than stretched.
 
-   The palette is the page's: cold moon from the upper left, warm
+   The palette is the page's: low sun from the upper left, warm
    boil from below. Every piece gets a cool rim on one side and a
    warm bounce on the other, which is what stops flat vector food
    from reading as clip art.
@@ -52,7 +52,7 @@
     steelHi: '#96A1B2',
     clay:    '#7A4028',
     stone:   '#2A2E34',
-    moon:    'rgba(150,190,240,',
+    sun:    'rgba(150,190,240,',
     boil:    'rgba(242,121,43,'
   };
 
@@ -73,7 +73,7 @@
   function relight(ctx, path, cool, warm) {
     ctx.save();
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = C.moon + (cool || 0.5) + ')';
+    ctx.strokeStyle = C.sun + (cool || 0.5) + ')';
     ctx.lineWidth = 1.6;
     ctx.setLineDash([]);
     ctx.stroke(path);
@@ -353,7 +353,7 @@
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
 
-    /* moonlight from the upper left */
+    /* sunlight from the upper left */
     var mg = ctx.createLinearGradient(0, 0, w * .8, h);
     mg.addColorStop(0, 'rgba(120,170,235,.16)');
     mg.addColorStop(.6, 'rgba(120,170,235,0)');
@@ -556,7 +556,7 @@
       lemon(ctx, cx - r * .40, cy - r * .34, r * .013, 0);
       lemon(ctx, cx + r * .42, cy + r * .30, r * .011, .8);
       /* green olives — the one colour on this page that is neither
-         moon nor boil, and it earns its place by being the only
+         sun nor boil, and it earns its place by being the only
          one */
       for (var o = 0; o < 5; o++) {
         var oa = rnd() * TAU, orr = Math.sqrt(rnd()) * r * .60;

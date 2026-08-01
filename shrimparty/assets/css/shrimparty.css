@@ -303,6 +303,16 @@
                 border-color .5s var(--ease), transform .55s var(--ease);
     border-bottom: 1px solid transparent;
   }
+  /* A scrim that is always there, not only once the nav goes
+     solid. The film runs in daylight now, so the top of the frame
+     can be bright sky — and white nav type on bright sky is
+     unreadable for the whole first screen. Fading to nothing means
+     it costs the image nothing where the image is already dark. */
+  .nav::before {
+    content: ''; position: absolute; inset: 0; z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(9,9,9,.58), rgba(9,9,9,0));
+  }
   .nav.is-solid {
     background: rgba(9,9,9,.62);
     backdrop-filter: blur(18px) saturate(140%);
