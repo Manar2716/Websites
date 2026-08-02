@@ -386,18 +386,31 @@
       if (fpsAcc >= 0.5) { fps = Math.round(frames / fpsAcc); frames = 0; fpsAcc = 0; if (hud) writeHud(); }
 
       if (!stage) return;
-      /* Down fast, up slow. A machine that has just dropped a
-         frame will drop the next one too, so the retreat is a
-         large step taken quickly; the climb back is small steps
-         taken only while there is real headroom, because a scale
-         that oscillates across the budget reallocates every render
-         target each time and costs more than the resolution it is
-         chasing. */
+      /* Resolution is the LAST thing to give up, not the first.
+         Dropping it is the only degradation a viewer reads as
+         "broken" rather than as "softer" — a blurred reflection at
+         native resolution looks deliberate, a sharp one at 0.55×
+         looks like a bug, and this used to shed pixels before it
+         shed anything else. So the ladder is: multisampling, then
+         the volumetric passes, and only then the frame itself.
+
+         The floor is 0.82 rather than 0.55 for the same reason.
+         Below about four fifths the upscale becomes visible as
+         stair-stepping on every edge, and a page that is honestly
+         a bit slow beats one that looks like it rendered wrong. */
       if (ts - lastScaleChange > 1200) {
-        if (emaMs > 19 && scaleTarget > 0.55) {
-          scaleTarget = Math.max(0.55, scaleTarget - 0.14); lastScaleChange = ts;
-        } else if (emaMs < 9.0 && scaleTarget < ceiling) {
-          scaleTarget = Math.min(ceiling, scaleTarget + 0.07); lastScaleChange = ts;
+        if (emaMs > 19) {
+          if (!stage.setEffects(stage.effects() - 1)) {
+            scaleTarget = Math.max(0.82, scaleTarget - 0.09);
+          }
+          lastScaleChange = ts;
+        } else if (emaMs < 9.0) {
+          /* Climb back in the reverse order: pixels first, because
+             they are what was surrendered last and what matters
+             most. */
+          if (scaleTarget < ceiling) scaleTarget = Math.min(ceiling, scaleTarget + 0.06);
+          else stage.setEffects(stage.effects() + 1);
+          lastScaleChange = ts;
         }
         if (Math.abs(scaleTarget - renderScale) > 0.02) {
           renderScale = scaleTarget;

@@ -406,7 +406,7 @@
        close shot with the boil a hand-span from the food the
        whole dish goes to white lace. Wetness raises the coat; it
        does not get to exceed a full coat. */
-    '  float coat = min(uCoat + wet*0.85, 1.0);',
+    '  float coat = min(uCoat + wet*0.16, 0.42);',
 
     /* Sheeting water: a thin film that runs *down* the object and
        leaves the top drier. Act four is nothing but this. */
@@ -440,7 +440,7 @@
        undersides here go green rather than simply dark. Getting
        this wrong is what makes an outdoor render look like a
        studio render of the same objects. */
-    '  vec3 amb = mix(uDeepColor*0.90 + uBoilColor*0.045, uFogColor*0.62, up);',
+    '  vec3 amb = mix(uDeepColor*1.25 + uBoilColor*0.05, uFogColor*0.92, up);',
     '  col += albedo * amb * (1.0 - uMetal*0.85);',
 
     /* The environment along the reflection vector. Metal lit by
@@ -454,16 +454,22 @@
 
        Downward reflections see the sea, not the sky, or the
        underside of every object reflects a sky that is not there. */
+    /* Sky *illumination*, not a sky reflection. The direction is
+       still the reflected ray, but it is deliberately not sampled
+       sharply: what a mirror gives you is a picture of the sky
+       lying on the surface, and on food that reads as wet plastic
+       rather than as something edible. Taking the ambient
+       hemisphere along R instead keeps the fact that the surface
+       is lit from above and outdoors, and drops the image of the
+       thing lighting it. */
     '  vec3 R = reflect(-V, N);',
-    '  vec3 env = R.y > 0.0',
-    '    ? skyColor(R, normalize(uSunDir), uSunColor, uFogColor)',
-    '    : mix(uDeepColor*1.6, uFogColor*0.70, smoothstep(-0.75, 0.0, R.y));',
-    '  env += uBoilColor * 0.045 * smoothstep(0.25, -0.55, R.y);',
+    '  vec3 env = mix(uDeepColor*1.10, uFogColor*0.52, smoothstep(-0.55, 0.55, R.y));',
+    '  env += uBoilColor * 0.035 * smoothstep(0.25, -0.55, R.y);',
     '  float envF = 0.045 + 0.955*pow(1.0 - max(dot(N,V),0.0), 5.0);',
     /* Non-metals take a much smaller share of this: they already
        have a fresnel rim below, and letting both run washes the
        colour out of every shell in the frame. */
-    '  col += env * mix(vec3(envF*0.42), albedo, uMetal) * mix(0.34, 1.25, uMetal) * (1.0 - rough*0.55);',
+    '  col += env * mix(vec3(envF*0.22), albedo, uMetal) * mix(0.30, 0.62, uMetal) * (1.0 - rough*0.55);',
 
     /* Rim: the sun catching the wet edge. The red in the palette
        lives here and nowhere else. Scaled well down from the night
@@ -619,18 +625,27 @@
        wavelet happens to face the sun exactly. The wide lobe is
        the sheet of light down the swell that joins them up. A
        single medium lobe gives neither: it is a smear. */
-    '  float aT = 0.018, aW = 0.115;',
-    '  float sT = D_GGX(NoH, aT) * V_Smith(NoV, NoL, aT) * NoL;',
+    /* One broad lobe, not a tight one and a wide one. The tight
+       lobe was the hard mirror glitter — individual sparks where a
+       wavelet happened to face the sun exactly — and it is the
+       thing that made the sea look like crumpled foil. What is
+       left is the soft sheet of light down the swell, which is
+       what open water actually looks like at this distance. */
+    '  float aW = 0.175;',
     '  float sW = D_GGX(NoH, aW) * V_Smith(NoV, NoL, aW) * NoL;',
-    '  vec3 col = uSunColor * (sT * 1.35 + sW * 0.55) * fres;',
+    '  vec3 col = uSunColor * sW * 0.62 * fres;',
 
-    /* The sky it is actually standing under, evaluated along the
-       reflected ray. Same function the sky pass draws, so the
-       horizon line is a change of texture and not a change of
-       world. */
+    /* Sky light on the surface rather than a picture of the sky in
+       it. A mirror-sharp reflection is physically what water does
+       and it is not what this wants to look like: it turns the sea
+       into a sheet of glass with a sky painted on the underside.
+       Sampling the ambient hemisphere along the reflected ray
+       keeps the fact that the water is bright where it faces up
+       and dark where it faces the camera, without putting the
+       clouds on it. */
     '  vec3 R = reflect(-V, N);',
-    '  R.y = abs(R.y);',
-    '  col += skyColor(R, L, uSunColor, uFogColor) * fres;',
+    '  vec3 skyLit = mix(uFogColor * 0.60, uFogColor * 1.05, smoothstep(-0.1, 0.6, abs(R.y)));',
+    '  col += skyLit * fres * 0.85;',
 
     /* What comes back up through the surface: the deep colour,
        plus the sub-surface glow in the backs of waves that are

@@ -44,14 +44,23 @@
        scatters only at the thin edges of the tail; run at 0.85 the
        whole shell lights from within and two hundred of them read
        as a bag of pick-and-mix. */
-    shell:   { rough: 0.34, metal: 0.00, coat: 0.55, trans: 0.26, relief: 0.75 },
-    claw:    { rough: 0.26, metal: 0.00, coat: 0.70, trans: 0.16, relief: 0.85 },
-    steel:   { rough: 0.47, metal: 0.86, coat: 0.14, trans: 0.00, relief: 0.05 },
-    veg:     { rough: 0.52, metal: 0.00, coat: 0.22, trans: 0.14, relief: 0.62 },
-    citrus:  { rough: 0.40, metal: 0.00, coat: 0.42, trans: 0.48, relief: 0.40 },
-    herb:    { rough: 0.56, metal: 0.00, coat: 0.18, trans: 0.34, relief: 0.30 },
-    liquid:  { rough: 0.045, metal: 0.00, coat: 1.00, trans: 0.90, relief: 0.00 },
-    stone:   { rough: 0.72, metal: 0.00, coat: 0.05, trans: 0.00, relief: 0.22 }
+    /* Coats are down across the board. A clearcoat is a mirror
+       laid over the albedo, and a mirror is what makes rendered
+       food look like a plastic display model — the sheen that
+       reads as "just out of the pot" is a broad soft one, not a
+       hard reflection of the sky. */
+    shell:   { rough: 0.46, metal: 0.00, coat: 0.16, trans: 0.26, relief: 0.75 },
+    claw:    { rough: 0.42, metal: 0.00, coat: 0.18, trans: 0.16, relief: 0.85 },
+    /* The pail is painted galvanised steel, not chrome. At metal
+       0.86 it had almost no albedo of its own and was entirely
+       whatever it could reflect, which is why it kept swinging
+       between a white blob and a dark navy mirror. */
+    steel:   { rough: 0.68, metal: 0.15, coat: 0.04, trans: 0.00, relief: 0.10 },
+    veg:     { rough: 0.62, metal: 0.00, coat: 0.10, trans: 0.14, relief: 0.62 },
+    citrus:  { rough: 0.52, metal: 0.00, coat: 0.16, trans: 0.48, relief: 0.40 },
+    herb:    { rough: 0.64, metal: 0.00, coat: 0.08, trans: 0.34, relief: 0.30 },
+    liquid:  { rough: 0.16, metal: 0.00, coat: 0.35, trans: 0.90, relief: 0.00 },
+    stone:   { rough: 0.80, metal: 0.00, coat: 0.02, trans: 0.00, relief: 0.22 }
   };
 
   var INSTANCE_FLOATS = 16;
@@ -137,6 +146,12 @@
        one per pass. */
     var msaa = null, geomTarget = null;
     var maxSamples = opts.maxSamples === undefined ? 4 : opts.maxSamples;
+    /* 2 = everything on, 0 = effects stripped. The frame timer
+       walks this down before it is allowed to reduce resolution,
+       because a soft reflection at native resolution looks like a
+       choice and a sharp one at half resolution looks broken. */
+    var effects = 2;
+    var lastW = 0, lastH = 0, lastRatio = 1;
     var chain = [];
     var shadow = GL.shadowTarget(gl, shadowSize);
 
@@ -154,6 +169,7 @@
     }
 
     function resize(w, h, ratio) {
+      lastW = w; lastH = h; lastRatio = ratio;
       dpr = ratio;
       W = Math.max(2, Math.round(w * ratio * scale));
       H = Math.max(2, Math.round(h * ratio * scale));
@@ -177,6 +193,11 @@
          mid one driving 1080p — the frame decides, not the badge. */
       var px = W * H;
       var want = px <= 2600000 ? 4 : px <= 9000000 ? 2 : 0;
+      /* `effects` is the runtime quality dial, dropped by the frame
+         timer before it is ever allowed to touch resolution.
+         Multisampling is the first thing to go because it is the
+         most bandwidth per unit of visible improvement. */
+      if (effects < 2) want = 0;
       msaa = Math.min(want, maxSamples) >= 2
         ? GL.msaaTarget(gl, W, H, Math.min(want, maxSamples), half)
         : null;
@@ -192,7 +213,8 @@
          Steam stays at half rather than joining it, because it is
          a sixteen-step raymarch and quadrupling its pixel count
          costs more than every other pass here put together. */
-      var steamDiv = 2, shaftDiv = 2;
+      var steamDiv = effects >= 2 ? 2 : effects >= 1 ? 3 : 4;
+      var shaftDiv = effects >= 2 ? 2 : effects >= 1 ? 3 : 4;
       steamT = GL.target(gl, Math.max(2, Math.ceil(W / steamDiv)), Math.max(2, Math.ceil(H / steamDiv)), { half: half });
       shaftT = GL.target(gl, Math.max(2, Math.ceil(W / shaftDiv)), Math.max(2, Math.ceil(H / shaftDiv)), { half: half });
       tmpT = GL.target(gl, shaftT.w, shaftT.h, { half: half });
@@ -591,9 +613,21 @@
         return {
           w: W, h: H, samples: msaa ? msaa.samples : 0,
           shadow: shadowSize, steam: steamT ? steamT.w : 0,
-          shafts: shaftT ? shaftT.w : 0
+          shafts: shaftT ? shaftT.w : 0, effects: effects
         };
       },
+      /* Shed or restore effect quality without changing how many
+         pixels the frame is. Returns whether anything moved, so the
+         caller knows if it still has room here before it starts
+         taking resolution away. */
+      setEffects: function (level) {
+        level = Math.max(0, Math.min(2, level | 0));
+        if (level === effects) return false;
+        effects = level;
+        if (lastW) resize(lastW, lastH, lastRatio);
+        return true;
+      },
+      effects: function () { return effects; },
       /* handles for the frame-grab harness; nothing on the page
          calls these */
       __targets: function () {

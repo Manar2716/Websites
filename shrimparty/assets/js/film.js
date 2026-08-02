@@ -81,7 +81,7 @@
     potato:  [0.83, 0.585, 0.265],
     herb:    [0.082, 0.228, 0.076],
     sausage: [0.60, 0.135, 0.075],
-    steel:   [0.415, 0.455, 0.520]
+    steel:   [0.605, 0.638, 0.685]
   };
 
   /* ── the swell, transcribed from the vertex shader ───────────
