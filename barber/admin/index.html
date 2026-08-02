@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin — Fade &amp; Co</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#f2f1ee">
+<meta name="color-scheme" content="light dark">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23a06f2e'/><text x='16' y='23' font-size='19' font-family='system-ui,sans-serif' font-weight='600' fill='%23fffdf9' text-anchor='middle'>F</text></svg>">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="stylesheet" href="../assets/css/admin.css">
+
+<script>
+  document.documentElement.classList.add('js');
+  try {
+    var t = localStorage.getItem('fadeco.theme');
+    document.documentElement.dataset.theme = (t === 'light' || t === 'dark') ? t
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  } catch (e) {}
+</script>
+<script src="../config.js"></script>
+</head>
+<body>
+<div class="ambient" aria-hidden="true"></div>
+
+<!-- The gate. Nothing below it renders until there is an admin session, and
+     even if it did, every query would be refused by row level security. -->
+<div class="auth-screen" id="auth" hidden></div>
+
+<div class="admin" id="app" hidden>
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="../index.html">
+      <span class="brand-mark" data-brand-mark>F</span>
+      <span class="brand-text">
+        <span class="brand-name" data-brand-name>Fade &amp; Co</span>
+        <span class="brand-tag">Admin</span>
+      </span>
+    </a>
+
+    <nav class="sidebar-nav" id="nav" aria-label="Admin sections"></nav>
+
+    <div class="sidebar-foot">
+      <div class="sidebar-user" id="user"></div>
+      <div class="sidebar-actions">
+        <button class="btn btn--ghost btn--sm" type="button" data-theme-toggle
+                aria-label="Switch appearance"></button>
+        <button class="btn btn--ghost btn--sm" type="button" id="signout">Sign out</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="topbar">
+      <button class="btn btn--icon btn--quiet sidebar-toggle" type="button" id="nav-toggle"
+              aria-label="Open navigation" aria-expanded="false"></button>
+      <div class="topbar-title">
+        <h1 id="view-title">Dashboard</h1>
+        <p id="view-sub"></p>
+      </div>
+      <div class="topbar-actions" id="view-actions"></div>
+    </header>
+
+    <main class="view" id="view" tabindex="-1"></main>
+  </div>
+</div>
+
+<script type="module" src="../assets/js/admin/app.js"></script>
+</body>
+</html>

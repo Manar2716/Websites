@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fade &amp; Co — Barbering, Amsterdam</title>
+<meta name="description" content="A barbershop on the Prinsengracht since 2011. Four barbers, appointments that start on time, and online booking in under a minute.">
+<meta name="theme-color" content="#f2f1ee">
+<meta name="color-scheme" content="light dark">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Fade &amp; Co — Barbering, Amsterdam">
+<meta property="og:description" content="Four barbers, one chair each, and appointments that start when they say they will.">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23a06f2e'/><text x='16' y='23' font-size='19' font-family='system-ui,sans-serif' font-weight='600' fill='%23fffdf9' text-anchor='middle'>F</text></svg>">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/site.css">
+
+<script>
+  /* Set before first paint so the page never flashes the wrong appearance. */
+  document.documentElement.classList.add('js');
+  try {
+    var t = localStorage.getItem('fadeco.theme');
+    document.documentElement.dataset.theme = (t === 'light' || t === 'dark') ? t
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  } catch (e) {}
+</script>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="ambient" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div id="banner-slot"></div>
+
+<header class="site-header" id="header">
+  <div class="shell site-header-inner">
+    <a class="brand" href="#top" data-brand>
+      <span class="brand-mark" data-brand-mark>F</span>
+      <span class="brand-text">
+        <span class="brand-name" data-brand-name>Fade &amp; Co</span>
+        <span class="brand-tag" data-brand-tag>Barbering, Amsterdam</span>
+      </span>
+    </a>
+
+    <nav class="site-nav" aria-label="Primary">
+      <a href="#services">Services</a>
+      <a href="#barbers">Barbers</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Visit</a>
+    </nav>
+
+    <div class="site-header-actions">
+      <button class="btn btn--icon btn--quiet" type="button" data-theme-toggle aria-label="Switch appearance"></button>
+      <a class="btn btn--primary btn--sm header-cta" href="book.html">Book now</a>
+      <button class="btn btn--icon btn--quiet nav-toggle" type="button" data-nav-toggle
+              aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu"></button>
+    </div>
+  </div>
+
+  <div class="mobile-nav" id="mobile-nav" hidden>
+    <a href="#services">Services</a>
+    <a href="#barbers">Barbers</a>
+    <a href="#gallery">Gallery</a>
+    <a href="#testimonials">Reviews</a>
+    <a href="#faq">FAQ</a>
+    <a href="#contact">Visit</a>
+    <a class="btn btn--primary btn--block" href="book.html">Book an appointment</a>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ------------------------------------------------------------- hero -- -->
+  <section class="hero" id="top">
+    <div class="shell hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow" data-hero-eyebrow><span class="skeleton skeleton--text" style="width:9rem"></span></p>
+        <h1 data-hero-title><span class="skeleton skeleton--text" style="width:16ch"></span></h1>
+        <p class="lede hero-sub" data-hero-sub><span class="skeleton skeleton--text" style="width:44ch"></span></p>
+        <div class="hero-actions">
+          <a class="btn btn--primary btn--lg" href="book.html" data-hero-cta>Book an appointment</a>
+          <a class="btn btn--ghost btn--lg" href="#services" data-hero-cta2>See our services</a>
+        </div>
+        <dl class="hero-stats" data-hero-stats></dl>
+      </div>
+
+      <aside class="hero-card glass" aria-label="Next available appointments">
+        <header class="hero-card-head">
+          <h2>Next available</h2>
+          <span class="chip" data-next-day>—</span>
+        </header>
+        <div class="hero-card-body" data-next-slots>
+          <div class="skeleton skeleton--pill"></div>
+          <div class="skeleton skeleton--pill"></div>
+          <div class="skeleton skeleton--pill"></div>
+        </div>
+        <footer class="hero-card-foot">
+          <a class="btn btn--ghost btn--sm btn--block" href="book.html">See the full diary</a>
+        </footer>
+      </aside>
+    </div>
+    <div class="hero-hours glass reveal" data-open-now></div>
+  </section>
+
+  <!-- --------------------------------------------------------- services -- -->
+  <section class="section" id="services">
+    <div class="shell">
+      <header class="section-head reveal">
+        <p class="eyebrow">The menu</p>
+        <h2>Every service, every price, no surprises.</h2>
+        <p class="lede">Prices are what you pay at the counter. Appointment lengths are what the cut actually takes.</p>
+      </header>
+      <div class="service-grid" data-services></div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- barbers -- -->
+  <section class="section section--tint" id="barbers">
+    <div class="shell">
+      <header class="section-head reveal">
+        <p class="eyebrow">Meet the barbers</p>
+        <h2>Four people, four pairs of hands.</h2>
+        <p class="lede">Book whoever you like. If you are not sure, pick "first available" and you will be in good hands either way.</p>
+      </header>
+      <div class="barber-grid" data-barbers></div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ about -- -->
+  <section class="section" id="about">
+    <div class="shell about-grid">
+      <div class="about-copy reveal">
+        <p class="eyebrow">About the shop</p>
+        <h2 data-about-title></h2>
+        <div class="about-body" data-about-body></div>
+      </div>
+      <figure class="about-quote glass reveal">
+        <blockquote data-about-quote></blockquote>
+        <figcaption data-about-quote-author></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- gallery -- -->
+  <section class="section section--tint" id="gallery">
+    <div class="shell">
+      <header class="section-head reveal">
+        <p class="eyebrow">The work</p>
+        <h2>Recent chairs.</h2>
+      </header>
+    </div>
+    <div class="gallery-rail" data-gallery></div>
+  </section>
+
+  <!-- ----------------------------------------------------- testimonials -- -->
+  <section class="section" id="testimonials">
+    <div class="shell">
+      <header class="section-head reveal">
+        <p class="eyebrow">What people say</p>
+        <h2>Regulars, mostly.</h2>
+      </header>
+      <div class="review-grid" data-reviews></div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------------- faq -- -->
+  <section class="section section--tint" id="faq">
+    <div class="shell faq-shell">
+      <header class="section-head section-head--left reveal">
+        <p class="eyebrow">Questions</p>
+        <h2>Before you book.</h2>
+      </header>
+      <div class="faq-list" data-faq></div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- contact -- -->
+  <section class="section" id="contact">
+    <div class="shell">
+      <header class="section-head reveal">
+        <p class="eyebrow">Visit</p>
+        <h2 data-contact-title>Find us</h2>
+        <p class="lede" data-contact-sub></p>
+      </header>
+      <div class="contact-grid">
+        <div class="contact-panel glass reveal" data-contact-details></div>
+        <div class="contact-panel glass reveal" data-hours></div>
+        <div class="contact-map glass reveal" data-map></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------------- cta -- -->
+  <section class="closing">
+    <div class="shell closing-inner glass reveal">
+      <h2>Ready when you are.</h2>
+      <p class="lede">Pick a service, pick a time. Confirmation lands straight away.</p>
+      <a class="btn btn--primary btn--lg" href="book.html">Book an appointment</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="shell footer-grid">
+    <div>
+      <a class="brand" href="#top">
+        <span class="brand-mark" data-brand-mark>F</span>
+        <span class="brand-text"><span class="brand-name" data-brand-name>Fade &amp; Co</span></span>
+      </a>
+      <p class="footer-blurb muted" data-footer-blurb></p>
+      <div class="footer-social" data-social></div>
+    </div>
+    <nav aria-label="Footer">
+      <h4>Visit</h4>
+      <ul class="footer-links" data-footer-contact></ul>
+    </nav>
+    <nav aria-label="Site">
+      <h4>Shop</h4>
+      <ul class="footer-links">
+        <li><a href="#services">Services</a></li>
+        <li><a href="#barbers">Barbers</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="book.html">Book</a></li>
+        <li><a href="booking.html">Find my booking</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="shell footer-base">
+    <p class="dim" data-footer-legal></p>
+    <p class="dim" data-footer-note></p>
+    <a class="dim footer-admin" href="admin/">Staff sign in</a>
+  </div>
+</footer>
+
+<script type="module" src="assets/js/site.js"></script>
+</body>
+</html>
