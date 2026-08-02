@@ -49,6 +49,24 @@
      phone from a workstation — it is the same film, drawn with
      fewer shrimp in it. */
 
+  /* The renderer string, where the browser still gives one. Most
+     now mask it behind a generic value, so this can only ever
+     raise confidence and never lower it — a machine that refuses
+     to identify itself is judged on cores and memory like any
+     other. */
+  function gpuClass() {
+    try {
+      var c = global.document.createElement('canvas');
+      var g = c.getContext('webgl2') || c.getContext('webgl');
+      if (!g) return 0;
+      var ext = g.getExtension('WEBGL_debug_renderer_info');
+      var name = ext ? String(g.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+      if (/apple m[1-9]|rtx\s*[2-9]\d{3}|radeon rx [6-9]\d{3}|arc a[3-7]\d{2}/i.test(name)) return 2;
+      if (/nvidia|radeon|geforce|apple gpu|intel arc/i.test(name)) return 1;
+      return 0;
+    } catch (e) { return 0; }
+  }
+
   function detectTier() {
     var dpr = global.devicePixelRatio || 1;
     var cores = global.navigator.hardwareConcurrency || 4;
@@ -62,36 +80,68 @@
     if (w >= 1280) score += 1;
     if (coarse) score -= 2;
     if (w < 700) score -= 1;
+    score += gpuClass();
 
-    /* `maxScale` is the ceiling on the backing store, expressed as
-       a multiple of CSS pixels. Capping it below the device pixel
-       ratio renders under native and then lets the browser
-       upscale — which on a 4K panel is the difference between a
-       sharp frame and a soft one. The cap is now 2.0, which is
-       native on every retina and 4K display in use; the frame
-       timer still drops it on a machine that cannot hold rate, so
-       raising the ceiling costs nothing where it cannot be paid. */
+    /* `maxScale` is the ceiling on the backing store as a multiple
+       of CSS pixels, and `pixelBudget` is a second ceiling on the
+       total. Both are needed, and for opposite reasons.
+
+       Without the scale ceiling the frame renders under native and
+       the browser upscales it, which on a 4K panel is the whole
+       difference between a sharp image and a soft one. Without the
+       pixel ceiling, a scale of 2 on a 6K display asks for
+       forty megapixels a frame and the machine dies — and note
+       that a 4K panel usually reports either 3840 CSS pixels at a
+       ratio of 1, or 1920 at a ratio of 2. Both land on 3840×2160
+       of backing store, which is what "true 4K" means here.
+
+       The high tier's budget is exactly 4K plus a little slack.
+       Ultra goes past it deliberately: at a ratio of 3 on a
+       1440-class high-DPI screen the extra samples are
+       supersampling, and downsampling supersampled pixels is the
+       cleanest antialiasing there is. */
+    if (score >= 6) return {
+      name: 'ultra',
+      counts: { items: 260, particles: 3400 },
+      segments: { lo: 12, md: 24, hi: 40, bucket: 128 },
+      shadowSize: 4096, oceanRings: 220, oceanSpokes: 260,
+      maxSamples: 4,
+      maxScale: Math.min(dpr, 3.0), pixelBudget: 19000000
+    };
     if (score >= 4) return {
       name: 'high',
       counts: { items: 210, particles: 2600 },
-      segments: { lo: 10, md: 20, hi: 30, bucket: 96 },
+      segments: { lo: 10, md: 20, hi: 32, bucket: 96 },
       shadowSize: 2048, oceanRings: 170, oceanSpokes: 192,
-      maxScale: Math.min(dpr, 2.0)
+      maxSamples: 4,
+      maxScale: Math.min(dpr, 2.0), pixelBudget: 8900000
     };
     if (score >= 2) return {
       name: 'mid',
       counts: { items: 140, particles: 1500 },
       segments: { lo: 8, md: 14, hi: 20, bucket: 64 },
       shadowSize: 1024, oceanRings: 120, oceanSpokes: 140,
-      maxScale: Math.min(dpr, 1.5)
+      maxSamples: 2,
+      maxScale: Math.min(dpr, 1.5), pixelBudget: 3600000
     };
     return {
       name: 'low',
       counts: { items: 78, particles: 700 },
       segments: { lo: 6, md: 9, hi: 12, bucket: 40 },
       shadowSize: 512, oceanRings: 74, oceanSpokes: 92,
-      maxScale: Math.min(dpr, 1.05)
+      maxSamples: 0,
+      maxScale: Math.min(dpr, 1.05), pixelBudget: 2400000
     };
+  }
+
+  /* The scale that fits the tier's pixel budget at this viewport.
+     Applied on every resize, because rotating a tablet or dragging
+     a window onto a 4K monitor changes the answer. */
+  function budgetScale(tier, w, h) {
+    var want = tier.maxScale;
+    var px = w * h * want * want;
+    if (px <= tier.pixelBudget) return want;
+    return Math.max(0.6, Math.sqrt(tier.pixelBudget / Math.max(w * h, 1)));
   }
 
   /* ═══ momentum scroll ═══════════════════════════════════════ */
@@ -198,6 +248,7 @@
           shadowSize: tier.shadowSize,
           oceanRings: tier.oceanRings,
           oceanSpokes: tier.oceanSpokes,
+          maxSamples: tier.maxSamples,
           maxParticles: tier.counts.particles
         });
         if (stage) filmCtl = SHRIMP.Film.create(stage, tier);
@@ -228,7 +279,13 @@
     var vh = global.innerHeight;
     var filmTop = 0, filmRange = 1;
     var raw = 0, smooth = 0;
-    var renderScale = tier.maxScale, scaleTarget = renderScale;
+    /* `ceiling` is what this viewport can afford at this tier;
+       `renderScale` is what the frame timer has settled on within
+       it. Keeping the two apart means a machine that recovers can
+       climb back to native instead of being stuck wherever it was
+       when it last struggled. */
+    var ceiling = budgetScale(tier, global.innerWidth, global.innerHeight);
+    var renderScale = ceiling, scaleTarget = renderScale;
 
     function measure() {
       vh = global.innerHeight;
@@ -236,6 +293,12 @@
         var box = filmEl.getBoundingClientRect();
         filmTop = box.top + (global.scrollY || 0);
         filmRange = Math.max(filmEl.offsetHeight - vh, 1);
+      }
+      var next = budgetScale(tier, global.innerWidth, vh);
+      if (next !== ceiling) {
+        ceiling = next;
+        renderScale = Math.min(renderScale, ceiling);
+        scaleTarget = Math.min(scaleTarget, ceiling);
       }
       if (stage) stage.resize(global.innerWidth, vh, renderScale);
       momentum.measure();
@@ -323,9 +386,19 @@
       if (fpsAcc >= 0.5) { fps = Math.round(frames / fpsAcc); frames = 0; fpsAcc = 0; if (hud) writeHud(); }
 
       if (!stage) return;
-      if (ts - lastScaleChange > 1400) {
-        if (emaMs > 19 && scaleTarget > 0.55) { scaleTarget = Math.max(0.55, scaleTarget - 0.12); lastScaleChange = ts; }
-        else if (emaMs < 9.5 && scaleTarget < tier.maxScale) { scaleTarget = Math.min(tier.maxScale, scaleTarget + 0.08); lastScaleChange = ts; }
+      /* Down fast, up slow. A machine that has just dropped a
+         frame will drop the next one too, so the retreat is a
+         large step taken quickly; the climb back is small steps
+         taken only while there is real headroom, because a scale
+         that oscillates across the budget reallocates every render
+         target each time and costs more than the resolution it is
+         chasing. */
+      if (ts - lastScaleChange > 1200) {
+        if (emaMs > 19 && scaleTarget > 0.55) {
+          scaleTarget = Math.max(0.55, scaleTarget - 0.14); lastScaleChange = ts;
+        } else if (emaMs < 9.0 && scaleTarget < ceiling) {
+          scaleTarget = Math.min(ceiling, scaleTarget + 0.07); lastScaleChange = ts;
+        }
         if (Math.abs(scaleTarget - renderScale) > 0.02) {
           renderScale = scaleTarget;
           stage.resize(global.innerWidth, global.innerHeight, renderScale);
@@ -336,8 +409,11 @@
     /* ── optional readout, on ?debug ─────────────────────────── */
     var hud = null;
     function writeHud() {
+      var q = stage ? stage.quality() : null;
       hud.textContent = tier.name + ' · ' + fps + ' fps · ' + emaMs.toFixed(1) + ' ms · ' +
         renderScale.toFixed(2) + '× · ' +
+        (q ? q.w + '×' + q.h + ' · ' + (q.samples ? q.samples + 'xMSAA' : 'FXAA') +
+             ' · sm' + q.shadow + ' · ' : '') +
         (filmCtl ? filmCtl.state.act + ' ' + filmCtl.state.actProgress.toFixed(2) +
                    ' · t ' + smooth.toFixed(3) : 'no film');
     }

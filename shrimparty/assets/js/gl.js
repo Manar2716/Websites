@@ -270,6 +270,84 @@
     };
   };
 
+  /* ── multisampled scene target ────────────────────────────────
+     WebGL2 can multisample, but only into renderbuffers — a
+     multisampled *texture* does not exist in the API, so the
+     geometry passes draw into renderbuffers and the result is
+     blitted down into the ordinary textures every later pass
+     already reads. That resolve is the whole reason this type
+     exists, and it is why nothing downstream has to change.
+
+     MSAA is worth having here specifically because of what this
+     scene is made of: prawn legs, antennae, herb stems and a
+     bucket handle, all roughly a pixel wide. A post-process pass
+     can only average edges it can find in the finished image, and
+     a one-pixel leg on a bright sea leaves nothing to find — it
+     just flickers. Multisampling catches it at rasterisation,
+     before the information is gone.
+
+     `samples` is chosen by the caller from the pixel count rather
+     than fixed, because the cost is per sample per pixel and 4×
+     at 4K is a third of a gigabyte of bandwidth per frame for an
+     improvement that the resolution has already made. */
+  GL.msaaTarget = function (gl, w, h, samples, half) {
+    var max = gl.getParameter(gl.MAX_SAMPLES) || 0;
+    samples = Math.min(samples | 0, max);
+    if (samples < 2) return null;
+
+    var fbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+
+    var color = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, color);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples,
+      half ? gl.RGBA16F : gl.RGBA8, w, h);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, color);
+
+    var depth = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depth);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.DEPTH_COMPONENT24, w, h);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depth);
+
+    var ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    if (!ok) {
+      gl.deleteFramebuffer(fbo);
+      gl.deleteRenderbuffer(color);
+      gl.deleteRenderbuffer(depth);
+      return null;
+    }
+
+    return {
+      fbo: fbo, w: w, h: h, samples: samples,
+      bind: function () {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.viewport(0, 0, w, h);
+      },
+      /* Colour and depth in one blit. Depth has to come across
+         too: the steam pass reads scene depth to know what it is
+         drifting behind, and a resolved colour over a stale depth
+         puts the plume in front of the bucket. Both bits in one
+         call forces NEAREST, which is exact here because source
+         and destination are the same size. */
+      resolveTo: function (dst) {
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, dst.fbo);
+        gl.blitFramebuffer(0, 0, w, h, 0, 0, dst.w, dst.h,
+          gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT, gl.NEAREST);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+      },
+      dispose: function () {
+        gl.deleteFramebuffer(fbo);
+        gl.deleteRenderbuffer(color);
+        gl.deleteRenderbuffer(depth);
+      }
+    };
+  };
+
   /* Depth-only target for the shadow map. */
   GL.shadowTarget = function (gl, size) {
     var fbo = gl.createFramebuffer();

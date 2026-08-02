@@ -161,12 +161,57 @@ Nine passes, once a frame, in `stage.js`:
 2  sky                fullscreen, per-pixel ray direction
 3  ocean              radially graded polar grid, four Gerstner waves
 4  solids → HDR       singletons, then instanced crowds
+   ── MSAA resolve    multisampled renderbuffers blitted to textures
 5  steam              raymarched at half res, reads scene depth
 6  particles          additive billboards, soft against depth
 7  bright → mips      4 down, 4 up — dual filter bloom
-8  sun shafts        radial blur at quarter res
+8  sun shafts         radial blur at half res
 9  composite          warp, aberration, grade, ACES, vignette, grain
+   ── FXAA resolve    luma edge pass on the tonemapped image
 ```
+
+Passes 2–4 draw into multisampled renderbuffers and are resolved before
+anything samples scene depth or blends into scene colour, because neither is
+possible against a multisampled buffer. Multisampling earns its place here
+because of what the scene is made of — prawn legs, antennae, herb stems and a
+bucket handle, all about a pixel wide. A post-process pass can only average
+edges it can find in the finished image, and a one-pixel leg against a bright
+sea leaves nothing to find; it just flickers.
+
+## Resolution
+
+Two ceilings, for opposite reasons. `maxScale` caps the backing store as a
+multiple of CSS pixels — without it the frame renders under native and the
+browser upscales, which on a 4K panel is the whole difference between a sharp
+image and a soft one. `pixelBudget` caps the total, because a scale of 2 on a
+6K display asks for forty megapixels a frame.
+
+A 4K display typically reports either 3840 CSS pixels at a ratio of 1 or 1920
+at a ratio of 2. Both land on a 3840×2160 backing store, which is what "true
+4K" means here; the high tier's budget is that plus slack. Ultra goes past it
+deliberately, because at a ratio of 3 the extra samples are supersampling, and
+downsampling supersampled pixels is the cleanest antialiasing there is.
+
+Sample count falls as the frame grows — 4× up to about 2.6 megapixels, 2× to
+about 9, none above — because multisampling and resolution buy the same thing.
+4× at 4K is several hundred megabytes of renderbuffer and a third of a gigabyte
+of bandwidth a frame, to fix an edge the pixels have already fixed. The ladder
+is expressed in pixels rather than in tiers, so an ultra machine driving a 5K
+panel and a mid one driving 1080p both land where they should: the frame
+decides, not the badge.
+
+The frame timer then moves within whatever ceiling applies — down in large
+steps taken quickly, up in small ones taken only while there is real headroom,
+because a scale that oscillates reallocates every render target each time and
+costs more than the resolution it is chasing. `?debug` prints the resolution,
+sample count and shadow map size the renderer actually settled on.
+
+There are no texture files in this project, so there is nothing to filter
+anisotropically and nothing to supply at a higher resolution: every surface is
+shaded procedurally from noise and screen-space derivatives, which resolve at
+whatever density the frame is drawn at. The equivalent lever is geometric and
+it is on the tier — mesh segments, ocean grid density and shadow map size all
+climb with capability.
 
 Every target is half-float where the hardware allows it. The whole look depends
 on a wet-shell specular being allowed to sit at forty times the value of the

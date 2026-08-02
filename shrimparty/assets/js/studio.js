@@ -177,11 +177,17 @@
   function create(canvas, tier, reduced) {
     if (!canvas) return null;
     var stage = SHRIMP.Stage.create(canvas, {
-      shadowSize: Math.min(tier.shadowSize, 768),
+      /* A dish is one object filling the frame under a single key,
+         so its shadow map covers a couple of metres rather than
+         the film's twenty — 1536 here resolves finer than 4096
+         does out there, and the cap exists to stop a low-end phone
+         allocating a map for a scene it can barely draw. */
+      shadowSize: Math.min(tier.shadowSize, 1536),
       /* the studio never shows the sea, so the ocean mesh is
          built at its smallest legal size rather than skipped —
          one tiny buffer is cheaper than a branch in the renderer */
       oceanRings: 4, oceanSpokes: 6,
+      maxSamples: tier.maxSamples,
       maxParticles: Math.min(tier.counts.particles, 900)
     });
     if (!stage) return null;

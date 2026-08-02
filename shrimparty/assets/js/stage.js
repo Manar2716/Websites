@@ -130,10 +130,19 @@
     /* ── targets ─────────────────────────────────────────────── */
 
     var scene = null, sceneColor = null, steamT = null, shaftT = null, tmpT = null, ldrT = null;
+    /* The multisampled buffer the geometry passes draw into, and
+       whichever of the two everything upstream should bind.
+       `geomTarget` is `scene` itself when multisampling is off or
+       unavailable, so the render path has one branch rather than
+       one per pass. */
+    var msaa = null, geomTarget = null;
+    var maxSamples = opts.maxSamples === undefined ? 4 : opts.maxSamples;
     var chain = [];
     var shadow = GL.shadowTarget(gl, shadowSize);
 
     function disposeTargets() {
+      if (msaa) msaa.dispose();
+      msaa = null;
       if (ldrT) ldrT.dispose();
       if (sceneColor) sceneColor.dispose();
       if (scene) scene.dispose();
@@ -157,9 +166,36 @@
       disposeTargets();
       scene = GL.target(gl, W, H, { half: half, depth: true });
       sceneColor = GL.colorOnly(gl, scene.color, W, H);
-      steamT = GL.target(gl, Math.max(2, W >> 1), Math.max(2, H >> 1), { half: half });
-      shaftT = GL.target(gl, Math.max(2, W >> 2), Math.max(2, H >> 2), { half: half });
-      tmpT = GL.target(gl, Math.max(2, W >> 2), Math.max(2, H >> 2), { half: half });
+
+      /* Sample count falls as the frame grows, because the two are
+         buying the same thing. Multisampling is what rescues a
+         one-pixel prawn leg at 1080p; by 4K the pixels themselves
+         have done that job, and spending 4× the bandwidth to do it
+         again is what turns a sharp frame into a slow one. The
+         ladder is in pixels rather than in tiers so an ultra
+         machine driving a 5K panel lands in the same place as a
+         mid one driving 1080p — the frame decides, not the badge. */
+      var px = W * H;
+      var want = px <= 2600000 ? 4 : px <= 9000000 ? 2 : 0;
+      msaa = Math.min(want, maxSamples) >= 2
+        ? GL.msaaTarget(gl, W, H, Math.min(want, maxSamples), half)
+        : null;
+      geomTarget = msaa || scene;
+
+      /* Both run under full resolution because both are genuinely
+         low-frequency, and half of a 4K frame is still 1920 across
+         — more than enough for a plume of steam. What was wrong
+         was the shafts at a *quarter*: 960 pixels stretched over a
+         3840-wide frame is a visible smear laid across an
+         otherwise sharp image, and it was the one pass actively
+         throwing away the resolution everything else had paid for.
+         Steam stays at half rather than joining it, because it is
+         a sixteen-step raymarch and quadrupling its pixel count
+         costs more than every other pass here put together. */
+      var steamDiv = 2, shaftDiv = 2;
+      steamT = GL.target(gl, Math.max(2, Math.ceil(W / steamDiv)), Math.max(2, Math.ceil(H / steamDiv)), { half: half });
+      shaftT = GL.target(gl, Math.max(2, Math.ceil(W / shaftDiv)), Math.max(2, Math.ceil(H / shaftDiv)), { half: half });
+      tmpT = GL.target(gl, shaftT.w, shaftT.h, { half: half });
       /* The composite lands here rather than on the screen, so
          FXAA has a tonemapped image to read neighbours from.
          Deliberately 8-bit: it is the final display-referred
@@ -322,7 +358,7 @@
       shadowPass(s);
 
       /* ── scene ─────────────────────────────────────────────── */
-      scene.bind();
+      geomTarget.bind();
       gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.enable(gl.DEPTH_TEST);
@@ -366,7 +402,14 @@
 
       solids(s);
 
-      /* ── steam, half res, over the scene ───────────────────── */
+      /* Resolve here and not later. Everything below this line
+         either samples scene depth or blends into scene colour,
+         and neither is possible against a multisampled
+         renderbuffer — so this is the point where the frame stops
+         being samples and becomes an image. */
+      if (msaa) msaa.resolveTo(scene);
+
+      /* ── steam, over the scene ─────────────────────────────── */
       if (s.steam.strength > 0.002) {
         steamT.bind();
         gl.clearColor(0, 0, 0, 0);
@@ -540,6 +583,17 @@
       PARTICLE_FLOATS: PARTICLE_FLOATS,
       maxParticles: partMax,
       size: function () { return [W, H]; },
+      /* What the renderer actually settled on, as opposed to what
+         was asked for. The debug readout prints it so the
+         resolution and sample count can be checked on the machine
+         in front of you rather than inferred from the tier name. */
+      quality: function () {
+        return {
+          w: W, h: H, samples: msaa ? msaa.samples : 0,
+          shadow: shadowSize, steam: steamT ? steamT.w : 0,
+          shafts: shaftT ? shaftT.w : 0
+        };
+      },
       /* handles for the frame-grab harness; nothing on the page
          calls these */
       __targets: function () {
