@@ -1,0 +1,5 @@
+# Everything here is a public design concept. Crawl all of it.
+User-agent: *
+Allow: /
+
+Sitemap: https://manar2716.github.io/Websites/sitemap.xml
