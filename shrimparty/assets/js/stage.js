@@ -252,6 +252,12 @@
        .f('uBoilPower', s.boil.power)
        .v3('uFogColor', s.fog.color)
        .v3('uDeepColor', s.deep)
+       /* Zero: no image of the sun on the food, the pail or the
+          sea. Everything is lit by the diffuse and ambient terms
+          only, which is what gives flat, saturated colour rather
+          than colour with a white highlight sitting on top of it.
+          One number to bring the highlights back. */
+       .f('uSpecular', s.specular === undefined ? 0 : s.specular)
        .f('uFogDensity', s.fog.density)
        .v3('uCamera', eye)
        .f('uTime', s.time);

@@ -156,6 +156,13 @@
     'vec3 F_Schlick(vec3 f0, float u){ return f0 + (1.0-f0)*pow(1.0-u,5.0); }',
 
     /* one light, evaluated */
+    /* `uSpecular` scales every direct highlight in the frame and
+       is currently zero: the brief is flat, saturated colour with
+       no image of the sun anywhere on the food, the pail or the
+       sea. The lobes are left intact rather than deleted because
+       the difference between "no highlights" and "no specular
+       model" is one uniform, and the second is a rewrite to undo. */
+    'uniform float uSpecular;',
     'vec3 lobe(vec3 N, vec3 V, vec3 L, vec3 lc, vec3 albedo, float rough,',
     '          float metal, float coat, float translucency, float thickness){',
     '  vec3 Hv = normalize(V+L);',
@@ -197,18 +204,18 @@
     '  vec3 trans = lc * albedo * translucency * back * exp(-thickness*2.2);',
 
     '  vec3 kd = albedo * (1.0-metal) * diff;',
-    '  vec3 ks = F * spec * max(NoL,0.0);',
+    '  vec3 ks = F * spec * max(NoL,0.0) * uSpecular;',
     /* What the coat reflects, the layers under it never receive.
        Adding the coat on top instead of over the base is what
        turns wet shrimp white: at wet=1 the food keeps its full
        diffuse *and* gains a mirror, so the albedo stops showing
        through the water at all. */
-    '  float kcAmt = cF * coat;',
+    '  float kcAmt = cF * coat * uSpecular;',
     /* The coat lobe peaks in the tens of thousands. ACES maps that
        to the same white as 30 does, but bloom runs before the
        tonemap and would smear the spike across the whole dish, so
        it is clamped to a highlight rather than a floodlight. */
-    '  vec3 kc = vec3(min(cF * cspec * max(NoL,0.0) * coat, 12.0));',
+    '  vec3 kc = vec3(min(cF * cspec * max(NoL,0.0) * coat, 12.0)) * uSpecular;',
     '  return lc * ((kd + ks) * (1.0 - kcAmt) + kc) + trans;',
     '}'
   ].join('\n');
@@ -477,7 +484,7 @@
        and a rim tuned against a moon becomes a white outline
        around every object under a sun. */
     '  float fres = pow(1.0 - max(dot(N,V),0.0), 4.0);',
-    '  col += fres * (uSunColor*0.075 + vec3(0.40,0.042,0.028)*wet*0.55);',
+    '  col += fres * (uSunColor*0.075 + vec3(0.40,0.042,0.028)*wet*0.55) * uSpecular;',
 
     '  col += albedo * emissive;',
 
@@ -633,7 +640,7 @@
        what open water actually looks like at this distance. */
     '  float aW = 0.175;',
     '  float sW = D_GGX(NoH, aW) * V_Smith(NoV, NoL, aW) * NoL;',
-    '  vec3 col = uSunColor * sW * 0.62 * fres;',
+    '  vec3 col = uSunColor * sW * 0.62 * fres * uSpecular;',
 
     /* Sky light on the surface rather than a picture of the sky in
        it. A mirror-sharp reflection is physically what water does
