@@ -26,18 +26,26 @@
 /* ══ tokens ═══════════════════════════════════════════════ */
 @layer tokens {
   :root {
-    /* ground */
-    --black:      #090909;
-    --black-2:    #0d0f12;
-    --black-3:    #12161c;
+    /* ── ground ──
+       SHRIMPARTY's own navy, taken off the restaurant's existing
+       site rather than invented. The names are still `--black`
+       because a hundred rules below refer to them and the role
+       has not changed — this is the colour the page sits on. */
+    --black:      #101A26;
+    --black-2:    #14202E;   /* the header navy */
+    --black-3:    #1B2A3B;
 
     /* the two lights */
     --ocean:      #1E4E7A;   /* deep ocean blue */
     --ocean-lit:  #4E93D0;
-    --ocean-deep: #071B2E;
-    --boil:       #F2792B;   /* warm Cajun orange */
-    --gold:       #D8A24A;   /* luxury gold */
-    --gold-lit:   #F0CC86;
+    --ocean-deep: #0A1724;
+    /* One orange, used everywhere the brand uses one. The gold was
+       a colour this project chose; the restaurant already has an
+       accent and it is this, so `--gold` now resolves to it rather
+       than competing with it. */
+    --boil:       #F5822B;
+    --gold:       #F5822B;
+    --gold-lit:   #FBA75F;
     --ember:      #FF4A2B;   /* the red specular, used sparingly */
 
     /* type */
