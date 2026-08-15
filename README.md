@@ -8,6 +8,13 @@ Open `index.html` in a browser. No build step, no dependencies, no network calls
 python3 -m http.server 8000   # then visit localhost:8000
 ```
 
+> **Other sites in this repository**
+>
+> - `peets/` — a design concept for a premium coffee brand, WebGL. No build step.
+> - `underground/` — a design concept for Underground Cafe, Dubai. React +
+>   Tailwind, and the only thing here that compiles; see
+>   [`underground/README.md`](underground/README.md).
+
 ## The constraint
 
 **One hue for the world, neutral grey for the machine.**

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact sheet — every painter</title>
+<style>
+  body { margin:0; background:#0a0a0b; color:#ede7dc; font:400 12px/1.4 ui-monospace, monospace; padding:16px }
+  h2 { font-size:12px; letter-spacing:.2em; color:#c39a62; margin:24px 0 8px }
+  .grid { display:grid; gap:14px }
+  figure { margin:0 }
+  figcaption { margin-top:6px; color:#9c948a; letter-spacing:.14em; text-transform:uppercase; font-size:10px }
+  canvas { display:block; width:100%; border-radius:10px; background:#111 }
+</style>
+</head>
+<body>
+<!-- Development contact sheet. Not part of the build: Vite only bundles
+     index.html, so this page exists for `npm run dev` and nothing else.
+     It draws every painter at the aspect ratios the real page uses, which
+     is the only practical way to judge thirty drawings at once. -->
+<div id="out"></div>
+<script type="module" src="/src/art-test.js"></script>
+</body>
+</html>

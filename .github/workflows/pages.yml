@@ -1,9 +1,15 @@
 # Publishes the repository to GitHub Pages.
 #
-# There is no build step: every site in this repo is static, with no
-# dependencies and no network calls, so the artifact is the checkout.
-# The repo root is published, which keeps both sites reachable —
-# `/` is the printer page and `/peets/` is the coffee one.
+# Most of this repo is static with no build step, so the artifact is
+# essentially the checkout. The repo root is published, which keeps
+# every site reachable — `/` is the printer page, `/peets/` is the
+# coffee one, `/underground/` is the cafe one.
+#
+# `/underground/` is the one exception: it is a React app and has to be
+# compiled. The step below builds it and swaps the built output in for
+# the source directory, so the published path stays `/underground/`
+# rather than picking up a `dist/` segment. The step is guarded, because
+# this workflow can also run from a branch that predates that folder.
 #
 # `enablement: true` turns Pages on the first time this runs, so the
 # repository does not have to be configured by hand beforehand.
@@ -36,6 +42,21 @@ jobs:
       # file is present. Nothing here starts with an underscore today,
       # but the cost of being wrong later is a silently missing asset.
       - run: touch .nojekyll
+
+      - uses: actions/setup-node@v4
+        if: hashFiles('underground/package-lock.json') != ''
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: underground/package-lock.json
+
+      - name: Build the Underground Cafe site
+        if: hashFiles('underground/package-lock.json') != ''
+        run: |
+          npm ci --prefix underground
+          npm run build --prefix underground
+          rm -rf underground
+          mv underground-dist underground
 
       - uses: actions/configure-pages@v5
         with:

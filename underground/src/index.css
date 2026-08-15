@@ -1,0 +1,429 @@
+@import "tailwindcss";
+
+/* `fine:` — a device with a real cursor. Used wherever hover is the
+   enhancement and the touch version has to stay open by default: a
+   caption that only appears on hover is a caption a phone never sees. */
+@custom-variant fine (@media (hover: hover) and (pointer: fine));
+
+/* ═══════════════════════════════════════════════════════════════════
+   FONTS — self-hosted, latin subset only. No network call at runtime.
+   Bodoni Moda, Inter and IBM Plex Mono are all SIL OFL 1.1.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/bodoni-moda-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/plexmono-400-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/plexmono-500-latin.woff2') format('woff2');
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOKENS
+
+   One ground (charcoal to black), one warm light (cream), one metal
+   (brass) and one ember accent used at roughly two per cent of the
+   surface area. Everything else is those four at different values.
+
+   Text colour is set from measured contrast against `--c-raise`
+   (#17171A), the lightest ground any copy is ever set on:
+     cream  #EDE7DC → 13.9:1     bone  #C6BEB1 → 9.6:1
+     dust   #9C948A → 5.5:1      brass #C39A62 → 6.6:1
+   The dimmest token, `--c-dust`, clears 4.5:1 and never goes below
+   13px, so no small text on this page is under-set.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@theme {
+  --color-ground: #0a0a0b;
+  --color-basalt: #0f0f11;
+  --color-concrete: #131316;
+  --color-raise: #17171a;
+  --color-edge: #26262b;
+
+  --color-cream: #ede7dc;
+  --color-bone: #c6beb1;
+  --color-dust: #9c948a;
+
+  --color-brass: #c39a62;
+  --color-brass-dim: #8a6d45;
+  --color-brass-lit: #e6cfa8;
+  --color-ember: #c2452d;
+
+  --font-display: 'Bodoni Moda', 'Bodoni 72', Didot, Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+:root {
+  --nav-h: 72px;
+  --gutter: clamp(1.25rem, 5vw, 6rem);
+  --rule: color-mix(in oklab, var(--color-cream) 12%, transparent);
+}
+
+@media (min-width: 1024px) {
+  :root { --nav-h: 88px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  background: var(--color-ground);
+  /* Anchor jumps ease rather than teleport; the nav offset keeps a
+     section's eyebrow clear of the bar once it lands. */
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--nav-h);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ground);
+  color: var(--color-bone);
+  font-family: var(--font-sans);
+  font-size: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+  line-height: 1.65;
+  font-weight: 350;
+  letter-spacing: 0.005em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* The page is a single column. Nothing is allowed to push it sideways —
+     this is the backstop behind every `overflow-hidden` on a marquee,
+     a horizontal rail or a hero that scales its own image. */
+  overflow-x: clip;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--color-cream);
+  margin: 0;
+  text-wrap: balance;
+}
+
+p { margin: 0; }
+
+a { color: inherit; text-decoration: none; }
+
+img, canvas, svg { display: block; max-width: 100%; }
+
+button { font: inherit; color: inherit; background: none; border: 0; }
+
+::selection { background: var(--color-brass); color: var(--color-ground); }
+
+:focus-visible {
+  outline: 2px solid var(--color-brass);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* The scrollbar is part of the room. */
+@supports (scrollbar-color: red blue) {
+  html { scrollbar-color: var(--color-edge) var(--color-ground); scrollbar-width: thin; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TYPE SCALE
+   Large and confident. Every display size is fluid between a phone
+   and a 1600px panel, so nothing needs a breakpoint to stay in
+   proportion.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.t-mono {
+  font-family: var(--font-mono);
+  font-size: clamp(0.6875rem, 0.66rem + 0.14vw, 0.8125rem);
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-dust);
+}
+
+.t-eyebrow {
+  font-family: var(--font-mono);
+  font-size: clamp(0.6875rem, 0.66rem + 0.14vw, 0.8125rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-brass);
+}
+
+.t-display {
+  font-family: var(--font-display);
+  /* Sized in viewport units with no floor, deliberately.
+     UNDERGROUND is eleven characters of a didone, which is about 8.2em
+     wide — so a `clamp()` with a 3rem minimum sets a 400px word inside
+     a 350px column on a phone and the D falls off the edge. Tying the
+     size to the viewport instead means the word is always the width of
+     the measure, whatever the screen is. The cap keeps it from
+     outgrowing the gutter on a wide panel. */
+  font-size: min(10.4vw, 9rem);
+  line-height: 0.88;
+  letter-spacing: -0.025em;
+}
+
+.t-h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 1.4rem + 5vw, 6rem);
+  line-height: 0.94;
+  letter-spacing: -0.022em;
+}
+
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 1.3rem + 2.6vw, 3.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.018em;
+}
+
+.t-h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 1.15rem + 0.9vw, 1.9rem);
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+}
+
+.t-lead {
+  font-size: clamp(1.0625rem, 0.98rem + 0.42vw, 1.3125rem);
+  line-height: 1.6;
+  color: var(--color-bone);
+  font-weight: 350;
+}
+
+/* Optical sizing: a didone at 9rem wants hairline serifs, at 1.5rem it
+   does not. Bodoni Moda carries an `opsz` axis, so let the browser use it. */
+.t-display, .t-h1, .t-h2, .t-h3 { font-optical-sizing: auto; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   LAYOUT HELPERS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.shell {
+  width: 100%;
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.rule { height: 1px; background: var(--rule); border: 0; margin: 0; }
+
+/* A hairline that draws itself in when its section arrives. */
+.rule-draw {
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 1.4s var(--ease-out-expo);
+}
+.is-in .rule-draw { transform: scaleX(1); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   REVEALS
+   Nothing simply fades in — everything arrives from slightly below and
+   slightly behind, which is one composited transform per element and
+   reads as a page that assembles rather than one that cross-fades.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.js [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 1s var(--ease-out-expo),
+    transform 1.15s var(--ease-out-expo);
+  transition-delay: calc(var(--d, 0) * 90ms);
+}
+.js [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Word-by-word: each word climbs out from behind its own mask, tipped a
+   couple of degrees so the line settles rather than slides. */
+.js [data-reveal-group] .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 108%, 0) rotate(2.5deg);
+  transition:
+    transform 1.05s var(--ease-out-expo),
+    opacity 0.6s ease;
+  transition-delay: var(--wd, 0ms);
+}
+.js [data-reveal-group].is-in .word {
+  opacity: 1;
+  transform: none;
+}
+
+/* Masked image reveal: the frame wipes open, the picture inside eases
+   back from 1.18 to 1. Two transforms, no repaint. */
+.mask-reveal { overflow: hidden; }
+.js .mask-reveal > .mask-reveal__inner {
+  clip-path: inset(0 0 100% 0);
+  transform: scale(1.16);
+  transition:
+    clip-path 1.5s var(--ease-in-out-quart),
+    transform 1.9s var(--ease-out-expo);
+}
+.js .mask-reveal.is-in > .mask-reveal__inner {
+  clip-path: inset(0 0 0 0);
+  transform: scale(1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SURFACES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.card {
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--color-raise) 92%, var(--color-cream)) 0%,
+      var(--color-concrete) 100%);
+  border: 1px solid var(--color-edge);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--color-cream) 6%, transparent) inset,
+    0 24px 60px -32px rgb(0 0 0 / 0.9);
+}
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--color-basalt);
+}
+/* Every generated picture gets the same edge treatment, so the set reads
+   as one body of work rather than a folder of unrelated images. */
+.frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-cream) 9%, transparent) inset,
+    0 0 90px -12px rgb(0 0 0 / 0.85) inset;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GRAIN + ATMOSPHERE
+   The grain is one 128px tile translated on a 6-step loop. Animating
+   `background-position` on a fixed layer costs nothing; animating a
+   full-viewport blur costs everything, so there isn't one anywhere.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Above the nav (92) and the mobile panel (85), below the cursor (100).
+   Grain that stops at the edge of an overlay reads as a texture on one
+   layer rather than as the grain of the whole image. */
+.grain {
+  position: fixed;
+  inset: -120px;
+  z-index: 96;
+  pointer-events: none;
+  opacity: 0.42;
+  mix-blend-mode: overlay;
+  background-repeat: repeat;
+  background-size: 160px 160px;
+  animation: grain-shift 720ms steps(1) infinite;
+  will-change: transform;
+}
+
+@keyframes grain-shift {
+  0%   { transform: translate3d(0, 0, 0); }
+  16%  { transform: translate3d(-14px, 8px, 0); }
+  33%  { transform: translate3d(9px, -13px, 0); }
+  50%  { transform: translate3d(-7px, -6px, 0); }
+  66%  { transform: translate3d(13px, 5px, 0); }
+  83%  { transform: translate3d(-11px, 12px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CURSOR
+   Desktop, fine pointer only. Never on touch, where there is no cursor
+   to replace and the extra layer is pure cost.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  pointer-events: none;
+  border-radius: 999px;
+  mix-blend-mode: difference;
+  will-change: transform;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .cursor { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOTION PREFERENCES
+   Reveals hold their end state, the grain stops moving, anchors jump.
+   Nothing on this page is available only to someone who lets it move.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .js [data-reveal],
+  .js [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .js .mask-reveal > .mask-reveal__inner,
+  .js .mask-reveal.is-in > .mask-reveal__inner {
+    clip-path: none;
+    transform: none;
+    transition: none;
+  }
+
+  .js [data-reveal-group] .word,
+  .js [data-reveal-group].is-in .word {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .rule-draw { transform: scaleX(1); transition: none; }
+  .grain { animation: none; }
+
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

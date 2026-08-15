@@ -1,2 +1,6 @@
 .DS_Store
 node_modules/
+
+# Vite output for the Underground Cafe site. Built in CI by the Pages
+# workflow and swapped in for `underground/`, so it is never committed.
+underground-dist/
