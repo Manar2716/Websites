@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { menu, OFFICIAL_URL } from '../data/content.js'
-import Painting from '../components/Painting.jsx'
-import { Eyebrow, Magnet, Words } from '../components/ui.jsx'
+import { menu, OFFICIAL_URL, business } from '../data/content.js'
+import Media from '../components/Media.jsx'
+import { Eyebrow, Magnet, Words, Underline } from '../components/ui.jsx'
 import { usePointerIn } from '../lib/hooks.js'
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -12,12 +12,18 @@ import { usePointerIn } from '../lib/hooks.js'
    frame; the rest fall in beside it on a stagger, so the block has a
    top-left weight and a diagonal through it rather than a flat wall.
 
-   Switching category remounts the list under a new key, which is what
-   makes the stagger replay: the reveal observer picks the new nodes up
-   through a MutationObserver and lets them in one after another.
+   Two things about what is *in* it.
 
-   The prices are placeholders and the section says so, above the list,
-   before anybody reads a number.
+   There are no prices. Not one price for any item here could be
+   sourced, and a concept site carrying invented numbers is the version
+   of this that does real damage — somebody quotes it back at the
+   counter. Names and descriptions are shown; prices live on the
+   official site, one tap away.
+
+   Items that come from Underground's own delivery listings carry a
+   brass dot. Everything else is a layout placeholder and does not.
+   The legend sits at the top of the list, before anybody reads a
+   single dish.
    ═══════════════════════════════════════════════════════════════════ */
 
 export default function Menu({ reduced }) {
@@ -38,7 +44,7 @@ export default function Menu({ reduced }) {
             </h2>
           </div>
 
-          <div className="lg:max-w-[26rem] lg:text-right" data-reveal style={{ '--d': 2 }}>
+          <div className="lg:max-w-[27rem] lg:text-right" data-reveal style={{ '--d': 2 }}>
             <p className="text-[0.9rem] leading-relaxed text-dust">{menu.note}</p>
             <Magnet
               as="a"
@@ -46,7 +52,7 @@ export default function Menu({ reduced }) {
               external
               skin="brass"
               reduced={reduced}
-              className="mt-5"
+              className="mt-5 inline-flex"
               data-cursor="link"
             >
               {menu.cta}
@@ -102,23 +108,46 @@ export default function Menu({ reduced }) {
           </div>
         </div>
 
-        <p
+        <div
           id={`panel-${cat.id}`}
           role="tabpanel"
           aria-labelledby={`tab-${cat.id}`}
-          className="mt-7 max-w-[52ch] text-[0.95rem] leading-relaxed text-bone"
+          className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-10"
           key={`cap-${cat.id}`}
           data-reveal
         >
-          {cat.caption}
-        </p>
+          <p className="max-w-[52ch] text-[0.95rem] leading-relaxed text-bone">{cat.caption}</p>
+          <p className="flex shrink-0 items-center gap-2.5 font-mono text-[0.6rem] uppercase tracking-[0.2em] text-dust">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-brass" aria-hidden="true" />
+            {menu.legend}
+          </p>
+        </div>
 
         {/* Items */}
-        <div key={cat.id} className="mt-10 grid gap-x-6 gap-y-12 sm:mt-14 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8">
+        <div
+          key={cat.id}
+          className="mt-10 grid gap-x-6 gap-y-12 sm:mt-14 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8"
+        >
           {cat.items.map((item, i) => (
             <Item key={item.name} item={item} index={i} feature={i === 0} reduced={reduced} />
           ))}
         </div>
+
+        {/* Where the prices actually are */}
+        <p
+          className="mt-14 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-cream/10 pt-7 text-[0.85rem] text-dust"
+          data-reveal
+        >
+          <span>Prices and the full list are on the official site.</span>
+          <Underline href={OFFICIAL_URL} external className="text-bone hover:text-cream">
+            undergroundcafe.ae
+          </Underline>
+          {business.order.map((o) => (
+            <Underline key={o.label} href={o.href} external className="text-bone hover:text-cream">
+              Order on {o.label}
+            </Underline>
+          ))}
+        </p>
       </div>
     </section>
   )
@@ -126,17 +155,14 @@ export default function Menu({ reduced }) {
 
 function Item({ item, index, feature, reduced }) {
   const tilt = usePointerIn(reduced)
+  const sourced = item.source === 'listed'
 
   return (
     <article
       ref={tilt}
       data-reveal
       data-cursor="link"
-      style={{
-        '--d': index,
-        '--mx': 0,
-        '--my': 0,
-      }}
+      style={{ '--d': index, '--mx': 0, '--my': 0 }}
       className={[
         'group relative',
         feature ? 'sm:col-span-2 lg:col-span-2 lg:row-span-2' : '',
@@ -155,18 +181,25 @@ function Item({ item, index, feature, reduced }) {
           transition: 'transform .7s cubic-bezier(.16,1,.3,1)',
         }}
       >
-        <Painting
-          id={item.art}
-          className="h-full w-full transition-transform duration-[1100ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.05]"
-          style={{ height: '100%' }}
-          alt={`${item.name} — drawn illustration`}
+        <Media
+          art={item.art}
+          photo={item.photo}
+          alt={`${item.name}${item.photo ? '' : ' — drawn illustration'}`}
+          className="transition-transform duration-[1100ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.05]"
         />
         <span className="pointer-events-none absolute left-4 top-4 font-mono text-[0.6rem] tracking-[0.28em] text-cream/70">
           {String(index + 1).padStart(2, '0')}
         </span>
       </div>
 
-      <div className="mt-5 flex items-baseline gap-4">
+      <div className="mt-5 flex items-baseline gap-3">
+        {sourced && (
+          <span
+            className="mb-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brass"
+            title="From Underground’s own delivery listings"
+            aria-hidden="true"
+          />
+        )}
         <h3
           className={[
             'font-display leading-none text-cream',
@@ -176,21 +209,18 @@ function Item({ item, index, feature, reduced }) {
           ].join(' ')}
         >
           {item.name}
+          {sourced && <span className="sr-only"> (from Underground’s listings)</span>}
         </h3>
         <span
           aria-hidden="true"
-          className="mb-1 h-px flex-1 origin-left bg-cream/15 transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-x-100"
+          className="mb-1 h-px flex-1 bg-cream/15"
         />
-        <span className="shrink-0 font-mono text-[0.78rem] tracking-[0.1em] text-brass">
-          {item.price}
-          <span className="ml-1 text-[0.62rem] text-dust">AED</span>
-        </span>
       </div>
 
       <p
         className={[
           'mt-2.5 leading-relaxed text-dust',
-          feature ? 'max-w-[46ch] text-[1rem]' : 'max-w-[38ch] text-[0.88rem]',
+          feature ? 'max-w-[48ch] text-[1rem]' : 'max-w-[38ch] text-[0.88rem]',
         ].join(' ')}
       >
         {item.desc}

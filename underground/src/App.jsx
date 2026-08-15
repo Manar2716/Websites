@@ -5,7 +5,7 @@ import Nav from './sections/Nav.jsx'
 import Hero from './sections/Hero.jsx'
 import Marquee from './sections/Marquee.jsx'
 import About from './sections/About.jsx'
-import Ritual from './sections/Ritual.jsx'
+import Hours from './sections/Hours.jsx'
 import Menu from './sections/Menu.jsx'
 import Featured from './sections/Featured.jsx'
 import Gallery from './sections/Gallery.jsx'
@@ -19,7 +19,7 @@ import Footer from './sections/Footer.jsx'
      hero        the room, the name, and two things to do
      marquee     a beat between the picture and the reading
      about       who it is and where, with four facts under it
-     ritual      the sequence, read sideways because it is a sequence
+     hours       the day, read sideways because a day is a sequence
      menu        the list, with a picture per item
      featured    one dish, printed large
      gallery     the room again, at six sizes
@@ -47,7 +47,7 @@ export default function App() {
         <Hero reduced={reduced} />
         <Marquee />
         <About reduced={reduced} />
-        <Ritual reduced={reduced} />
+        <Hours reduced={reduced} />
         <Menu reduced={reduced} />
         <Featured reduced={reduced} />
         <Gallery reduced={reduced} />

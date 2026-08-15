@@ -52,7 +52,18 @@ export default function Location({ reduced }) {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-3 text-[0.8rem] text-dust">{business.hours.note}</p>
+                <p className="mt-3 text-[0.8rem] text-dust">
+                  Dine in, or order through{' '}
+                  {business.order.map((o, i) => (
+                    <span key={o.label}>
+                      {i > 0 && ' and '}
+                      <Underline href={o.href} external className="text-bone hover:text-cream">
+                        {o.label}
+                      </Underline>
+                    </span>
+                  ))}
+                  .
+                </p>
               </Block>
 
               <Block label="Phone" d={5}>

@@ -1,5 +1,5 @@
 import { gallery } from '../data/content.js'
-import Painting from '../components/Painting.jsx'
+import Media from '../components/Media.jsx'
 import { Eyebrow, Words } from '../components/ui.jsx'
 import { useTrack } from '../lib/hooks.js'
 
@@ -80,11 +80,11 @@ function Shot({ shot, index, reduced }) {
               transform: `translate3d(0, calc((var(--p, .5) - .5) * -${shape.drift}%), 0) scale(1.06)`,
             }}
           >
-            <Painting
-              id={shot.art}
-              className="h-full w-full transition-transform duration-[1300ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.07]"
-              style={{ height: '100%' }}
+            <Media
+              art={shot.art}
+              photo={shot.photo}
               alt={shot.caption}
+              className="transition-transform duration-[1300ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.07]"
             />
           </div>
         </div>

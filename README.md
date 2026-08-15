@@ -11,9 +11,9 @@ python3 -m http.server 8000   # then visit localhost:8000
 > **Other sites in this repository**
 >
 > - `peets/` — a design concept for a premium coffee brand, WebGL. No build step.
-> - `underground/` — a design concept for Underground Cafe, Dubai. React +
->   Tailwind, and the only thing here that compiles; see
->   [`underground/README.md`](underground/README.md).
+> - `underground/` — a design concept for Underground Cafe, an English
+>   restaurant in Majan, Dubai. React + Tailwind, and the only thing here
+>   that compiles; see [`underground/README.md`](underground/README.md).
 
 ## The constraint
 

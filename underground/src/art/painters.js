@@ -199,11 +199,6 @@ const FULL_FRAME = {
   'gal-arch': scenes['gal-arch'],
   'gal-table': scenes['gal-table'],
   map: scenes.map,
-  beans: scenes.beans,
-  roast: scenes.roast,
-  grind: scenes.grind,
-  extraction: scenes.extraction,
-  pour: scenes.pour,
 }
 
 /* The still lifes are composed once inside this box and scaled to
@@ -214,26 +209,26 @@ const STILL_W = 1000
 const STILL_H = 760
 
 /**
- * The featured shot: the same cookie, framed wide.
+ * `wide:<dish>` — any dish, framed for the full-bleed feature band.
  *
- * The dish is composed into the right-hand two thirds of the frame and
- * the left third is left as ground, because that is where the headline
- * goes. Type over a picture wants somewhere to sit that was decided
- * when the picture was made, not afterwards.
+ * Fit to the *dish*, not to the frame. Covering a 100svh band with a
+ * still life composed for a menu card scales the plate to something the
+ * size of a table and still leaves the top third empty, because the
+ * empty part of the still life scales with it.
+ *
+ * The subject is pushed right of centre and the left third is left as
+ * ground, because that is where the headline goes. Type over a picture
+ * wants somewhere to sit that was decided when the picture was made,
+ * not afterwards.
  */
-function featured(ctx, w, h, rng) {
+function wide(ctx, w, h, rng, subject) {
   stage(ctx, w, h, rng, { horizon: 0.74, keyX: 0.66, keyY: 0.46, bokeh: 7 })
-
-  // Fit to the *dish*, not to the frame. Covering the frame with a
-  // still life composed for a menu card scales the pan to something
-  // the size of a table and still leaves the top third empty, because
-  // the empty part of the still life scales with it.
-  const DISH_SPAN = 660 // pan plus handle, in still-life units
-  const s = (w * 0.5) / DISH_SPAN
+  const SUBJECT_SPAN = 700 // the dish itself, in still-life units
+  const s = (w * 0.5) / SUBJECT_SPAN
   ctx.save()
   ctx.translate(w * 0.64 - STILL_W * 0.5 * s, h * 0.6 - STILL_H * 0.6 * s)
   ctx.scale(s, s)
-  dishes.cookie(ctx, STILL_W, STILL_H, rng)
+  subject(ctx, STILL_W, STILL_H, rng)
   ctx.restore()
   post(ctx, w, h, rng, { vignette: 1, grain: 0.05, warmth: 0.06 })
 }
@@ -242,7 +237,10 @@ export function paint(ctx, id, w, h) {
   const rng = rngFrom(id)
   ctx.clearRect(0, 0, w, h)
 
-  if (id === 'featured') return featured(ctx, w, h, rng)
+  if (id.startsWith('wide:')) {
+    const subject = SUBJECTS[id.slice(5)]
+    if (subject) return wide(ctx, w, h, rng, subject)
+  }
 
   const full = FULL_FRAME[id]
   if (full) {
@@ -280,6 +278,6 @@ export function paint(ctx, id, w, h) {
 
 export const PAINTER_IDS = [
   ...Object.keys(SUBJECTS),
+  ...Object.keys(SUBJECTS).map((k) => `wide:${k}`),
   ...Object.keys(FULL_FRAME),
-  'featured',
 ]

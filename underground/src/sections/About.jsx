@@ -1,5 +1,5 @@
 import { about } from '../data/content.js'
-import Painting from '../components/Painting.jsx'
+import Media from '../components/Media.jsx'
 import { Eyebrow, Words } from '../components/ui.jsx'
 import { useTrack } from '../lib/hooks.js'
 
@@ -32,7 +32,7 @@ export default function About({ reduced }) {
                   transform: 'translate3d(0, calc((var(--p, .5) - .5) * -6%), 0)',
                 }}
               >
-                <Painting id="about" className="h-full w-full" style={{ height: '100%' }} />
+                <Media art="about" photo={about.photo} alt={about.photoAlt ?? ''} />
               </div>
             </div>
 
@@ -46,8 +46,9 @@ export default function About({ reduced }) {
                 Drawn, not photographed
               </p>
               <p className="mt-2 text-[0.82rem] leading-relaxed text-dust">
-                Every picture on this page is generated in code, so nothing here
-                is a stock photo of somebody else&rsquo;s cafe.
+                Every picture here is generated in code and is a slot waiting for
+                Underground&rsquo;s own photograph &mdash; not a stock photo of
+                somebody else&rsquo;s room.
               </p>
             </div>
           </div>

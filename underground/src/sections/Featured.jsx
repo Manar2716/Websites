@@ -1,5 +1,5 @@
 import { featured } from '../data/content.js'
-import Painting from '../components/Painting.jsx'
+import Media from '../components/Media.jsx'
 import { Eyebrow, Words } from '../components/ui.jsx'
 import { useTrack } from '../lib/hooks.js'
 
@@ -34,11 +34,11 @@ export default function Featured({ reduced }) {
               'translate3d(0, calc((var(--p, .5) - .5) * -7%), 0) scale(1.08)',
           }}
         >
-          <Painting
-            id="featured"
-            className="h-full w-full transition-transform duration-[1400ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.05]"
-            style={{ height: '100%' }}
-            alt={`${featured.name} — drawn illustration`}
+          <Media
+            art={featured.art}
+            photo={featured.photo}
+            alt={`${featured.name}${featured.photo ? '' : ' — drawn illustration'}`}
+            className="transition-transform duration-[1400ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.05]"
           />
         </div>
 

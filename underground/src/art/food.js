@@ -202,6 +202,379 @@ function sauceDrip(ctx, cx, cy, r, rng, color) {
    THE DISHES
    ═══════════════════════════════════════════════════════════════════ */
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   BUILDERS
+
+   Three menu sections are one drawing each with a parameter on it. A
+   double burger is a single with a second patty and the bun lifted; a
+   margherita is the chicken pizza with the toppings list emptied. Nine
+   menu items, three shapes — which is also how the kitchen thinks about
+   them.
+   ═══════════════════════════════════════════════════════════════════ */
+
+function burgerVariants() {
+  const build = (o = {}) => (ctx, w, h, rng) => {
+    const { patties = 1, chicken = false } = o
+    const s = S(w, h)
+    const cx = w * 0.46
+    const cy = h * 0.68
+    const bw = s * 0.28
+    const stack = patties * s * 0.075 + (chicken ? s * 0.02 : 0)
+
+    board(ctx, cx + s * 0.04, cy + s * 0.03, s * 0.46, rng)
+
+    // Chips, standing behind and to the right
+    for (let i = 0; i < 9; i++) {
+      const fx = cx + s * (0.3 + rng() * 0.16)
+      const fy = cy - s * (0.01 + rng() * 0.07)
+      ctx.save()
+      ctx.translate(fx, fy)
+      ctx.rotate((rng() - 0.5) * 1.1)
+      ctx.beginPath()
+      ctx.roundRect(-s * 0.014, -s * 0.1, s * 0.028, s * 0.2, s * 0.008)
+      const fg = ctx.createLinearGradient(-s * 0.014, 0, s * 0.014, 0)
+      fg.addColorStop(0, '#e8bd6a')
+      fg.addColorStop(1, '#9a6d23')
+      ctx.fillStyle = fg
+      ctx.fill()
+      ctx.restore()
+    }
+
+    // Bottom bun
+    ctx.beginPath()
+    ctx.moveTo(cx - bw, cy - s * 0.01)
+    ctx.lineTo(cx + bw, cy - s * 0.01)
+    ctx.quadraticCurveTo(cx + bw * 0.95, cy + s * 0.055, cx, cy + s * 0.06)
+    ctx.quadraticCurveTo(cx - bw * 0.95, cy + s * 0.055, cx - bw, cy - s * 0.01)
+    ctx.fillStyle = '#a9742f'
+    ctx.fill()
+
+    for (let i = 0; i < patties; i++) {
+      const py = cy - s * 0.035 - i * s * 0.075
+      ctx.save()
+      blob(ctx, cx, py, bw * 1.02, s * 0.042, rng, 0.06, 12)
+      const pg = ctx.createLinearGradient(0, py - s * 0.045, 0, py + s * 0.04)
+      if (chicken) {
+        // Crumbed, not charred: paler, and speckled rather than smooth
+        pg.addColorStop(0, '#dCAA63')
+        pg.addColorStop(1, '#8a5a1c')
+      } else {
+        pg.addColorStop(0, '#5a3319')
+        pg.addColorStop(1, '#2b1509')
+      }
+      ctx.fillStyle = pg
+      ctx.fill()
+      if (chicken) {
+        ctx.clip()
+        for (let k = 0; k < 40; k++) {
+          ctx.fillStyle = a(rng() > 0.5 ? '#f7d79a' : '#5c3a0d', 0.3 + rng() * 0.4)
+          ctx.beginPath()
+          ctx.ellipse(cx + (rng() - 0.5) * bw * 2, py + (rng() - 0.5) * s * 0.08,
+            s * 0.008 * (0.4 + rng()), s * 0.005 * (0.4 + rng()), rng() * TAU, 0, TAU)
+          ctx.fill()
+        }
+      }
+      ctx.restore()
+
+      // Cheese over each patty, melting off the edges
+      ctx.save()
+      ctx.beginPath()
+      ctx.moveTo(cx - bw * 0.98, py - s * 0.025)
+      ctx.lineTo(cx + bw * 0.98, py - s * 0.025)
+      ctx.lineTo(cx + bw * 0.86, py + s * 0.023)
+      ctx.quadraticCurveTo(cx + bw * 0.4, py + s * 0.047, cx, py + s * 0.021)
+      ctx.quadraticCurveTo(cx - bw * 0.4, py + s * 0.049, cx - bw * 0.86, py + s * 0.023)
+      ctx.closePath()
+      const cg = ctx.createLinearGradient(0, py - s * 0.035, 0, py + s * 0.035)
+      cg.addColorStop(0, '#ffc55a')
+      cg.addColorStop(1, '#d3862a')
+      ctx.fillStyle = cg
+      ctx.fill()
+      ctx.restore()
+    }
+
+    // Leaf
+    ctx.save()
+    blob(ctx, cx, cy - s * 0.082 - stack + s * 0.075, bw * 1.05, s * 0.026, rng, 0.3, 14)
+    ctx.fillStyle = '#5c8a3d'
+    ctx.fill()
+    ctx.restore()
+
+    // Top bun
+    const ty = cy - s * 0.095 - stack + s * 0.075
+    ctx.save()
+    ctx.beginPath()
+    ctx.moveTo(cx - bw, ty)
+    ctx.bezierCurveTo(cx - bw, ty - s * 0.12, cx + bw, ty - s * 0.12, cx + bw, ty)
+    ctx.closePath()
+    const tg = ctx.createLinearGradient(cx - bw, ty - s * 0.115, cx + bw * 0.6, ty)
+    tg.addColorStop(0, '#e0aa5f')
+    tg.addColorStop(0.45, '#bb8236')
+    tg.addColorStop(1, '#6d4715')
+    ctx.fillStyle = tg
+    ctx.fill()
+    ctx.clip()
+    for (let i = 0; i < 16; i++) {
+      ctx.fillStyle = a('#f5e6c4', 0.65 + rng() * 0.35)
+      ctx.beginPath()
+      ctx.ellipse(cx + (rng() - 0.5) * bw * 1.5, ty - rng() * s * 0.1,
+        s * 0.009, s * 0.005, (rng() - 0.5) * 1.4, 0, TAU)
+      ctx.fill()
+    }
+    ctx.restore()
+
+    ctx.save()
+    ctx.globalCompositeOperation = 'screen'
+    pool(ctx, cx - bw * 0.5, ty - s * 0.08, s * 0.12, IN.brassLit, 0.34)
+    ctx.restore()
+  }
+
+  return {
+    burger: build(),
+    burgerDouble: build({ patties: 2 }),
+    burgerChicken: build({ chicken: true }),
+  }
+}
+
+function pizzaVariants() {
+  /** @param o.toppings list of ['colour', count, radius] specs */
+  const build = (o = {}) => (ctx, w, h, rng) => {
+    const { toppings = [], sauce = '#b8331a', basil = false } = o
+    const s = S(w, h)
+    const cx = w * 0.5
+    const cy = h * 0.6
+    const r = s * 0.34
+    const ry = r * 0.34
+
+    board(ctx, cx, cy + ry * 0.5, r * 1.24, rng)
+
+    // Crust — a torus seen at an angle, so the far edge is a thin line
+    // and the near edge has some height to it
+    ellipse(ctx, cx, cy, r, ry)
+    const crust = ctx.createLinearGradient(cx - r, cy - ry, cx + r, cy + ry)
+    crust.addColorStop(0, '#e6bd78')
+    crust.addColorStop(0.4, '#c1913f')
+    crust.addColorStop(1, '#6d4715')
+    ctx.fillStyle = crust
+    ctx.fill()
+    ctx.beginPath()
+    ctx.ellipse(cx, cy, r, ry, 0, 0, Math.PI)
+    ctx.strokeStyle = a('#3d2408', 0.5)
+    ctx.lineWidth = s * 0.012
+    ctx.stroke()
+
+    // The face
+    ctx.save()
+    ellipse(ctx, cx, cy, r * 0.86, ry * 0.86)
+    ctx.clip()
+    const sg = ctx.createRadialGradient(cx - r * 0.2, cy - ry * 0.3, 0, cx, cy, r)
+    sg.addColorStop(0, mix(sauce, '#e0663a', 0.3))
+    sg.addColorStop(1, mix(sauce, IN.black, 0.4))
+    ctx.fillStyle = sg
+    ctx.fillRect(cx - r, cy - ry, r * 2, ry * 2)
+
+    // Cheese: overlapping blobs, browned where the oven caught them
+    for (let i = 0; i < 34; i++) {
+      const th = rng() * TAU
+      const rr = Math.sqrt(rng()) * r * 0.82
+      ctx.save()
+      ctx.translate(cx + Math.cos(th) * rr, cy + Math.sin(th) * rr * 0.34)
+      blob(ctx, 0, 0, r * (0.1 + rng() * 0.08), ry * (0.12 + rng() * 0.1), rng, 0.18, 9)
+      ctx.fillStyle = a(mix('#f4e2b0', '#c98f36', rng() * rng()), 0.9)
+      ctx.fill()
+      ctx.restore()
+    }
+
+    for (const [colour, count, rad, flat] of toppings) {
+      for (let i = 0; i < count; i++) {
+        const th = rng() * TAU
+        const rr = Math.sqrt(rng()) * r * 0.78
+        const x = cx + Math.cos(th) * rr
+        const y = cy + Math.sin(th) * rr * 0.34
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.rotate(rng() * TAU)
+        ctx.beginPath()
+        ctx.ellipse(0, 0, s * rad * (0.7 + rng() * 0.6), s * rad * (flat ? 0.3 : 0.6) * (0.7 + rng() * 0.6), 0, 0, TAU)
+        ctx.fillStyle = colour
+        ctx.fill()
+        ctx.restore()
+      }
+    }
+    ctx.restore()
+
+    if (basil) herbs(ctx, cx, cy, r * 0.7, rng, 10, '#4d7a34')
+
+    ctx.save()
+    ctx.globalCompositeOperation = 'screen'
+    pool(ctx, cx - r * 0.3, cy - ry * 0.6, r * 0.7, IN.brassLit, 0.22)
+    ctx.restore()
+    steam(ctx, cx, cy - ry, s * 0.16, s * 0.34, rng, 0.45)
+  }
+
+  return {
+    // The listed one: garlic sauce base, chicken, sweetcorn, peppers,
+    // black olives, onion.
+    pizza: build({
+      sauce: '#c9a24a',
+      toppings: [
+        ['#e8dcc0', 16, 0.022],
+        ['#f0c24a', 22, 0.009, true],
+        ['#4a7a35', 12, 0.014, true],
+        ['#1c1a1c', 14, 0.013],
+        ['#d8cfc0', 12, 0.012, true],
+      ],
+    }),
+    pizzaMargherita: build({ basil: true }),
+    pizzaPepperoni: build({
+      toppings: [['#9c2f1c', 14, 0.028, true]],
+    }),
+  }
+}
+
+function donerVariants() {
+  const build = (o = {}) => (ctx, w, h, rng) => {
+    const { meat = ['#8e4a2c', '#5c2a14'] } = o
+    const s = S(w, h)
+    const cx = w * 0.5
+    const cy = h * 0.6
+
+    board(ctx, cx, cy + s * 0.12, s * 0.46, rng)
+
+    // The pitta, folded open — one lobe behind, one in front, and the
+    // filling sitting in the gap. It is the fold that says pitta.
+    const pw = s * 0.32
+    const ph = s * 0.19
+
+    ctx.save()
+    blob(ctx, cx, cy - s * 0.03, pw, ph, rng, 0.06, 14)
+    const back = ctx.createLinearGradient(cx - pw, cy - ph, cx + pw, cy + ph)
+    back.addColorStop(0, '#e2c48c')
+    back.addColorStop(0.5, '#c7a262')
+    back.addColorStop(1, '#8a6a2e')
+    ctx.fillStyle = back
+    ctx.fill()
+    ctx.clip()
+    for (let i = 0; i < 26; i++) {
+      ctx.fillStyle = a('#7d5a20', 0.16 + rng() * 0.24)
+      ctx.beginPath()
+      ctx.ellipse(cx + (rng() - 0.5) * pw * 2, cy - s * 0.03 + (rng() - 0.5) * ph * 2,
+        s * 0.014 * rng(), s * 0.01 * rng(), rng() * TAU, 0, TAU)
+      ctx.fill()
+    }
+    ctx.restore()
+
+    // The inside of the pocket, before anything goes in it. Without a
+    // shadow under the far lip the bread reads as one solid lump.
+    ctx.save()
+    ctx.beginPath()
+    ctx.ellipse(cx, cy - s * 0.05, pw * 0.9, ph * 0.62, 0, 0, TAU)
+    ctx.clip()
+    const pocket = ctx.createLinearGradient(0, cy - s * 0.12, 0, cy + s * 0.02)
+    pocket.addColorStop(0, a('#4a3410', 0.75))
+    pocket.addColorStop(1, a('#4a3410', 0))
+    ctx.fillStyle = pocket
+    ctx.fillRect(cx - pw, cy - s * 0.14, pw * 2, ph * 1.4)
+    ctx.restore()
+
+    // Filling: salad first, then the meat over it
+    for (let i = 0; i < 26; i++) {
+      const x = cx + (rng() - 0.5) * pw * 1.5
+      const y = cy - s * 0.05 + (rng() - 0.5) * ph * 0.7
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.rotate(rng() * TAU)
+      ctx.beginPath()
+      ctx.ellipse(0, 0, s * 0.03 * (0.6 + rng()), s * 0.011 * (0.6 + rng()), 0, 0, TAU)
+      const leaf = rng()
+      ctx.fillStyle = leaf > 0.62 ? '#7ba14f' : leaf > 0.3 ? '#c8d6b4' : '#b8321c'
+      ctx.fill()
+      ctx.restore()
+    }
+
+    for (let i = 0; i < 22; i++) {
+      const x = cx + (rng() - 0.5) * pw * 1.3
+      const y = cy - s * 0.055 + (rng() - 0.5) * ph * 0.5
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.rotate((rng() - 0.5) * 1.6)
+      ctx.beginPath()
+      ctx.roundRect(-s * 0.045, -s * 0.009, s * 0.09, s * 0.018, s * 0.008)
+      const mg = ctx.createLinearGradient(0, -s * 0.009, 0, s * 0.009)
+      mg.addColorStop(0, mix(meat[0], IN.brassLit, 0.2))
+      mg.addColorStop(1, meat[1])
+      ctx.fillStyle = mg
+      ctx.fill()
+      ctx.restore()
+    }
+
+    // The near lobe of the bread, folded up over the filling
+    ctx.save()
+    ctx.beginPath()
+    ctx.moveTo(cx - pw * 0.96, cy - s * 0.02)
+    ctx.quadraticCurveTo(cx, cy + s * 0.06, cx + pw * 0.96, cy - s * 0.02)
+    ctx.quadraticCurveTo(cx, cy + s * 0.11, cx - pw * 0.96, cy - s * 0.02)
+    ctx.closePath()
+    const front = ctx.createLinearGradient(0, cy - s * 0.02, 0, cy + s * 0.1)
+    front.addColorStop(0, '#e6c98e')
+    front.addColorStop(0.45, '#c9a45e')
+    front.addColorStop(1, '#7d5d24')
+    ctx.fillStyle = front
+    ctx.fill()
+    // The fold itself — the one line that says this is bread wrapped
+    // around something rather than a filled oval
+    ctx.beginPath()
+    ctx.moveTo(cx - pw * 0.96, cy - s * 0.02)
+    ctx.quadraticCurveTo(cx, cy + s * 0.06, cx + pw * 0.96, cy - s * 0.02)
+    ctx.strokeStyle = a('#5c3f14', 0.65)
+    ctx.lineWidth = s * 0.006
+    ctx.stroke()
+    ctx.restore()
+
+    // Where it caught the grill
+    ctx.save()
+    blob(ctx, cx, cy - s * 0.03, pw, ph, rng, 0.06, 14)
+    ctx.clip()
+    for (let i = 0; i < 12; i++) {
+      ctx.fillStyle = a('#8a5a1c', 0.1 + rng() * 0.22)
+      ctx.beginPath()
+      ctx.ellipse(cx + (rng() - 0.5) * pw * 1.9, cy - s * 0.03 + (rng() - 0.5) * ph * 1.9,
+        s * 0.05 * rng(), s * 0.028 * rng(), rng() * TAU, 0, TAU)
+      ctx.fill()
+    }
+    ctx.restore()
+
+    // Two sauces, because there are two: garlic, and minty chilli
+    for (const [colour, dx] of [['#f2ead6', -0.06], ['#7fa04a', 0.05]]) {
+      ctx.save()
+      ctx.beginPath()
+      let x = cx + s * dx - s * 0.09
+      ctx.moveTo(x, cy - s * 0.09)
+      for (let i = 1; i <= 5; i++) {
+        x += s * 0.036
+        ctx.quadraticCurveTo(x - s * 0.018, cy - s * 0.09 + (i % 2 ? s * 0.022 : -s * 0.014), x, cy - s * 0.075)
+      }
+      ctx.strokeStyle = a(colour, 0.85)
+      ctx.lineWidth = s * 0.011
+      ctx.lineCap = 'round'
+      ctx.stroke()
+      ctx.restore()
+    }
+
+    ctx.save()
+    ctx.globalCompositeOperation = 'screen'
+    pool(ctx, cx - pw * 0.4, cy - s * 0.09, s * 0.16, IN.brassLit, 0.26)
+    ctx.restore()
+    steam(ctx, cx, cy - s * 0.11, s * 0.14, s * 0.32, rng, 0.4)
+  }
+
+  return {
+    doner: build(),
+    donerChicken: build({ meat: ['#d8a862', '#8a5c1c'] }),
+  }
+}
+
 export const dishes = {
   avotoast(ctx, w, h, rng) {
     const s = S(w, h)
@@ -358,95 +731,207 @@ export const dishes = {
     steam(ctx, cx, cy - s * 0.2, s * 0.16, s * 0.44, rng, 0.6)
   },
 
-  burger(ctx, w, h, rng) {
+  /* Burgers come out of one builder. A double is the same drawing with
+     a second patty and the bun lifted; a chicken burger is the same
+     drawing with a paler, crumbed middle. Three menu items, one shape. */
+  ...burgerVariants(),
+
+  chips(ctx, w, h, rng) {
     const s = S(w, h)
-    const cx = w * 0.46
-    const cy = h * 0.68
-    board(ctx, cx + s * 0.04, cy + s * 0.03, s * 0.46, rng)
-    const bw = s * 0.28
-    // Fries, standing behind and to the right
-    for (let i = 0; i < 9; i++) {
-      const fx = cx + s * (0.3 + rng() * 0.16)
-      const fy = cy - s * (0.01 + rng() * 0.07)
+    const cx = w * 0.5
+    const cy = h * 0.64
+    // A steel basket, filled past the rim
+    const r = s * 0.24
+    contact(ctx, cx, cy + r * 0.5, r * 1.5, r * 0.4, 0.82)
+    ctx.beginPath()
+    ctx.moveTo(cx - r, cy - r * 0.5)
+    ctx.lineTo(cx - r * 0.78, cy + r * 0.42)
+    ctx.ellipse(cx, cy + r * 0.42, r * 0.78, r * 0.24, 0, Math.PI, 0, true)
+    ctx.lineTo(cx + r, cy - r * 0.5)
+    ctx.ellipse(cx, cy - r * 0.5, r, r * 0.3, 0, 0, Math.PI, false)
+    ctx.closePath()
+    const bg = ctx.createLinearGradient(cx - r, 0, cx + r, 0)
+    bg.addColorStop(0, '#4a4642')
+    bg.addColorStop(0.3, '#a9a49c')
+    bg.addColorStop(1, '#2a2724')
+    ctx.fillStyle = bg
+    ctx.fill()
+    // Mesh
+    ctx.save()
+    ctx.clip()
+    ctx.strokeStyle = a(IN.black, 0.35)
+    ctx.lineWidth = Math.max(1, s * 0.004)
+    for (let i = -6; i <= 6; i++) {
+      ctx.beginPath()
+      ctx.moveTo(cx + (i / 6) * r, cy - r * 0.5)
+      ctx.lineTo(cx + (i / 6) * r * 0.78, cy + r * 0.5)
+      ctx.stroke()
+    }
+    ctx.restore()
+    // Chips, heaped and pointing every which way
+    for (let i = 0; i < 34; i++) {
+      const t = rng()
+      const fx = cx + (rng() - 0.5) * r * 1.7
+      const fy = cy - r * 0.5 - t * r * 0.5 + rng() * r * 0.4
       ctx.save()
       ctx.translate(fx, fy)
-      ctx.rotate((rng() - 0.5) * 1.1)
+      ctx.rotate((rng() - 0.5) * 2.4)
       ctx.beginPath()
-      ctx.roundRect(-s * 0.014, -s * 0.1, s * 0.028, s * 0.2, s * 0.008)
-      const fg = ctx.createLinearGradient(-s * 0.014, 0, s * 0.014, 0)
-      fg.addColorStop(0, '#e8bd6a')
-      fg.addColorStop(1, '#9a6d23')
+      ctx.roundRect(-s * 0.016, -s * 0.085, s * 0.032, s * 0.17, s * 0.009)
+      const fg = ctx.createLinearGradient(-s * 0.016, 0, s * 0.016, 0)
+      fg.addColorStop(0, mix('#f0ca7c', '#c9993f', rng()))
+      fg.addColorStop(1, '#8a5f18')
       ctx.fillStyle = fg
       ctx.fill()
       ctx.restore()
     }
-    // Bottom bun
+    crumbs(ctx, cx, cy - r * 0.4, r * 1.2, rng, 18, '#f3ead4')
+    steam(ctx, cx, cy - r * 0.8, s * 0.12, s * 0.34, rng, 0.4)
+  },
+
+  /**
+   * The full English. Nine things on one plate, which is the whole
+   * character of the dish — the drawing has to look crowded or it is
+   * not a full English, it is brunch.
+   */
+  english(ctx, w, h, rng) {
+    const s = S(w, h)
+    const cx = w * 0.5
+    const cy = h * 0.62
+    plate(ctx, cx, cy, s * 0.46, '#1d1c1e')
+
+    // Beans, in their own corner, with the sauce catching the light
     ctx.save()
-    ctx.beginPath()
-    ctx.moveTo(cx - bw, cy - s * 0.01)
-    ctx.lineTo(cx + bw, cy - s * 0.01)
-    ctx.quadraticCurveTo(cx + bw * 0.95, cy + s * 0.055, cx, cy + s * 0.06)
-    ctx.quadraticCurveTo(cx - bw * 0.95, cy + s * 0.055, cx - bw, cy - s * 0.01)
-    ctx.fillStyle = '#a9742f'
-    ctx.fill()
-    ctx.restore()
-    // Patty
-    ctx.save()
-    blob(ctx, cx, cy - s * 0.035, bw * 1.02, s * 0.042, rng, 0.06, 12)
-    const pg = ctx.createLinearGradient(0, cy - s * 0.08, 0, cy)
-    pg.addColorStop(0, '#5a3319')
-    pg.addColorStop(1, '#2b1509')
-    ctx.fillStyle = pg
-    ctx.fill()
-    ctx.restore()
-    // Cheese, melting over the edges
-    ctx.save()
-    ctx.beginPath()
-    ctx.moveTo(cx - bw * 0.98, cy - s * 0.06)
-    ctx.lineTo(cx + bw * 0.98, cy - s * 0.06)
-    ctx.lineTo(cx + bw * 0.86, cy - s * 0.012)
-    ctx.quadraticCurveTo(cx + bw * 0.4, cy + s * 0.012, cx, cy - s * 0.014)
-    ctx.quadraticCurveTo(cx - bw * 0.4, cy + s * 0.014, cx - bw * 0.86, cy - s * 0.012)
-    ctx.closePath()
-    const cg = ctx.createLinearGradient(0, cy - s * 0.07, 0, cy)
-    cg.addColorStop(0, '#ffc55a')
-    cg.addColorStop(1, '#d3862a')
-    ctx.fillStyle = cg
-    ctx.fill()
-    ctx.restore()
-    // Leaf
-    ctx.save()
-    blob(ctx, cx, cy - s * 0.082, bw * 1.05, s * 0.026, rng, 0.3, 14)
-    ctx.fillStyle = '#5c8a3d'
-    ctx.fill()
-    ctx.restore()
-    // Top bun
-    ctx.save()
-    ctx.beginPath()
-    ctx.moveTo(cx - bw, cy - s * 0.095)
-    ctx.bezierCurveTo(cx - bw, cy - s * 0.215, cx + bw, cy - s * 0.215, cx + bw, cy - s * 0.095)
-    ctx.closePath()
-    const tg = ctx.createLinearGradient(cx - bw, cy - s * 0.21, cx + bw * 0.6, cy - s * 0.09)
-    tg.addColorStop(0, '#e0aa5f')
-    tg.addColorStop(0.45, '#bb8236')
-    tg.addColorStop(1, '#6d4715')
-    ctx.fillStyle = tg
+    blob(ctx, cx + s * 0.22, cy + s * 0.02, s * 0.11, s * 0.045, rng, 0.14, 12)
+    ctx.fillStyle = '#a8340f'
     ctx.fill()
     ctx.clip()
-    for (let i = 0; i < 16; i++) {
-      ctx.fillStyle = a('#f5e6c4', 0.65 + rng() * 0.35)
-      const sx = cx + (rng() - 0.5) * bw * 1.5
-      const sy = cy - s * 0.1 - rng() * s * 0.1
+    for (let i = 0; i < 26; i++) {
+      ctx.save()
+      ctx.translate(cx + s * 0.22 + (rng() - 0.5) * s * 0.2, cy + s * 0.02 + (rng() - 0.5) * s * 0.08)
+      ctx.rotate(rng() * Math.PI)
       ctx.beginPath()
-      ctx.ellipse(sx, sy, s * 0.009, s * 0.005, (rng() - 0.5) * 1.4, 0, TAU)
+      ctx.ellipse(0, 0, s * 0.016, s * 0.011, 0, 0, TAU)
+      ctx.fillStyle = mix('#d68a3a', '#8a4a12', rng())
       ctx.fill()
+      ctx.restore()
     }
     ctx.restore()
+
+    // Two sausages
+    for (const [dx, dy, rot] of [[-0.2, -0.04, -0.42], [-0.13, 0.03, -0.3]]) {
+      ctx.save()
+      ctx.translate(cx + s * dx, cy + s * dy)
+      ctx.rotate(rot)
+      ctx.beginPath()
+      ctx.roundRect(-s * 0.085, -s * 0.028, s * 0.17, s * 0.056, s * 0.028)
+      const sg = ctx.createLinearGradient(0, -s * 0.028, 0, s * 0.028)
+      sg.addColorStop(0, '#a4622c')
+      sg.addColorStop(0.4, '#7d4416')
+      sg.addColorStop(1, '#42220a')
+      ctx.fillStyle = sg
+      ctx.fill()
+      ctx.restore()
+    }
+
+    // Beef bacon, two rashers, rippled
+    for (const [dx, dy] of [[-0.02, -0.11], [0.06, -0.07]]) {
+      ctx.save()
+      ctx.beginPath()
+      const bx = cx + s * dx
+      const by = cy + s * dy
+      ctx.moveTo(bx - s * 0.1, by)
+      ctx.quadraticCurveTo(bx - s * 0.03, by - s * 0.032, bx + s * 0.03, by)
+      ctx.quadraticCurveTo(bx + s * 0.08, by + s * 0.03, bx + s * 0.12, by - s * 0.006)
+      ctx.lineTo(bx + s * 0.12, by + s * 0.026)
+      ctx.quadraticCurveTo(bx + s * 0.08, by + s * 0.056, bx + s * 0.03, by + s * 0.028)
+      ctx.quadraticCurveTo(bx - s * 0.03, by, bx - s * 0.1, by + s * 0.03)
+      ctx.closePath()
+      const bg2 = ctx.createLinearGradient(bx - s * 0.1, 0, bx + s * 0.12, 0)
+      bg2.addColorStop(0, '#b8563c')
+      bg2.addColorStop(0.5, '#8e3320')
+      bg2.addColorStop(1, '#5c1e10')
+      ctx.fillStyle = bg2
+      ctx.fill()
+      ctx.restore()
+    }
+
+    // Two fried eggs, front and centre
+    egg(ctx, cx - s * 0.06, cy - s * 0.005, s * 0.088, rng)
+    egg(ctx, cx + s * 0.07, cy - s * 0.03, s * 0.082, rng)
+
+    // Hash brown
     ctx.save()
-    ctx.globalCompositeOperation = 'screen'
-    pool(ctx, cx - bw * 0.5, cy - s * 0.18, s * 0.12, IN.brassLit, 0.34)
+    ctx.translate(cx + s * 0.2, cy - s * 0.1)
+    ctx.rotate(-0.18)
+    ctx.beginPath()
+    ctx.roundRect(-s * 0.075, -s * 0.042, s * 0.15, s * 0.084, s * 0.012)
+    const hb = ctx.createLinearGradient(0, -s * 0.042, 0, s * 0.042)
+    hb.addColorStop(0, '#e0ab5c')
+    hb.addColorStop(1, '#8a561a')
+    ctx.fillStyle = hb
+    ctx.fill()
+    ctx.save()
+    ctx.clip()
+    for (let i = 0; i < 22; i++) {
+      ctx.strokeStyle = a('#5c3609', 0.4)
+      ctx.lineWidth = s * 0.004
+      ctx.beginPath()
+      const y = -s * 0.042 + rng() * s * 0.084
+      ctx.moveTo(-s * 0.075, y)
+      ctx.lineTo(s * 0.075, y + (rng() - 0.5) * s * 0.01)
+      ctx.stroke()
+    }
     ctx.restore()
+    ctx.restore()
+
+    // Grilled tomato half, cut face up
+    ellipse(ctx, cx - s * 0.24, cy - s * 0.09, s * 0.06, s * 0.048)
+    const tg = ctx.createRadialGradient(cx - s * 0.25, cy - s * 0.1, 0, cx - s * 0.24, cy - s * 0.09, s * 0.06)
+    tg.addColorStop(0, '#e8623a')
+    tg.addColorStop(0.6, '#b8331a')
+    tg.addColorStop(1, '#6d1c0c')
+    ctx.fillStyle = tg
+    ctx.fill()
+
+    // Mushrooms
+    for (const [dx, dy, k] of [[-0.16, -0.13, 1], [-0.09, -0.16, 0.82]]) {
+      ellipse(ctx, cx + s * dx, cy + s * dy, s * 0.045 * k, s * 0.03 * k)
+      const mg = ctx.createLinearGradient(0, cy + s * dy - s * 0.03, 0, cy + s * dy + s * 0.03)
+      mg.addColorStop(0, '#8a6b4a')
+      mg.addColorStop(1, '#3d2b18')
+      ctx.fillStyle = mg
+      ctx.fill()
+    }
+
+    // Toast, leaning on the rim
+    for (const [dx, dy, rot] of [[0.02, -0.19, -0.12], [0.13, -0.2, 0.1]]) {
+      ctx.save()
+      ctx.translate(cx + s * dx, cy + s * dy)
+      ctx.rotate(rot)
+      ctx.beginPath()
+      ctx.roundRect(-s * 0.075, -s * 0.05, s * 0.15, s * 0.1, s * 0.01)
+      const tg2 = ctx.createLinearGradient(-s * 0.075, 0, s * 0.075, 0)
+      tg2.addColorStop(0, '#e8c98a')
+      tg2.addColorStop(1, '#a8781f')
+      ctx.fillStyle = tg2
+      ctx.fill()
+      // The crust edge, so it reads as a slice and not a biscuit
+      ctx.strokeStyle = a('#7d5312', 0.75)
+      ctx.lineWidth = s * 0.007
+      ctx.stroke()
+      ctx.restore()
+    }
+
+    herbs(ctx, cx, cy - s * 0.05, s * 0.24, rng, 8, '#6f9a4e')
+    steam(ctx, cx, cy - s * 0.14, s * 0.18, s * 0.38, rng, 0.55)
   },
+
+  /* Pizza, three ways. Same base, different things on it. */
+  ...pizzaVariants(),
+
+  /* Doner, two ways. */
+  ...donerVariants(),
 
   sando(ctx, w, h, rng) {
     const s = S(w, h)

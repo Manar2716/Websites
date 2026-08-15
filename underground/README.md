@@ -1,9 +1,13 @@
 # UNDERGROUND CAFE — a design concept
 
-A site concept for Underground Cafe, Majan, Dubai: React and Tailwind, with
-every picture on the page — the room, the machine, the plates, the cups, the
-map — drawn in code at run time. No photograph, no image file, no font from a
-CDN, no network request after the page loads.
+A site concept for Underground Cafe, Majan, Dubai — an English restaurant,
+despite the name, open from noon until one in the morning. React and Tailwind,
+with every picture on the page drawn in code at run time. No photograph, no
+image file, no font from a CDN, no network request after the page loads.
+
+The drawings are scaffolding, not the point. Every picture slot takes a real
+photograph the moment one is dropped into `public/photos/` and named in
+`content.js` — see that folder's README.
 
 ```bash
 npm install
@@ -28,18 +32,43 @@ Everything the site claims about the business lives in one file,
 
 | status        | means                                                        |
 | ------------- | ------------------------------------------------------------ |
-| `confirmed`   | from the cafe's own site or its verified social profile        |
+| `confirmed`   | from the business's own site or its verified social profile   |
 | `listed`      | from a third-party directory — almost certainly right, but not the business speaking |
 | `placeholder` | **not real.** A stand-in of roughly the right shape           |
 
-Search that file for `placeholder` to find everything outstanding. The two
-that matter: **the menu** (item names, descriptions and prices are all
-invented for the layout — the menu section says so on the page, above the
-list, before anybody reads a number) and **the founding year**, which is shown
-as `20—` rather than guessed at.
+Search that file for `placeholder` to find everything outstanding.
+
+**No prices, anywhere.** Not one published price could be sourced, and a
+concept site carrying invented numbers is the version of this that does real
+damage — somebody quotes it back at the counter. Names and descriptions are
+shown; prices live one tap away on the official site.
+
+**Four menu items are real.** English Breakfast, the Beef & Cheddar burger,
+the Underground chicken pizza and the Lamb Doner have names and descriptions
+taken from the restaurant's own delivery listings. They carry a brass dot on
+the page, and the legend sits above the list. Everything else is a layout
+placeholder and has no dot.
+
+**The founding year** is shown as `20—` rather than guessed at.
 
 There are no reviews, ratings, awards or superlatives anywhere in this
 project, and there should not be: none of it can be sourced.
+
+### What an earlier draft got wrong
+
+The first version of this site was written as a third-wave espresso bar:
+"specialty coffee", a tagline about coffee, and a five-panel horizontal
+section walking through sourcing, roasting, grinding, extraction and the
+pour. Underground does not roast coffee. It is an English kitchen doing
+all-day breakfast, burgers, pizza on a fresh base and a lamb doner in pitta
+rolled from that same dough.
+
+That section is now the opening hours — the one thing about the place that
+is both true and worth a rail — and the roasting scenes have been deleted
+from `src/art/scenes.js` rather than left lying around. It is worth naming
+because it is the exact failure mode this whole `status` system exists to
+prevent, and it still happened: the copy was plausible, internally
+consistent, and about a different business.
 
 ---
 
@@ -48,12 +77,13 @@ project, and there should not be: none of it can be sourced.
 A site for a business cannot show photographs of a room nobody has been
 inside, and stock images of somebody else's cafe are worse than none — they
 are a claim. So the whole image set is generated: `src/art/` is about
-fourteen hundred lines of canvas that draws a room, five steps of a coffee
-ritual, twenty-two menu items, six gallery frames and a street map.
+seventeen hundred lines of canvas that draws a room, twenty-odd dishes and
+drinks, six gallery frames and a street map.
 
-It also happens to be the right technical answer. Thirty pictures weigh
-nothing, stay sharp on a 4K panel, need no CDN, and can be re-lit by changing
-one number.
+It also happens to be the right technical answer while the real photographs
+are missing. Thirty pictures weigh nothing, stay sharp on a 4K panel, need no
+CDN, and can be re-lit by changing one number — and each one is a slot the
+real picture drops straight into, at the same crop, with no layout change.
 
 **One lamp lights all of it**, and that is what makes the set read as one body
 of work rather than a folder of unrelated images:
@@ -68,16 +98,20 @@ ground   never flat: a warm pool with the corners falling away, and grain
 Twelve drinks come out of two forms. A latte and a flat white are not two
 different pictures — they are the same cup with a different foam depth, a
 different rim ratio and a different surface pattern, which is also the entire
-difference between them on a bench. Every dish is a piece of crockery, a soft
-mass with a rim light on it, and a few small bright things on top; a burger
-and a milanese are those three moves in a different order.
+difference between them on a bench.
+
+Three menu sections are one drawing each with a parameter on it: a double
+burger is a single with a second patty and the bun lifted, a chicken burger
+is the same with a paler crumbed middle, and a margherita is the chicken
+pizza with the toppings list emptied. Nine menu items, three shapes — which
+is roughly how the kitchen thinks about them too.
 
 All randomness is seeded off the picture's own id, so resizing the window
 redraws the same picture rather than a new one.
 
 ### Composing for a crop you do not know yet
 
-The same drawing is asked for at 16:10 in the gallery, 4:5 in the ritual rail
+The same drawing is asked for at 16:10 in the gallery, 4:5 in the hours rail
 and 9:19 behind the hero on a phone. Composing against the real width and
 height gives a picture that works in one of those and falls apart in the rest
 — the bar ends up off the bottom, or a pendant lands on the headline.
@@ -112,7 +146,7 @@ The rules every hook in `src/lib/hooks.js` follows:
 The one thing that moves without being asked is a one-pixel line in the footer
 that takes twelve seconds to cross.
 
-**The horizontal section** (`Ritual`) is a sticky child inside a tall parent.
+**The horizontal section** (`Hours`) is a sticky child inside a tall parent.
 The vertical distance the parent adds is derived from the measured width of
 the track, so the rail finishes exactly as the pin releases — no dead scroll at
 the end, no panel left half off-screen.
@@ -197,12 +231,14 @@ art.html                     dev-only contact sheet of every painter
 src/index.css                tokens, type scale, reveals, motion prefs
 src/data/content.js          every word on the site, with a status per fact
 src/lib/hooks.js             reveals, scroll, parallax, magnetism
+src/components/Media.jsx     photograph if there is one, drawing if not
 src/components/Painting.jsx  the canvas ↔ layout bridge
+public/photos/               drop real photographs here — see its README
 src/components/ui.jsx        words, buttons, grain, cursor
 src/art/core.js              the camera: light, grain, seeded noise, cover
 src/art/vessels.js           cups, glasses, the milk jug
 src/art/food.js              crockery and twelve dishes
-src/art/scenes.js            the room, the ritual, the map
+src/art/scenes.js            the room, the doorway, the map
 src/art/painters.js          the registry — one id per picture
 src/sections/*.jsx           nine sections, in page order
 ```

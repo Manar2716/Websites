@@ -1,15 +1,22 @@
 import { useEffect, useRef } from 'react'
-import { ritual } from '../data/content.js'
-import Painting from '../components/Painting.jsx'
+import { hours } from '../data/content.js'
+import Media from '../components/Media.jsx'
 import { Eyebrow, Words } from '../components/ui.jsx'
 
 /* ═══════════════════════════════════════════════════════════════════
-   THE RITUAL — the horizontal section
+   THE HOURS — the horizontal section
 
    Five panels that move sideways while the page is pinned. This is the
-   one place on the site where a horizontal rail earns its keep: the
-   five steps are a sequence, and a sequence read left to right is
-   easier to hold than five stacked cards.
+   one place on the site where a horizontal rail earns its keep: a day
+   is a sequence, and a sequence read left to right is easier to hold
+   than five stacked cards.
+
+   It used to be a five-step coffee roasting process — sourcing,
+   roasting, grinding, extraction, pour. That was a story about a
+   business that does not roast coffee, invented to fill a rail. The
+   rail now carries the one thing about this place that is both true
+   and worth a section: it is open from noon until one in the morning,
+   seven days a week.
 
    The pin is a sticky child inside a tall parent. The vertical
    distance the parent adds is derived from the actual width of the
@@ -20,7 +27,7 @@ import { Eyebrow, Words } from '../components/ui.jsx'
    stack and the parent collapses to its natural height.
    ═══════════════════════════════════════════════════════════════════ */
 
-export default function Ritual({ reduced }) {
+export default function Hours({ reduced }) {
   const section = useRef(null)
   const track = useRef(null)
 
@@ -80,7 +87,7 @@ export default function Ritual({ reduced }) {
   // whatever is left after the words, rather than the words taking
   // whatever is left after a fixed 4:5 picture — which is how they
   // ended up below the fold of a pinned viewport.
-  const panels = ritual.steps.map((s, i) => (
+  const panels = hours.steps.map((s, i) => (
     <article
       key={s.n}
       className={[
@@ -98,12 +105,13 @@ export default function Ritual({ reduced }) {
           reduced ? 'aspect-[4/5]' : 'min-h-0 flex-1',
         ].join(' ')}
       >
-        <Painting
-          id={s.art}
+        <Media
+          art={s.art}
+          photo={s.photo}
+          alt={`${s.title}${s.photo ? '' : ' — drawn illustration'}`}
           className="transition-transform duration-[1200ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]"
-          alt={`${s.title} — drawn illustration`}
         />
-        <span className="absolute left-5 top-5 font-mono text-[0.65rem] tracking-[0.3em] text-brass">
+        <span className="absolute left-5 top-5 font-mono text-[0.7rem] tracking-[0.24em] text-brass">
           {s.n}
         </span>
       </div>
@@ -162,10 +170,10 @@ function Header() {
     <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
       <div>
         <div data-reveal>
-          <Eyebrow>{ritual.eyebrow}</Eyebrow>
+          <Eyebrow>{hours.eyebrow}</Eyebrow>
         </div>
         <h2 className="t-h2 mt-5 max-w-[18ch]" data-reveal-group>
-          <Words text={ritual.title} stagger={50} />
+          <Words text={hours.title} stagger={50} />
         </h2>
       </div>
       <p
@@ -173,7 +181,7 @@ function Header() {
         data-reveal
         style={{ '--d': 2 }}
       >
-        Scroll to move through it
+        {hours.aside}
       </p>
     </div>
   )
