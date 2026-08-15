@@ -4,3 +4,7 @@ node_modules/
 # Vite output for the Underground Cafe site. Built in CI by the Pages
 # workflow and swapped in for `underground/`, so it is never committed.
 underground-dist/
+
+# Single-file inlined build, generated for previewing the site off a
+# `file://` URL. Derived from underground-dist/, so never committed.
+underground-preview.html
