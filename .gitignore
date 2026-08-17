@@ -5,6 +5,8 @@ node_modules/
 # workflow and swapped in for `underground/`, so it is never committed.
 underground-dist/
 
-# Single-file inlined build, generated for previewing the site off a
-# `file://` URL. Derived from underground-dist/, so never committed.
+# Single-file inlined builds, generated for previewing the site: one for
+# a `file://` URL, one shaped for publishing as a hosted artifact. Both
+# are derived from underground-dist/, so neither is committed.
 underground-preview.html
+underground-artifact.html

@@ -1,5 +1,6 @@
 import { usePrefersReducedMotion, useReveals } from './lib/hooks.js'
 import { Cursor, Grain } from './components/ui.jsx'
+import ConceptBadge from './components/ConceptBadge.jsx'
 
 import Nav from './sections/Nav.jsx'
 import Hero from './sections/Hero.jsx'
@@ -41,6 +42,7 @@ export default function App() {
     <>
       <Grain />
       <Cursor reduced={reduced} />
+      <ConceptBadge />
       <Nav reduced={reduced} />
 
       <main>
