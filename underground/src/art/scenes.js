@@ -1,465 +1,206 @@
 /* ═══════════════════════════════════════════════════════════════════
-   THE ROOM
+   THE PLACE
 
-   Interiors, drawn as chiaroscuro: almost everything is a silhouette,
-   and the picture is carried by four or five sources of warm light and
-   what they catch on the way past. Detail is spent only where light
-   lands — the lip of the counter, the top of a shoulder, the rim of a
-   cup — because that is where a lens would find it too.
+   Outdoor scenes: a planted terrace in open shade, sun coming through
+   the canopy, rattan and stone and a lot of leaves.
+
+   These replaced a set of dark basement interiors — brick, pendant
+   lamps, an espresso machine in silhouette. That set was lit by one
+   warm lamp against near-black, which is the exact opposite instrument
+   to the one a garden needs, so none of it survived the change of
+   direction; it was deleted rather than tinted green.
 
    Every scene composes inside a fixed virtual frame and is scaled to
-   cover whatever box it is handed (see `cover` in core.js). The same
-   drawing is asked for at 16:10, at 4:5 and at 9:19 behind the hero on
-   a phone, and composing against the real width and height means a
-   picture that works in one of those and falls apart in the rest.
+   cover whatever box it is handed, with separate landscape and portrait
+   framings — the same drawing is asked for at 16:10 in the gallery and
+   at 9:19 behind the hero on a phone.
 
-   Nothing here is a photograph of Underground Cafe. These are drawings
-   of a room of this kind, and the page says so where they appear.
+   Nothing here is a photograph of Underground. These are drawings of a
+   garden terrace, and the page says so where they appear.
    ═══════════════════════════════════════════════════════════════════ */
 
-import { IN, a, mix, ellipse, pool, steam, cover, TAU } from './core.js'
-import { cup, pitcher } from './vessels.js'
+import { IN, a, mix, ellipse, blob, pool, contact, dapple, cover, TAU, lerp } from './core.js'
+import { border, cluster, pot, rattan, LEAVES, fern } from './garden.js'
 
-/* ── parts of a room ─────────────────────────────────────────────── */
+/* ── parts of a terrace ──────────────────────────────────────────── */
 
-/** Brick, laid in courses with a running bond. Clipped by the caller. */
-function bricks(ctx, x, y, w, h, rng, unit, tint = '#2a211c') {
-  const bh = unit
-  const bw = unit * 2.4
-  for (let row = 0, ry = y; ry < y + h; row++, ry += bh) {
-    const off = row % 2 ? bw * 0.5 : 0
-    for (let bx = x - bw + off; bx < x + w; bx += bw) {
-      const v = rng()
-      ctx.fillStyle = mix(tint, v > 0.78 ? IN.brassDim : IN.black, 0.3 + v * 0.44)
-      ctx.fillRect(bx + unit * 0.07, ry + unit * 0.07, bw - unit * 0.14, bh - unit * 0.14)
+/** Sky and canopy: the light everything else is lit by. */
+function air(ctx, w, h, rng, o = {}) {
+  const { warmth = 1, canopy = true } = o
+  const g = ctx.createLinearGradient(w * 0.8, 0, w * 0.1, h)
+  g.addColorStop(0, mix('#fff3cd', '#dfeccb', 1 - warmth))
+  g.addColorStop(0.35, '#e3f0d3')
+  g.addColorStop(0.7, '#c6dcb8')
+  g.addColorStop(1, '#a5c39a')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, w, h)
+
+  // The sun itself, off the top right corner
+  ctx.save()
+  ctx.globalCompositeOperation = 'screen'
+  pool(ctx, w * 0.84, h * 0.06, Math.max(w, h) * 0.62, IN.sun, 0.55 * warmth)
+  pool(ctx, w * 0.84, h * 0.06, Math.max(w, h) * 0.2, IN.sunHot, 0.55 * warmth)
+  ctx.restore()
+
+  if (canopy) {
+    // Massed foliage overhead, well out of focus
+    for (let i = 0; i < 10; i++) {
+      const bx = rng() * w
+      const by = -h * 0.05 + rng() * h * 0.34
+      const br = Math.min(w, h) * (0.18 + rng() * 0.32)
+      ctx.save()
+      ctx.globalAlpha = 0.2 + rng() * 0.28
+      blob(ctx, bx, by, br, br * 0.62, rng, 0.3, 9)
+      ctx.fillStyle = mix(IN.leaf, IN.canopy, rng() * 0.8)
+      ctx.fill()
+      ctx.restore()
     }
   }
 }
 
-/** A pendant: cord, shade, filament, and the cone it throws. */
-function pendant(ctx, x, yTop, yLamp, r, strength = 1) {
-  ctx.strokeStyle = a(IN.black, 0.85)
-  ctx.lineWidth = Math.max(1, r * 0.07)
-  ctx.beginPath()
-  ctx.moveTo(x, yTop)
-  ctx.lineTo(x, yLamp - r * 1.2)
-  ctx.stroke()
-
-  // The cone, drawn before the shade so the shade sits inside its own light
-  ctx.save()
-  ctx.globalCompositeOperation = 'screen'
-  const coneH = r * 15
-  const g = ctx.createLinearGradient(0, yLamp, 0, yLamp + coneH)
-  g.addColorStop(0, a(IN.brassLit, 0.34 * strength))
-  g.addColorStop(0.3, a(IN.brass, 0.1 * strength))
-  g.addColorStop(1, a(IN.brass, 0))
+/** The floor: pale stone tiles in perspective, or decking. */
+function floor(ctx, w, h, yTop, rng, o = {}) {
+  const { kind = 'stone' } = o
+  const g = ctx.createLinearGradient(0, yTop, 0, h)
+  if (kind === 'deck') {
+    g.addColorStop(0, '#a9793f')
+    g.addColorStop(1, '#7a5228')
+  } else {
+    g.addColorStop(0, '#ded5c0')
+    g.addColorStop(0.4, '#cfc5ae')
+    g.addColorStop(1, '#b6ab93')
+  }
   ctx.fillStyle = g
-  ctx.beginPath()
-  ctx.moveTo(x - r * 0.75, yLamp)
-  ctx.lineTo(x + r * 0.75, yLamp)
-  ctx.lineTo(x + r * 4.6, yLamp + coneH)
-  ctx.lineTo(x - r * 4.6, yLamp + coneH)
-  ctx.closePath()
-  ctx.fill()
-  ctx.restore()
+  ctx.fillRect(0, yTop, w, h - yTop)
 
-  // Shade
-  ctx.beginPath()
-  ctx.moveTo(x - r, yLamp)
-  ctx.lineTo(x + r, yLamp)
-  ctx.lineTo(x + r * 0.2, yLamp - r * 1.2)
-  ctx.lineTo(x - r * 0.2, yLamp - r * 1.2)
-  ctx.closePath()
-  const sg = ctx.createLinearGradient(x - r, 0, x + r, 0)
-  sg.addColorStop(0, '#1e1c1a')
-  sg.addColorStop(0.3, '#453e36')
-  sg.addColorStop(0.72, '#191715')
-  sg.addColorStop(1, '#0e0d0c')
-  ctx.fillStyle = sg
-  ctx.fill()
-  ctx.strokeStyle = a(IN.brass, 0.5)
-  ctx.lineWidth = Math.max(1, r * 0.05)
-  ctx.stroke()
-
-  ellipse(ctx, x, yLamp, r, r * 0.26)
-  ctx.fillStyle = a(IN.brassLit, 0.9)
-  ctx.fill()
-
+  // Joints, converging slightly toward a vanishing point
   ctx.save()
-  ctx.globalCompositeOperation = 'screen'
-  pool(ctx, x, yLamp + r * 0.1, r * 3, IN.brassLit, 0.45 * strength)
-  pool(ctx, x, yLamp + r * 0.1, r * 0.8, IN.cream, 0.75 * strength)
-  ctx.restore()
-}
-
-/** Dust in a beam. What makes a light source read as being in air. */
-function motes(ctx, x, y, w, h, rng, n = 70) {
-  ctx.save()
-  ctx.globalCompositeOperation = 'screen'
-  for (let i = 0; i < n; i++) {
-    const t = rng()
-    const mx = x + (rng() - 0.5) * w * (0.3 + t)
-    const my = y + t * h
-    const r = Math.max(0.7, w * 0.005 * (0.4 + rng() * 1.6))
-    ctx.fillStyle = a(IN.brassLit, 0.1 + rng() * 0.42 * (1 - t))
+  ctx.beginPath()
+  ctx.rect(0, yTop, w, h - yTop)
+  ctx.clip()
+  ctx.strokeStyle = a(IN.bark, kind === 'deck' ? 0.3 : 0.16)
+  ctx.lineWidth = Math.max(1, h * 0.003)
+  const vx = w * 0.55
+  for (let i = -8; i <= 12; i++) {
     ctx.beginPath()
-    ctx.arc(mx, my, r, 0, TAU)
-    ctx.fill()
+    ctx.moveTo(vx + i * w * 0.03, yTop)
+    ctx.lineTo(vx + i * w * 0.22, h)
+    ctx.stroke()
+  }
+  let y = yTop
+  let step = (h - yTop) * 0.07
+  while (y < h) {
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(w, y)
+    ctx.stroke()
+    y += step
+    step *= 1.34
   }
   ctx.restore()
+
+  ctx.fillStyle = a(IN.frond, 0.14)
+  ctx.fillRect(0, yTop, w, Math.max(1.2, h * 0.004))
 }
 
-/**
- * A person, seen from behind and out of focus.
- *
- * The first version of this had a head a fifth as wide as the
- * shoulders, which is roughly a chess pawn, and three of them in a row
- * made the room look haunted. A head is closer to a quarter the width
- * of a pair of shoulders and sits on a neck, and the whole shape wants
- * to be a value or two off the wall rather than pure black — a
- * silhouette that dark reads as a hole cut in the picture.
- */
+/** A café table with a cup on it, seen from standing height. */
+function table(ctx, x, y, r, rng, o = {}) {
+  const { cups = 1 } = o
+  const ry = r * 0.3
+  contact(ctx, x, y + ry * 0.9, r * 1.25, ry * 0.8, 0.34)
+
+  // Leg
+  ctx.fillStyle = '#4a3b2c'
+  ctx.fillRect(x - r * 0.06, y, r * 0.12, r * 0.62)
+  ellipse(ctx, x, y + r * 0.64, r * 0.26, r * 0.09)
+  ctx.fillStyle = '#3d3125'
+  ctx.fill()
+
+  // Top
+  ellipse(ctx, x, y, r, ry)
+  const g = ctx.createLinearGradient(x - r, y - ry, x + r, y + ry)
+  g.addColorStop(0, '#f2ece0')
+  g.addColorStop(0.45, '#e2d9c4')
+  g.addColorStop(1, '#c2b79e')
+  ctx.fillStyle = g
+  ctx.fill()
+  ctx.strokeStyle = a(IN.bark, 0.28)
+  ctx.lineWidth = Math.max(1, r * 0.012)
+  ctx.stroke()
+
+  for (let i = 0; i < cups; i++) {
+    const cx = x + (i - (cups - 1) / 2) * r * 0.5
+    const cy = y - ry * 0.15
+    const cr = r * 0.17
+    contact(ctx, cx, cy + cr * 0.34, cr * 1.5, cr * 0.4, 0.3)
+    ellipse(ctx, cx, cy + cr * 0.2, cr * 1.5, cr * 0.44)
+    ctx.fillStyle = '#f7f3e8'
+    ctx.fill()
+    ctx.beginPath()
+    ctx.moveTo(cx - cr, cy - cr * 0.4)
+    ctx.bezierCurveTo(cx - cr, cy + cr * 0.3, cx - cr * 0.6, cy + cr * 0.44, cx, cy + cr * 0.46)
+    ctx.bezierCurveTo(cx + cr * 0.6, cy + cr * 0.44, cx + cr, cy + cr * 0.3, cx + cr, cy - cr * 0.4)
+    ctx.closePath()
+    ctx.fillStyle = '#fffdf6'
+    ctx.fill()
+    ellipse(ctx, cx, cy - cr * 0.4, cr, cr * 0.3)
+    ctx.fillStyle = '#efe9da'
+    ctx.fill()
+    ellipse(ctx, cx, cy - cr * 0.38, cr * 0.86, cr * 0.25)
+    ctx.fillStyle = '#c08a4a'
+    ctx.fill()
+  }
+}
+
+/** A person, out of focus, at the far end of the terrace. */
 function figure(ctx, x, yShoulder, s, rng, o = {}) {
-  const { tone = '#131113', lean = 0, rim = 0.3 } = o
+  const { tone = 'rgba(30,52,38,0.55)' } = o
   ctx.save()
   ctx.translate(x, yShoulder)
-  ctx.rotate(lean)
-
   const halfW = s * 0.5
   ctx.fillStyle = tone
   ctx.beginPath()
-  ctx.moveTo(-halfW * 1.18, s * 1.5)
-  ctx.bezierCurveTo(-halfW * 1.1, s * 0.32, -halfW * 0.98, s * 0.1, -halfW * 0.62, -s * 0.02)
-  ctx.quadraticCurveTo(-halfW * 0.34, -s * 0.08, -halfW * 0.3, -s * 0.2)
-  ctx.lineTo(halfW * 0.3, -s * 0.2)
-  ctx.quadraticCurveTo(halfW * 0.34, -s * 0.08, halfW * 0.62, -s * 0.02)
-  ctx.bezierCurveTo(halfW * 0.98, s * 0.1, halfW * 1.1, s * 0.32, halfW * 1.18, s * 1.5)
+  ctx.moveTo(-halfW * 1.16, s * 1.4)
+  ctx.bezierCurveTo(-halfW * 1.08, s * 0.3, -halfW * 0.96, s * 0.08, -halfW * 0.6, -s * 0.02)
+  ctx.quadraticCurveTo(-halfW * 0.32, -s * 0.08, -halfW * 0.28, -s * 0.2)
+  ctx.lineTo(halfW * 0.28, -s * 0.2)
+  ctx.quadraticCurveTo(halfW * 0.32, -s * 0.08, halfW * 0.6, -s * 0.02)
+  ctx.bezierCurveTo(halfW * 0.96, s * 0.08, halfW * 1.08, s * 0.3, halfW * 1.16, s * 1.4)
   ctx.closePath()
   ctx.fill()
-
-  // Neck, then head. The first version had the head sitting straight on
-  // the shoulders at a third of their width, which is a hooded cloak.
   ctx.beginPath()
-  ctx.roundRect(-halfW * 0.17, -s * 0.34, halfW * 0.34, s * 0.2, halfW * 0.08)
+  ctx.roundRect(-halfW * 0.16, -s * 0.34, halfW * 0.32, s * 0.2, halfW * 0.08)
   ctx.fill()
   ctx.beginPath()
-  ctx.ellipse(0, -s * 0.52, halfW * 0.25, halfW * 0.3, 0, 0, TAU)
+  ctx.ellipse(0, -s * 0.52, halfW * 0.24, halfW * 0.29, 0, 0, TAU)
   ctx.fill()
-
-  // A single warm edge, on the side the key is
-  ctx.strokeStyle = a(IN.brassLit, rim)
-  ctx.lineWidth = s * 0.035
-  ctx.beginPath()
-  ctx.moveTo(-halfW * 1.14, s * 1.3)
-  ctx.bezierCurveTo(-halfW * 1.06, s * 0.32, -halfW * 0.96, s * 0.1, -halfW * 0.6, -s * 0.02)
-  ctx.stroke()
-  ctx.lineWidth = s * 0.022
-  ctx.beginPath()
-  ctx.ellipse(0, -s * 0.52, halfW * 0.25, halfW * 0.3, 0, Math.PI * 0.95, Math.PI * 1.42)
-  ctx.stroke()
-
   ctx.restore()
 }
 
-/**
- * The espresso machine. A wide dark slab with a lit brass band, two
- * group heads with their portafilters in, and a row of cups warming on
- * the roof — read at any size by silhouette and by where the light is.
- */
-function machine(ctx, x, yBase, w, rng) {
-  const h = w * 0.62
-  const top = yBase - h
-
+/** A pergola: slats overhead, and the stripes of shade they cast. */
+function pergola(ctx, w, h, rng) {
+  const yb = h * 0.3
   ctx.save()
-
-  // Roof tray with cups
-  const trayY = top - w * 0.02
-  ctx.beginPath()
-  ctx.roundRect(x - w * 0.5, trayY, w, w * 0.03, w * 0.01)
-  ctx.fillStyle = '#3d3833'
-  ctx.fill()
-  for (let i = 0; i < 6; i++) {
-    const cx = x - w * 0.4 + (i * w * 0.8) / 5
-    const cw = w * 0.075
-    ctx.beginPath()
-    ctx.roundRect(cx - cw / 2, trayY - cw * 0.62, cw, cw * 0.62, cw * 0.1)
-    ctx.fillStyle = a(IN.cream, 0.32)
-    ctx.fill()
-    ellipse(ctx, cx, trayY - cw * 0.62, cw * 0.5, cw * 0.14)
-    ctx.fillStyle = a(IN.cream, 0.6)
-    ctx.fill()
-  }
-
-  // Body
-  ctx.beginPath()
-  ctx.roundRect(x - w * 0.5, top, w, h, [w * 0.035, w * 0.035, 0, 0])
-  const g = ctx.createLinearGradient(x - w * 0.5, top, x + w * 0.5, yBase)
-  g.addColorStop(0, '#2c2823')
-  g.addColorStop(0.18, '#574f45')
-  g.addColorStop(0.5, '#211e1b')
-  g.addColorStop(1, '#0f0e0d')
-  ctx.fillStyle = g
-  ctx.fill()
-
-  // Brass band across the fascia — the machine's one bright line
-  ctx.beginPath()
-  ctx.roundRect(x - w * 0.46, top + h * 0.16, w * 0.92, h * 0.13, w * 0.012)
-  const bg = ctx.createLinearGradient(x - w * 0.46, 0, x + w * 0.46, 0)
-  bg.addColorStop(0, a(IN.brassDim, 0.7))
-  bg.addColorStop(0.35, a(IN.brassLit, 0.85))
-  bg.addColorStop(1, a(IN.brassDim, 0.5))
-  ctx.fillStyle = bg
-  ctx.fill()
-
-  // Two group heads, portafilters in, handles toward the camera
-  for (const dx of [-0.22, 0.22]) {
-    const gx = x + w * dx
-    const gy = top + h * 0.5
-    ctx.beginPath()
-    ctx.roundRect(gx - w * 0.1, gy, w * 0.2, h * 0.2, w * 0.018)
-    const hg = ctx.createLinearGradient(gx, gy, gx, gy + h * 0.2)
-    hg.addColorStop(0, '#1c1917')
-    hg.addColorStop(0.35, '#100e0d')
-    hg.addColorStop(1, '#080707')
-    ctx.fillStyle = hg
-    ctx.fill()
-    ctx.strokeStyle = a(IN.brass, 0.7)
-    ctx.lineWidth = w * 0.009
-    ctx.stroke()
-    // The light lands on the top edge of the casting, not inside it
-    ctx.beginPath()
-    ctx.moveTo(gx - w * 0.09, gy + w * 0.004)
-    ctx.lineTo(gx + w * 0.09, gy + w * 0.004)
-    ctx.strokeStyle = a(IN.brassLit, 0.55)
-    ctx.lineWidth = w * 0.006
-    ctx.stroke()
-    // Portafilter: a bar across, then the handle coming forward
-    ctx.beginPath()
-    ctx.roundRect(gx - w * 0.115, gy + h * 0.2, w * 0.23, h * 0.06, w * 0.01)
-    ctx.fillStyle = '#241f1b'
-    ctx.fill()
-    ctx.fillStyle = a(IN.brass, 0.4)
-    ctx.fillRect(gx - w * 0.115, gy + h * 0.2, w * 0.23, Math.max(1, h * 0.008))
-    // Two spouts under it
-    for (const sx of [-0.03, 0.03]) {
-      ctx.beginPath()
-      ctx.roundRect(gx + w * sx - w * 0.012, gy + h * 0.26, w * 0.024, h * 0.04, w * 0.008)
-      ctx.fillStyle = '#0d0c0b'
-      ctx.fill()
-    }
-    ctx.beginPath()
-    ctx.roundRect(gx - w * 0.022, gy + h * 0.3, w * 0.044, h * 0.16, w * 0.014)
-    ctx.fillStyle = '#0d0c0b'
-    ctx.fill()
+  for (let i = 0; i < 9; i++) {
+    const x = -w * 0.1 + (i / 8) * w * 1.2
     ctx.save()
-    ctx.globalCompositeOperation = 'screen'
-    pool(ctx, gx, gy + h * 0.24, w * 0.1, IN.brassLit, 0.28)
+    ctx.beginPath()
+    ctx.moveTo(x, -h * 0.02)
+    ctx.lineTo(x + w * 0.05, -h * 0.02)
+    ctx.lineTo(x + w * 0.16, yb)
+    ctx.lineTo(x + w * 0.1, yb)
+    ctx.closePath()
+    ctx.fillStyle = a('#5c4022', 0.32)
+    ctx.fill()
     ctx.restore()
   }
-
-  // Steam wands, one each side
-  for (const s of [-1, 1]) {
-    ctx.beginPath()
-    ctx.moveTo(x + s * w * 0.47, top + h * 0.34)
-    ctx.quadraticCurveTo(x + s * w * 0.55, top + h * 0.6, x + s * w * 0.45, top + h * 0.86)
-    ctx.strokeStyle = a(IN.cool, 0.45)
-    ctx.lineWidth = w * 0.016
-    ctx.stroke()
-  }
-
-  ctx.save()
-  ctx.globalCompositeOperation = 'screen'
-  pool(ctx, x - w * 0.18, top + h * 0.3, w * 0.55, IN.brassLit, 0.2)
-  ctx.restore()
-  ctx.restore()
-}
-
-/** A counter slab: a dark plane with a lit front lip and a reflection. */
-function counter(ctx, w, h, yTop, o = {}) {
-  const { tilt = 0.06, reflect = true, front = true } = o
-  const yLeft = yTop
-  const yRight = yTop + h * tilt
-  ctx.beginPath()
-  ctx.moveTo(-w * 0.05, yLeft)
-  ctx.lineTo(w * 1.05, yRight)
-  ctx.lineTo(w * 1.05, h * 1.1)
-  ctx.lineTo(-w * 0.05, h * 1.1)
-  ctx.closePath()
-  const g = ctx.createLinearGradient(0, yLeft, 0, h)
-  g.addColorStop(0, '#272219')
-  g.addColorStop(0.06, '#191512')
-  g.addColorStop(1, '#0a0909')
-  ctx.fillStyle = g
-  ctx.fill()
-
-  if (front) {
-    // Vertical panelling on the front face, so it is joinery not a void
-    ctx.save()
-    ctx.globalAlpha = 0.5
-    for (let x = 0; x < w; x += w * 0.055) {
-      ctx.strokeStyle = a(IN.black, 0.6)
-      ctx.lineWidth = 1.4
-      ctx.beginPath()
-      ctx.moveTo(x, yTop + h * 0.03)
-      ctx.lineTo(x, h * 1.1)
-      ctx.stroke()
-    }
-    ctx.restore()
-  }
-
-  // The lit lip — the single brightest line in most of these pictures
-  ctx.beginPath()
-  ctx.moveTo(-w * 0.05, yLeft)
-  ctx.lineTo(w * 1.05, yRight)
-  ctx.strokeStyle = a(IN.brassLit, 0.65)
-  ctx.lineWidth = Math.max(1.4, h * 0.005)
-  ctx.stroke()
-
-  if (reflect) {
-    ctx.save()
-    ctx.globalCompositeOperation = 'screen'
-    const r = ctx.createLinearGradient(0, yTop, 0, yTop + h * 0.16)
-    r.addColorStop(0, a(IN.brass, 0.2))
-    r.addColorStop(1, a(IN.brass, 0))
-    ctx.fillStyle = r
-    ctx.fillRect(0, yTop, w, h * 0.16)
-    ctx.restore()
-  }
-}
-
-/** Backbar shelving: bottles and cups, backlit, mostly out of focus. */
-function shelf(ctx, x, y, w, h, rng, rows = 3) {
-  const sh = h / rows
-  for (let r = 0; r < rows; r++) {
-    const sy = y + r * sh
-    const deck = sy + sh * 0.88
-
-    // The light strip under each shelf is what the bottles stand against
-    ctx.save()
-    ctx.globalCompositeOperation = 'screen'
-    const g = ctx.createLinearGradient(0, sy + sh * 0.2, 0, deck)
-    g.addColorStop(0, a(IN.brass, 0))
-    g.addColorStop(1, a(IN.brassLit, 0.34))
-    ctx.fillStyle = g
-    ctx.fillRect(x, sy + sh * 0.2, w, sh * 0.68)
-    ctx.restore()
-
-    let bx = x + w * 0.015
-    while (bx < x + w * 0.97) {
-      const bw = w * (0.016 + rng() * 0.028)
-      const bh = sh * (0.36 + rng() * 0.4)
-      ctx.fillStyle = a('#0b0a0a', 0.95)
-      if (rng() > 0.42) {
-        // A bottle: shoulders, then a neck
-        ctx.beginPath()
-        ctx.moveTo(bx, deck)
-        ctx.lineTo(bx, deck - bh * 0.62)
-        ctx.quadraticCurveTo(bx, deck - bh * 0.82, bx + bw * 0.36, deck - bh * 0.88)
-        ctx.lineTo(bx + bw * 0.36, deck - bh)
-        ctx.lineTo(bx + bw * 0.64, deck - bh)
-        ctx.lineTo(bx + bw * 0.64, deck - bh * 0.88)
-        ctx.quadraticCurveTo(bx + bw, deck - bh * 0.82, bx + bw, deck - bh * 0.62)
-        ctx.lineTo(bx + bw, deck)
-        ctx.closePath()
-        ctx.fill()
-        ctx.fillStyle = a(mix(IN.brass, IN.ember, rng()), 0.2 + rng() * 0.26)
-        ctx.fillRect(bx + bw * 0.16, deck - bh * 0.5, bw * 0.68, bh * 0.3)
-      } else {
-        // A stack of cups
-        const n = 2 + Math.floor(rng() * 3)
-        for (let k = 0; k < n; k++) {
-          ctx.fillStyle = a(IN.cream, 0.16 + k * 0.05)
-          ctx.fillRect(bx, deck - (k + 1) * bw * 0.5, bw * 1.3, bw * 0.46)
-        }
-      }
-      bx += bw * (1.9 + rng() * 1.3)
-    }
-
-    // The shelf board itself
-    ctx.fillStyle = '#0a0908'
-    ctx.fillRect(x, deck, w, Math.max(2, sh * 0.06))
-    ctx.fillStyle = a(IN.brass, 0.3)
-    ctx.fillRect(x, deck, w, Math.max(1, sh * 0.012))
-  }
-}
-
-/** The lit arch behind the bar — the focal point of every wide shot. */
-function niche(ctx, x, y, w, h, rng) {
-  ctx.save()
-  ctx.beginPath()
-  ctx.moveTo(x, y + h)
-  ctx.lineTo(x, y + h * 0.42)
-  ctx.quadraticCurveTo(x + w * 0.5, y - h * 0.14, x + w, y + h * 0.42)
-  ctx.lineTo(x + w, y + h)
-  ctx.closePath()
-  ctx.save()
-  ctx.clip()
-  // The wall inside the arch is warm and lit, so everything in front of
-  // it separates by silhouette rather than by having its own light.
-  const g = ctx.createLinearGradient(0, y, 0, y + h)
-  g.addColorStop(0, '#2a1d12')
-  g.addColorStop(0.55, '#3b2916')
-  g.addColorStop(1, '#160f0a')
-  ctx.fillStyle = g
-  ctx.fillRect(x, y - h * 0.2, w, h * 1.3)
-  bricks(ctx, x, y - h * 0.2, w, h * 1.3, rng, h * 0.075, '#4a3520')
-  ctx.save()
-  ctx.globalCompositeOperation = 'screen'
-  pool(ctx, x + w * 0.5, y + h * 0.55, w * 0.6, IN.brassLit, 0.3)
-  ctx.restore()
-  ctx.restore()
-  ctx.strokeStyle = a(IN.brass, 0.55)
-  ctx.lineWidth = Math.max(1.5, h * 0.008)
-  ctx.stroke()
-  ctx.restore()
-}
-
-/** The dark shell every interior starts from: wall, ceiling, ambient. */
-function room(ctx, w, h, rng, o = {}) {
-  const { wallTint = '#241b15', unit = h * 0.045, glow = 0.16 } = o
-  const g = ctx.createLinearGradient(0, 0, 0, h)
-  g.addColorStop(0, '#0d0b0c')
-  g.addColorStop(0.4, '#161213')
-  g.addColorStop(1, '#0a0909')
-  ctx.fillStyle = g
-  ctx.fillRect(0, 0, w, h)
-
-  ctx.save()
-  ctx.beginPath()
-  ctx.rect(0, 0, w, h)
-  ctx.clip()
-  bricks(ctx, 0, 0, w, h, rng, unit, wallTint)
-  const wg = ctx.createLinearGradient(0, 0, 0, h)
-  wg.addColorStop(0, a(IN.black, 0.94))
-  wg.addColorStop(0.5, a(IN.black, 0.5))
-  wg.addColorStop(1, a(IN.black, 0.86))
-  ctx.fillStyle = wg
-  ctx.fillRect(0, 0, w, h)
-  ctx.restore()
-
-  ctx.save()
-  ctx.globalCompositeOperation = 'screen'
-  pool(ctx, w * 0.5, h * 0.44, Math.max(w, h) * 0.6, IN.brass, glow)
   ctx.restore()
 }
 
 /* ═══════════════════════════════════════════════════════════════════
    THE SCENES
-
-   Each one wraps its drawing in `cover` so the composition survives
-   every crop the layout asks for.
    ═══════════════════════════════════════════════════════════════════ */
 
-/**
- * Compose, then cover — but pick the virtual frame to match the crop.
- *
- * Covering a 16:9 composition into a 9:19 phone hero shows about a
- * quarter of it, which is not a wide shot of a room, it is a close-up
- * of three bottles. So each scene gives two virtual frames, landscape
- * and portrait, and since every element inside is positioned as a
- * fraction of W and H, handing it the portrait box re-lays the same
- * room out tall rather than cropping the wide one.
- */
 const frame = (ctx, w, h, land, port, anchorY, draw) => {
   const [vw, vh] = w / h > 1.05 ? land : port
   ctx.save()
@@ -469,353 +210,235 @@ const frame = (ctx, w, h, land, port, anchorY, draw) => {
 }
 
 export const scenes = {
-  /** The establishing shot behind the hero. Wide, deep, mostly dark. */
-  hero(ctx, w, h, rng) {
-    frame(ctx, w, h, [1600, 900], [1000, 1250], 0.62, (W, H) => {
-      room(ctx, W, H, rng, { unit: H * 0.028, glow: 0.12 })
-
-      // The lit arch, and the backbar standing in front of it
-      niche(ctx, W * 0.26, H * 0.14, W * 0.48, H * 0.62, rng)
-      shelf(ctx, W * 0.3, H * 0.24, W * 0.4, H * 0.34, rng, 3)
-
-      // Pendants
-      pendant(ctx, W * 0.13, 0, H * 0.26, W * 0.032, 1)
-      pendant(ctx, W * 0.87, 0, H * 0.3, W * 0.032, 1)
-      pendant(ctx, W * 0.5, 0, H * 0.1, W * 0.026, 0.6)
-
-      motes(ctx, W * 0.13, H * 0.26, W * 0.16, H * 0.6, rng, 60)
-      motes(ctx, W * 0.87, H * 0.3, W * 0.16, H * 0.55, rng, 50)
-
-      // The bar
-      machine(ctx, W * 0.5, H * 0.76, W * 0.21, rng)
-      counter(ctx, W, H, H * 0.79, { tilt: -0.012 })
-
-      // People at it, cropped by the edges of frame so they read as
-      // part of the room rather than as three objects placed in a row
-      figure(ctx, W * 0.15, H * 0.62, H * 0.2, rng, { rim: 0.34 })
-      figure(ctx, W * 0.79, H * 0.6, H * 0.19, rng, { lean: -0.04, rim: 0.26 })
-      figure(ctx, W * 0.93, H * 0.66, H * 0.22, rng, { tone: '#0e0c0e', rim: 0.16 })
-
-      // Two cups on the near lip
-      cup(ctx, {
-        cx: W * 0.26, cy: H * 0.775, rx: W * 0.023, depth: W * 0.02, taper: 0.7,
-        shell: '#ded7c8', liquid: '#3a1d0c', foam: IN.milk, art: 'rosetta',
-        fill: 0.9, handle: true, saucer: true, rng,
-      })
-      steam(ctx, W * 0.26, H * 0.755, W * 0.02, H * 0.2, rng, 0.5)
-
-      ctx.save()
-      ctx.globalCompositeOperation = 'screen'
-      pool(ctx, W * 0.5, H * 0.72, W * 0.42, IN.brass, 0.08)
-      ctx.restore()
-    })
-  },
-
-  'gal-bar'(ctx, w, h, rng) {
-    frame(ctx, w, h, [1200, 900], [900, 1150], 0.6, (W, H) => {
-      room(ctx, W, H, rng, { unit: H * 0.05, glow: 0.14 })
-      niche(ctx, W * 0.04, H * 0.06, W * 0.62, H * 0.64, rng)
-      shelf(ctx, W * 0.08, H * 0.16, W * 0.54, H * 0.4, rng, 2)
-      pendant(ctx, W * 0.24, 0, H * 0.14, W * 0.05, 1)
-      motes(ctx, W * 0.24, H * 0.14, W * 0.24, H * 0.6, rng, 60)
-      machine(ctx, W * 0.72, H * 0.74, W * 0.42, rng)
-      figure(ctx, W * 0.2, H * 0.5, H * 0.26, rng, { rim: 0.32 })
-      counter(ctx, W, H, H * 0.78, { tilt: 0.02 })
-    })
-  },
-
   /**
-   * The picture beside the story. Composed portrait, because that is
-   * the only place on the page that asks for a tall frame, and a wide
-   * room cropped to 4:5 loses the two things that make it a room —
-   * the depth on either side of the bar.
+   * The hero. Huge leaves framing the top and sides, sun coming through
+   * from the upper right, a terrace with tables receding into greenery.
+   *
+   * The middle of the frame is kept deliberately open and bright: the
+   * word UNDERGROUND sits across it, and a composition that is busy in
+   * the centre leaves the headline nowhere to go.
    */
-  about(ctx, w, h, rng) {
-    frame(ctx, w, h, [1250, 1000], [900, 1100], 0.55, (W, H) => {
-      room(ctx, W, H, rng, { unit: H * 0.045, glow: 0.14 })
-      niche(ctx, W * 0.08, H * 0.1, W * 0.84, H * 0.46, rng)
-      shelf(ctx, W * 0.14, H * 0.17, W * 0.72, H * 0.3, rng, 2)
+  hero(ctx, w, h, rng) {
+    frame(ctx, w, h, [1600, 900], [1000, 1300], 0.58, (W, H) => {
+      air(ctx, W, H, rng, { warmth: 1 })
+      pergola(ctx, W, H, rng)
 
-      pendant(ctx, W * 0.24, 0, H * 0.1, W * 0.07, 1)
-      pendant(ctx, W * 0.76, 0, H * 0.14, W * 0.06, 0.8)
-      motes(ctx, W * 0.24, H * 0.1, W * 0.3, H * 0.5, rng, 60)
+      // Planting along the back, well out of focus
+      for (let i = 0; i < 6; i++) {
+        const x = (i / 5) * W + (rng() - 0.5) * W * 0.1
+        ctx.save()
+        ctx.globalAlpha = 0.55
+        cluster(ctx, x, H * 0.62, H * 0.2, rng, { count: 5, t: 0.62, kinds: ['heart', 'palm'] })
+        ctx.restore()
+      }
 
-      machine(ctx, W * 0.5, H * 0.66, W * 0.62, rng)
-      counter(ctx, W, H, H * 0.68, { tilt: 0.006 })
+      floor(ctx, W, H, H * 0.62, rng, { kind: 'stone' })
 
-      // Somebody working it, cropped by the left edge
-      figure(ctx, W * 0.06, H * 0.44, H * 0.16, rng, { lean: 0.06, rim: 0.4 })
+      // Tables down the terrace, smaller as they go back
+      table(ctx, W * 0.19, H * 0.86, W * 0.1, rng, { cups: 2 })
+      table(ctx, W * 0.74, H * 0.76, W * 0.072, rng, { cups: 1 })
+      figure(ctx, W * 0.86, H * 0.56, H * 0.16, rng)
 
-      cup(ctx, {
-        cx: W * 0.76, cy: H * 0.655, rx: W * 0.075, depth: W * 0.06, taper: 0.7,
-        shell: '#ded7c8', liquid: '#3a1d0c', foam: IN.milk, art: 'rosetta',
-        fill: 0.92, handle: true, saucer: true, rng,
-      })
-      steam(ctx, W * 0.76, H * 0.63, W * 0.06, H * 0.2, rng, 0.55)
-    })
-  },
+      // Mid-ground planting, sharper
+      cluster(ctx, W * 0.06, H * 0.78, H * 0.3, rng, { count: 7, t: 0.34 })
+      pot(ctx, W * 0.06, H * 0.8, W * 0.07, H * 0.07)
+      cluster(ctx, W * 0.95, H * 0.74, H * 0.26, rng, { count: 6, t: 0.4 })
 
-  'gal-pour'(ctx, w, h, rng) {
-    frame(ctx, w, h, [1200, 900], [900, 1150], 0.55, (W, H) => {
-      room(ctx, W, H, rng, { unit: H * 0.09, glow: 0.2 })
-      counter(ctx, W, H, H * 0.68, { tilt: 0.015, front: false })
+      dapple(ctx, W, H, rng, { count: 22, alpha: 0.55, scale: 1.3 })
 
-      const cx = W * 0.42
-      const cy = H * 0.58
-      const r = W * 0.15
+      // The frame of leaves. Deliberately sparse across the top and
+      // weighted into the corners: the word UNDERGROUND runs across the
+      // middle of this frame, and foliage in the centre leaves the
+      // headline nowhere to sit.
+      border(ctx, W, H, rng, { side: 'top', count: 5, scale: 1.25, depth: 0.42 })
+      border(ctx, W, H, rng, { side: 'left', count: 3, scale: 1.15, depth: 0.34 })
+      border(ctx, W, H, rng, { side: 'right', count: 3, scale: 1.15, depth: 0.34 })
 
-      // Jug above and right, tipped into the cup
-      const spout = pitcher(ctx, W * 0.78, H * 0.26, r * 0.46, -1.02)
-
-      // The stream, leaving the metal exactly where the metal ends
-      ctx.beginPath()
-      ctx.moveTo(spout.x, spout.y)
-      ctx.bezierCurveTo(
-        spout.x - r * 0.3, spout.y + r * 0.7,
-        cx + r * 0.5, cy - r * 0.7,
-        cx + r * 0.16, cy - r * 0.1,
-      )
-      ctx.strokeStyle = a(IN.milk, 0.92)
-      ctx.lineWidth = Math.max(2, r * 0.075)
-      ctx.lineCap = 'round'
-      ctx.stroke()
-
-      cup(ctx, {
-        cx, cy, rx: r, depth: r * 0.78, taper: 0.68,
-        shell: '#e4ddcf', liquid: '#4a2a12', foam: IN.milk, art: 'rosetta',
-        fill: 0.94, handle: true, saucer: true, rng,
-      })
-
+      // A wash of sun straight through the middle, so the centre of the
+      // frame is the brightest part of it
       ctx.save()
       ctx.globalCompositeOperation = 'screen'
-      pool(ctx, cx - r * 0.6, cy - r * 0.5, r * 1.5, IN.brassLit, 0.22)
+      pool(ctx, W * 0.5, H * 0.46, Math.max(W, H) * 0.46, IN.sun, 0.3)
       ctx.restore()
-      motes(ctx, W * 0.5, H * 0.2, W * 0.3, H * 0.5, rng, 30)
     })
   },
 
-  'gal-corner'(ctx, w, h, rng) {
-    frame(ctx, w, h, [1200, 900], [900, 1150], 0.6, (W, H) => {
-      room(ctx, W, H, rng, { unit: H * 0.055, glow: 0.13 })
-
-      // Banquette
-      ctx.beginPath()
-      ctx.roundRect(W * 0.02, H * 0.46, W * 0.96, H * 0.34, [H * 0.06, H * 0.06, 0, 0])
-      ctx.fillStyle = '#1a1413'
-      ctx.fill()
-      ctx.strokeStyle = a(IN.brassDim, 0.45)
-      ctx.lineWidth = Math.max(1, H * 0.004)
-      ctx.stroke()
-      // Buttoning
-      for (let i = 1; i < 8; i++) {
-        ctx.beginPath()
-        ctx.arc(W * (i / 8), H * 0.56, H * 0.006, 0, TAU)
-        ctx.fillStyle = a(IN.brass, 0.28)
-        ctx.fill()
+  /** The story picture: a corner table under planting, portrait. */
+  about(ctx, w, h, rng) {
+    frame(ctx, w, h, [1250, 1000], [900, 1150], 0.55, (W, H) => {
+      air(ctx, W, H, rng, { warmth: 0.9 })
+      for (let i = 0; i < 4; i++) {
+        ctx.save()
+        ctx.globalAlpha = 0.5
+        cluster(ctx, (i / 3) * W, H * 0.58, H * 0.24, rng, { count: 5, t: 0.6, kinds: ['heart'] })
+        ctx.restore()
       }
-
-      pendant(ctx, W * 0.5, 0, H * 0.16, W * 0.055, 1)
-      motes(ctx, W * 0.5, H * 0.16, W * 0.28, H * 0.5, rng, 50)
-
-      figure(ctx, W * 0.31, H * 0.44, H * 0.2, rng, { lean: 0.04, rim: 0.3 })
-      figure(ctx, W * 0.67, H * 0.46, H * 0.19, rng, { lean: -0.05, rim: 0.24 })
-
-      // Table with two cups
-      ctx.beginPath()
-      ctx.roundRect(W * 0.26, H * 0.76, W * 0.48, H * 0.028, H * 0.012)
-      ctx.fillStyle = '#241d18'
-      ctx.fill()
-      ctx.fillStyle = a(IN.brassLit, 0.5)
-      ctx.fillRect(W * 0.26, H * 0.76, W * 0.48, Math.max(1.4, H * 0.004))
-      for (const [dx, k] of [[0.4, 1], [0.58, 0.9]]) {
-        cup(ctx, {
-          cx: W * dx, cy: H * 0.735, rx: W * 0.036 * k, depth: W * 0.03 * k,
-          taper: 0.7, shell: '#ddd6c7', liquid: '#3a1d0c', foam: IN.crema,
-          art: 'crema', fill: 0.85, handle: true, saucer: false, rng,
-        })
-        steam(ctx, W * dx, H * 0.72, W * 0.03, H * 0.16, rng, 0.4)
-      }
-      counter(ctx, W, H, H * 0.86, { tilt: 0, reflect: false, front: false })
+      floor(ctx, W, H, H * 0.6, rng, { kind: 'deck' })
+      rattan(ctx, W * 0.3, H * 0.86, W * 0.2, H * 0.26, rng)
+      table(ctx, W * 0.58, H * 0.8, W * 0.16, rng, { cups: 2 })
+      cluster(ctx, W * 0.9, H * 0.74, H * 0.3, rng, { count: 7, t: 0.3 })
+      pot(ctx, W * 0.9, H * 0.76, W * 0.12, H * 0.08)
+      dapple(ctx, W, H, rng, { count: 16, alpha: 0.5 })
+      border(ctx, W, H, rng, { side: 'top', count: 6, scale: 1.1, depth: 0.5 })
+      border(ctx, W, H, rng, { side: 'left', count: 3, scale: 0.9, depth: 0.4 })
     })
   },
 
-  'gal-machine'(ctx, w, h, rng) {
-    frame(ctx, w, h, [1200, 900], [900, 1150], 0.5, (W, H) => {
-      room(ctx, W, H, rng, { unit: H * 0.1, glow: 0.2 })
-
-      // Close on the machine, but with enough room around it that it
-      // still reads as an object on a counter rather than a wall
-      machine(ctx, W * 0.52, H * 0.6, W * 0.62, rng)
-
-      // Two streams out of the left group, into a glass
-      const gx = W * 0.386
-      for (const dx of [-0.012, 0.012]) {
-        ctx.beginPath()
-        ctx.moveTo(gx + W * dx, H * 0.63)
-        ctx.lineTo(gx + W * dx * 0.5, H * 0.72)
-        ctx.strokeStyle = a('#8a5423', 0.9)
-        ctx.lineWidth = W * 0.009
-        ctx.lineCap = 'round'
-        ctx.stroke()
+  /** The escape band: a wall of foliage with the sun burning through it. */
+  escape(ctx, w, h, rng) {
+    frame(ctx, w, h, [1600, 800], [900, 1200], 0.5, (W, H) => {
+      air(ctx, W, H, rng, { warmth: 1, canopy: false })
+      // Three depths of planting, back to front
+      for (const [n, t, s] of [[14, 0.7, 0.8], [10, 0.45, 1.05], [7, 0.2, 1.4]]) {
+        for (let i = 0; i < n; i++) {
+          ctx.save()
+          ctx.translate(rng() * W, H * (0.35 + rng() * 0.75))
+          ctx.rotate((rng() - 0.5) * 1.6)
+          const kinds = ['monstera', 'banana', 'palm', 'heart']
+          LEAVES[kinds[Math.floor(rng() * kinds.length)]](ctx, Math.min(W, H) * (0.3 + rng() * 0.4) * s, t, rng)
+          ctx.restore()
+        }
       }
-
-      const gw = W * 0.1
-      const gh = H * 0.14
-      const gy = H * 0.8
-      ctx.beginPath()
-      ctx.roundRect(gx - gw / 2, gy - gh, gw, gh, [gw * 0.06, gw * 0.06, gw * 0.16, gw * 0.16])
-      ctx.fillStyle = a(IN.cream, 0.07)
-      ctx.fill()
-      ctx.fillStyle = '#54300f'
-      ctx.fillRect(gx - gw * 0.46, gy - gh * 0.5, gw * 0.92, gh * 0.46)
-      ctx.fillStyle = IN.crema
-      ctx.fillRect(gx - gw * 0.46, gy - gh * 0.54, gw * 0.92, gh * 0.07)
-      ctx.beginPath()
-      ctx.roundRect(gx - gw / 2, gy - gh, gw, gh, [gw * 0.06, gw * 0.06, gw * 0.16, gw * 0.16])
-      ctx.strokeStyle = a(IN.cream, 0.45)
-      ctx.lineWidth = Math.max(1.2, W * 0.004)
-      ctx.stroke()
-
-      counter(ctx, W, H, H * 0.82, { tilt: 0, front: false })
-      motes(ctx, W * 0.5, H * 0.3, W * 0.5, H * 0.5, rng, 40)
+      dapple(ctx, W, H, rng, { count: 22, alpha: 0.55, scale: 1.3 })
+      border(ctx, W, H, rng, { side: 'top', count: 7, scale: 1.2, depth: 0.35 })
+      border(ctx, W, H, rng, { side: 'bottom', count: 5, scale: 1.1, depth: 0.3 })
     })
   },
 
-  'gal-arch'(ctx, w, h, rng) {
+  'gal-terrace'(ctx, w, h, rng) {
+    frame(ctx, w, h, [1200, 900], [900, 1150], 0.58, (W, H) => {
+      air(ctx, W, H, rng, {})
+      pergola(ctx, W, H, rng)
+      floor(ctx, W, H, H * 0.58, rng, {})
+      table(ctx, W * 0.3, H * 0.84, W * 0.14, rng, { cups: 2 })
+      table(ctx, W * 0.72, H * 0.72, W * 0.1, rng, { cups: 1 })
+      rattan(ctx, W * 0.12, H * 0.9, W * 0.16, H * 0.26, rng)
+      cluster(ctx, W * 0.95, H * 0.7, H * 0.28, rng, { count: 6, t: 0.32 })
+      dapple(ctx, W, H, rng, { count: 16, alpha: 0.48 })
+      border(ctx, W, H, rng, { side: 'top', count: 6, scale: 1.05, depth: 0.45 })
+    })
+  },
+
+  'gal-leaves'(ctx, w, h, rng) {
+    frame(ctx, w, h, [1200, 900], [900, 1200], 0.5, (W, H) => {
+      air(ctx, W, H, rng, { canopy: false })
+      for (const [n, t, s] of [[9, 0.65, 0.9], [6, 0.35, 1.2]]) {
+        for (let i = 0; i < n; i++) {
+          ctx.save()
+          ctx.translate(rng() * W, H * (0.3 + rng() * 0.8))
+          ctx.rotate((rng() - 0.5) * 1.4)
+          LEAVES[rng() > 0.5 ? 'monstera' : 'banana'](ctx, Math.min(W, H) * (0.4 + rng() * 0.4) * s, t, rng)
+          ctx.restore()
+        }
+      }
+      dapple(ctx, W, H, rng, { count: 18, alpha: 0.6, scale: 1.4 })
+    })
+  },
+
+  'gal-counter'(ctx, w, h, rng) {
     frame(ctx, w, h, [1200, 900], [900, 1150], 0.55, (W, H) => {
-      room(ctx, W, H, rng, { unit: H * 0.05, wallTint: '#2a2018', glow: 0.06 })
+      air(ctx, W, H, rng, { warmth: 0.8 })
+      floor(ctx, W, H, H * 0.5, rng, { kind: 'deck' })
+      // A counter running across, with plants along the back edge
+      ctx.beginPath()
+      ctx.roundRect(-W * 0.05, H * 0.56, W * 1.1, H * 0.5, W * 0.01)
+      const g = ctx.createLinearGradient(0, H * 0.56, 0, H)
+      g.addColorStop(0, '#efe7d5')
+      g.addColorStop(0.1, '#d9cfb6')
+      g.addColorStop(1, '#b3a88e')
+      ctx.fillStyle = g
+      ctx.fill()
+      ctx.fillStyle = a(IN.white, 0.7)
+      ctx.fillRect(-W * 0.05, H * 0.56, W * 1.1, Math.max(1.4, H * 0.005))
+      for (let i = 0; i < 5; i++) {
+        cluster(ctx, W * (0.08 + i * 0.22), H * 0.56, H * 0.13, rng, { count: 4, t: 0.34, kinds: ['heart', 'fern'] })
+        pot(ctx, W * (0.08 + i * 0.22), H * 0.575, W * 0.05, H * 0.05)
+      }
+      table(ctx, W * 0.5, H * 0.94, W * 0.13, rng, { cups: 2 })
+      dapple(ctx, W, H, rng, { count: 12, alpha: 0.44 })
+      border(ctx, W, H, rng, { side: 'top', count: 5, scale: 1, depth: 0.5 })
+    })
+  },
 
-      // The opening, with the street beyond it
-      const aw = W * 0.36
-      const ax = W * 0.54
-      const ay = H * 0.44
+  'gal-seat'(ctx, w, h, rng) {
+    frame(ctx, w, h, [1200, 900], [900, 1150], 0.6, (W, H) => {
+      air(ctx, W, H, rng, {})
+      for (let i = 0; i < 5; i++) {
+        ctx.save()
+        ctx.globalAlpha = 0.45
+        cluster(ctx, (i / 4) * W, H * 0.6, H * 0.26, rng, { count: 5, t: 0.62 })
+        ctx.restore()
+      }
+      floor(ctx, W, H, H * 0.62, rng, {})
+      rattan(ctx, W * 0.26, H * 0.94, W * 0.24, H * 0.34, rng)
+      rattan(ctx, W * 0.74, H * 0.94, W * 0.24, H * 0.34, rng)
+      table(ctx, W * 0.5, H * 0.88, W * 0.13, rng, { cups: 2 })
+      cluster(ctx, W * 0.04, H * 0.82, H * 0.3, rng, { count: 6, t: 0.28 })
+      dapple(ctx, W, H, rng, { count: 15, alpha: 0.5 })
+      border(ctx, W, H, rng, { side: 'top', count: 6, scale: 1.05, depth: 0.45 })
+    })
+  },
+
+  'gal-window'(ctx, w, h, rng) {
+    frame(ctx, w, h, [1200, 900], [900, 1150], 0.5, (W, H) => {
+      air(ctx, W, H, rng, { warmth: 1, canopy: false })
+      // An arched opening, planting crowding both sides of it
+      const aw = W * 0.42
+      const ax = W * 0.5
+      const ay = H * 0.42
       ctx.save()
       ctx.beginPath()
-      ctx.moveTo(ax - aw / 2, H * 0.92)
+      ctx.moveTo(ax - aw / 2, H)
       ctx.lineTo(ax - aw / 2, ay)
-      ctx.quadraticCurveTo(ax, ay - aw * 0.66, ax + aw / 2, ay)
-      ctx.lineTo(ax + aw / 2, H * 0.92)
+      ctx.quadraticCurveTo(ax, ay - aw * 0.68, ax + aw / 2, ay)
+      ctx.lineTo(ax + aw / 2, H)
       ctx.closePath()
       ctx.save()
       ctx.clip()
-      const dg = ctx.createLinearGradient(0, ay - aw * 0.5, 0, H)
-      dg.addColorStop(0, '#f2e5ca')
-      dg.addColorStop(0.42, '#cda870')
-      dg.addColorStop(0.72, '#7d5730')
-      dg.addColorStop(1, '#2a1c0d')
-      ctx.fillStyle = dg
+      const g = ctx.createLinearGradient(0, ay - aw * 0.5, 0, H)
+      g.addColorStop(0, '#fff6d8')
+      g.addColorStop(0.5, '#e8dfc0')
+      g.addColorStop(1, '#c0b79c')
+      ctx.fillStyle = g
       ctx.fillRect(ax - aw, ay - aw, aw * 2, H)
-
-      // A street out there: two blocks, a kerb, and a car light. Without
-      // them the opening is a lamp rather than a way out of the room.
-      ctx.fillStyle = a('#3d2a15', 0.55)
-      ctx.fillRect(ax - aw * 0.5, H * 0.5, aw * 0.28, H * 0.16)
-      ctx.fillRect(ax + aw * 0.18, H * 0.47, aw * 0.34, H * 0.19)
-      ctx.fillStyle = a('#1f1408', 0.5)
-      ctx.fillRect(ax - aw, H * 0.66, aw * 2, H * 0.03)
-      ctx.save()
-      ctx.globalCompositeOperation = 'screen'
-      pool(ctx, ax + aw * 0.34, H * 0.62, aw * 0.16, IN.cream, 0.6)
+      table(ctx, ax, H * 0.9, aw * 0.3, rng, { cups: 1 })
+      figure(ctx, ax + aw * 0.2, H * 0.6, H * 0.14, rng, { tone: 'rgba(40,58,44,.4)' })
       ctx.restore()
-
-      figure(ctx, ax - aw * 0.2, H * 0.58, H * 0.1, rng, { tone: 'rgba(28,18,10,.88)', rim: 0 })
-      ctx.restore()
-      ctx.strokeStyle = a(IN.brass, 0.5)
-      ctx.lineWidth = Math.max(1.5, H * 0.006)
+      ctx.strokeStyle = a(IN.cream, 0.9)
+      ctx.lineWidth = Math.max(2, H * 0.012)
       ctx.stroke()
       ctx.restore()
 
-      // Light spilling out of it across the floor
+      // Wall either side, warm plaster
       ctx.save()
-      ctx.globalCompositeOperation = 'screen'
-      const sp = ctx.createLinearGradient(0, ay, 0, H)
-      sp.addColorStop(0, a(IN.brassLit, 0.26))
-      sp.addColorStop(1, a(IN.brass, 0))
-      ctx.fillStyle = sp
-      ctx.beginPath()
-      ctx.moveTo(ax - aw * 0.5, H * 0.9)
-      ctx.lineTo(ax + aw * 0.5, H * 0.9)
-      ctx.lineTo(ax + aw * 1.5, H)
-      ctx.lineTo(ax - aw * 1.5, H)
-      ctx.closePath()
-      ctx.fill()
+      ctx.globalCompositeOperation = 'destination-over'
+      ctx.fillStyle = '#e6dcc4'
+      ctx.fillRect(0, 0, W, H)
       ctx.restore()
 
-      motes(ctx, ax, ay, aw * 0.9, H * 0.5, rng, 70)
-      ctx.fillStyle = a(IN.black, 0.55)
-      ctx.fillRect(0, H * 0.9, W, H * 0.12)
+      cluster(ctx, W * 0.06, H * 0.98, H * 0.36, rng, { count: 8, t: 0.26 })
+      cluster(ctx, W * 0.94, H * 0.98, H * 0.34, rng, { count: 8, t: 0.3 })
+      dapple(ctx, W, H, rng, { count: 14, alpha: 0.5 })
+      border(ctx, W, H, rng, { side: 'top', count: 5, scale: 1.1, depth: 0.4 })
     })
   },
 
-  'gal-table'(ctx, w, h, rng) {
-    frame(ctx, w, h, [1200, 900], [900, 1150], 0.55, (W, H) => {
-      room(ctx, W, H, rng, { unit: H * 0.09, glow: 0.22 })
-      counter(ctx, W, H, H * 0.3, { tilt: 0.03, front: false })
-
-      for (const [dx, dy, k] of [[0.34, 0.66, 1], [0.64, 0.56, 0.84]]) {
-        cup(ctx, {
-          cx: W * dx, cy: H * dy, rx: W * 0.13 * k, depth: W * 0.1 * k, taper: 0.7,
-          shell: '#e2dbcc', liquid: '#3d1f0d', foam: IN.crema, art: 'crema',
-          fill: 0.86, handle: true, saucer: true, rng,
-        })
-        steam(ctx, W * dx, H * dy - W * 0.04, W * 0.09, H * 0.28, rng, 0.45)
-      }
-
-      // A spoon, because a table is never just cups
+  'gal-detail'(ctx, w, h, rng) {
+    frame(ctx, w, h, [1200, 900], [900, 1150], 0.5, (W, H) => {
+      air(ctx, W, H, rng, { warmth: 0.9, canopy: false })
+      floor(ctx, W, H, H * 0.34, rng, { kind: 'deck' })
+      // A single fern in a pot, close, with the light behind it
       ctx.save()
-      ctx.translate(W * 0.5, H * 0.86)
-      ctx.rotate(-0.22)
-      ctx.beginPath()
-      ctx.ellipse(-W * 0.075, 0, W * 0.02, W * 0.012, 0, 0, TAU)
-      ctx.fillStyle = a('#b6b1a6', 0.8)
-      ctx.fill()
-      ctx.fillRect(-W * 0.06, -W * 0.004, W * 0.11, W * 0.008)
-      ctx.restore()
-    })
-  },
-
-  extraction(ctx, w, h, rng) {
-    frame(ctx, w, h, [1250, 1000], [900, 1100], 0.5, (W, H) => {
-      room(ctx, W, H, rng, { unit: H * 0.07, glow: 0.2 })
-
-      // The machine across the top — we are at the pass, looking in
-      machine(ctx, W * 0.5, H * 0.46, W * 1.05, rng)
-
-      const gx = W * 0.39
-      for (const dx of [-0.016, 0.016]) {
-        ctx.beginPath()
-        ctx.moveTo(gx + W * dx, H * 0.55)
-        ctx.bezierCurveTo(gx + W * dx, H * 0.62, gx + W * dx * 0.4, H * 0.64, gx + W * dx * 0.35, H * 0.7)
-        ctx.strokeStyle = a('#93582a', 0.92)
-        ctx.lineWidth = W * 0.012
-        ctx.lineCap = 'round'
-        ctx.stroke()
+      ctx.translate(W * 0.5, H * 0.82)
+      for (let i = 0; i < 9; i++) {
+        ctx.save()
+        ctx.rotate(lerp(-1.2, 1.2, i / 8) + (rng() - 0.5) * 0.16)
+        fern(ctx, Math.min(W, H) * (0.4 + rng() * 0.3), 0.28 + Math.abs(i / 8 - 0.5) * 0.3)
+        ctx.restore()
       }
-
-      // The glass filling
-      const gw = W * 0.16
-      const gh = H * 0.16
-      const gy = H * 0.86
-      ctx.beginPath()
-      ctx.roundRect(gx - gw / 2, gy - gh, gw, gh, [gw * 0.05, gw * 0.05, gw * 0.14, gw * 0.14])
-      ctx.fillStyle = a(IN.cream, 0.06)
-      ctx.fill()
-      ctx.fillStyle = '#54300f'
-      ctx.fillRect(gx - gw * 0.46, gy - gh * 0.46, gw * 0.92, gh * 0.42)
-      ctx.fillStyle = IN.crema
-      ctx.fillRect(gx - gw * 0.46, gy - gh * 0.5, gw * 0.92, gh * 0.08)
-      ctx.beginPath()
-      ctx.roundRect(gx - gw / 2, gy - gh, gw, gh, [gw * 0.05, gw * 0.05, gw * 0.14, gw * 0.14])
-      ctx.strokeStyle = a(IN.cream, 0.5)
-      ctx.lineWidth = Math.max(1.2, W * 0.005)
-      ctx.stroke()
-
-      counter(ctx, W, H, H * 0.86, { tilt: 0, front: false })
-      ctx.save()
-      ctx.globalCompositeOperation = 'screen'
-      pool(ctx, gx, H * 0.66, W * 0.34, IN.brassLit, 0.26)
       ctx.restore()
-      motes(ctx, W * 0.5, H * 0.4, W * 0.5, H * 0.4, rng, 34)
+      pot(ctx, W * 0.5, H * 0.86, W * 0.2, H * 0.16)
+      dapple(ctx, W, H, rng, { count: 16, alpha: 0.55, scale: 1.2 })
     })
   },
 
@@ -823,21 +446,20 @@ export const scenes = {
    * A map, not an embedded one.
    *
    * A default map iframe is a bright rectangle with somebody else's
-   * type in it, and it lands in the middle of a dark page like a hole.
-   * This is a drawn plan of a block grid at about the right density,
-   * with the pin where the room is. It carries no street names, because
-   * inventing street names on a map of a real place is exactly the kind
-   * of small lie worth not telling — the buttons under it open the real
-   * map instead.
+   * type in it. This is a drawn plan at about the right density, with
+   * the pin where the restaurant is. It carries no street names —
+   * inventing street names on a map of a real place is the kind of
+   * small lie worth not telling — and the buttons under it open the
+   * real map instead.
    */
   map(ctx, w, h, rng) {
-    ctx.fillStyle = '#0b0b0d'
+    ctx.fillStyle = '#eee7d6'
     ctx.fillRect(0, 0, w, h)
 
-    const grid = Math.max(w, h) * 0.115
+    const grid = Math.max(w, h) * 0.12
     ctx.save()
     ctx.translate(w * 0.5, h * 0.5)
-    ctx.rotate(-0.22)
+    ctx.rotate(-0.2)
     ctx.translate(-w * 0.5, -h * 0.5)
 
     const x0 = -w * 0.7
@@ -845,17 +467,19 @@ export const scenes = {
     const y0 = -h * 0.9
     const y1 = h * 1.9
 
+    // Blocks, with a few planted ones
     for (let y = y0; y < y1; y += grid) {
       for (let x = x0; x < x1; x += grid) {
-        if (rng() > 0.86) continue
-        const pad = grid * (0.08 + rng() * 0.06)
-        ctx.fillStyle = a(mix('#16161a', '#23232b', rng()), 0.9)
+        const r = rng()
+        if (r > 0.88) continue
+        const pad = grid * (0.09 + rng() * 0.06)
+        ctx.fillStyle = r > 0.72 ? a(IN.sprout, 0.34) : a('#d8cfb8', 0.95)
         ctx.fillRect(x + pad, y + pad, grid - pad * 2, grid - pad * 2)
       }
     }
 
-    ctx.strokeStyle = a(IN.cream, 0.07)
-    ctx.lineWidth = Math.max(1, grid * 0.03)
+    ctx.strokeStyle = a('#b9ae94', 0.9)
+    ctx.lineWidth = Math.max(1, grid * 0.04)
     for (let y = y0; y < y1; y += grid) {
       ctx.beginPath()
       ctx.moveTo(x0, y)
@@ -869,11 +493,11 @@ export const scenes = {
       ctx.stroke()
     }
 
-    ctx.strokeStyle = a(IN.brass, 0.2)
-    ctx.lineWidth = grid * 0.16
+    ctx.strokeStyle = a(IN.gold, 0.5)
+    ctx.lineWidth = grid * 0.17
     ctx.beginPath()
-    ctx.moveTo(x0, h * 0.24)
-    ctx.lineTo(x1, h * 0.24)
+    ctx.moveTo(x0, h * 0.26)
+    ctx.lineTo(x1, h * 0.26)
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(w * 0.74, y0)
@@ -884,41 +508,35 @@ export const scenes = {
     const px = w * 0.5
     const py = h * 0.46
     ctx.save()
-    ctx.globalCompositeOperation = 'screen'
-    pool(ctx, px, py, Math.min(w, h) * 0.42, IN.brass, 0.24)
+    ctx.globalCompositeOperation = 'multiply'
+    pool(ctx, px, py, Math.min(w, h) * 0.4, IN.sprout, 0.22)
     ctx.restore()
-    for (const [r, alpha] of [[0.12, 0.42], [0.19, 0.18]]) {
+    for (const [r, alpha] of [[0.12, 0.5], [0.19, 0.24]]) {
       ctx.beginPath()
       ctx.arc(px, py, Math.min(w, h) * r, 0, TAU)
-      ctx.strokeStyle = a(IN.brass, alpha)
+      ctx.strokeStyle = a(IN.frond, alpha)
       ctx.lineWidth = Math.max(1, Math.min(w, h) * 0.004)
       ctx.stroke()
     }
-    const pr = Math.min(w, h) * 0.034
+    const pr = Math.min(w, h) * 0.036
     ctx.beginPath()
     ctx.moveTo(px, py + pr * 2.1)
     ctx.bezierCurveTo(px - pr * 1.5, py + pr * 0.4, px - pr, py - pr * 1.6, px, py - pr * 1.6)
     ctx.bezierCurveTo(px + pr, py - pr * 1.6, px + pr * 1.5, py + pr * 0.4, px, py + pr * 2.1)
-    ctx.fillStyle = IN.brassLit
+    ctx.fillStyle = IN.frond
     ctx.fill()
     ctx.beginPath()
-    ctx.arc(px, py - pr * 0.35, pr * 0.44, 0, TAU)
-    ctx.fillStyle = '#0b0b0d'
+    ctx.arc(px, py - pr * 0.35, pr * 0.42, 0, TAU)
+    ctx.fillStyle = IN.cream
     ctx.fill()
 
-    ctx.strokeStyle = a(IN.cream, 0.22)
-    ctx.lineWidth = 1
-    const t = Math.min(w, h) * 0.05
-    for (const [cx, cy, sx, sy] of [
-      [0, 0, 1, 1], [w, 0, -1, 1], [0, h, 1, -1], [w, h, -1, -1],
-    ]) {
-      ctx.beginPath()
-      ctx.moveTo(cx + sx * 18, cy + sy * 18 + sy * t)
-      ctx.lineTo(cx + sx * 18, cy + sy * 18)
-      ctx.lineTo(cx + sx * 18 + sx * t, cy + sy * 18)
-      ctx.stroke()
-    }
+    // A little planting around the pin, because the map is of a garden
+    cluster(ctx, px - Math.min(w, h) * 0.22, py + Math.min(w, h) * 0.2, Math.min(w, h) * 0.1, rng, { count: 4, t: 0.3 })
+    cluster(ctx, px + Math.min(w, h) * 0.24, py - Math.min(w, h) * 0.16, Math.min(w, h) * 0.09, rng, { count: 4, t: 0.34 })
+
+    border(ctx, w, h, rng, { side: 'top', count: 4, scale: 0.7, depth: 0.3 })
+    border(ctx, w, h, rng, { side: 'bottom', count: 3, scale: 0.6, depth: 0.3 })
   },
 }
 
-export { pendant, bricks, figure, machine, counter, shelf, motes, room, niche }
+export { air, floor, table, figure, pergola, border, cluster, pot, rattan }

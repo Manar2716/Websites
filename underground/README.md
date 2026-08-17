@@ -1,13 +1,14 @@
 # UNDERGROUND CAFE — a design concept
 
-A site concept for Underground Cafe, Majan, Dubai — an English restaurant,
-despite the name, open from noon until one in the morning. React and Tailwind,
-with every picture on the page drawn in code at run time. No photograph, no
-image file, no font from a CDN, no network request after the page loads.
+A site concept for Underground Cafe, Majan, Dubai — a British kitchen open from
+noon until one in the morning. React and Tailwind, with every picture on the
+page drawn in code at run time. No photograph, no image file, no font from a
+CDN, no network request after the page loads.
 
-The drawings are scaffolding, not the point. Every picture slot takes a real
-photograph the moment one is dropped into `public/photos/` and named in
-`content.js` — see that folder's README.
+The direction is a Dubai garden terrace: deep forest green against warm cream,
+sun through a canopy, leaf-arch frames instead of rounded rectangles. It
+replaced an earlier dark, industrial version of this same site — that palette
+and its whole basement-interior image set were deleted rather than tinted.
 
 ```bash
 npm install
@@ -16,112 +17,97 @@ npm run build      # → ../underground-dist
 npm run lint
 ```
 
-`art.html` is a development-only contact sheet: it draws all thirty-odd
-pictures at the aspect ratios the real page uses, which is the only practical
-way to judge them as a set. It is not part of the build.
+`art.html` is a development-only contact sheet: it draws every picture at the
+aspect ratios the real page uses, which is the only practical way to judge
+thirty drawings as a set. It is not part of the build.
 
 ---
 
-## This is a concept, and it says so
+## What is real on this page, and what is missing
 
-**Unofficial.** This is not affiliated with, endorsed by or produced for
-Underground Cafe. The footer says that, on the page, in the last paragraph.
+**Unofficial.** Not affiliated with, endorsed by or produced for Underground
+Cafe. A fixed badge says so in the corner of every screen, and the footer says
+it again in full.
 
-Everything the site claims about the business lives in one file,
-`src/data/content.js`, and every fact in it carries a `status`:
+Everything the site claims lives in `src/data/content.js`, and each fact
+carries a `src`:
 
-| status        | means                                                        |
-| ------------- | ------------------------------------------------------------ |
-| `confirmed`   | from the business's own site or its verified social profile   |
-| `listed`      | from a third-party directory — almost certainly right, but not the business speaking |
-| `placeholder` | **not real.** A stand-in of roughly the right shape           |
+| src | means |
+| --- | --- |
+| `owner` | given by the person commissioning this, reading off Underground's own site |
+| `listed` | from a public delivery listing — almost certainly right, but not the business speaking |
+| `todo` | not known. A slot, never a guess |
 
-Search that file for `placeholder` to find everything outstanding.
+### The prices are missing, and that is the one thing to fix
 
-**No prices, anywhere.** Not one published price could be sourced, and a
-concept site carrying invented numbers is the version of this that does real
-damage — somebody quotes it back at the counter. Names and descriptions are
-shown; prices live one tap away on the official site.
+`undergroundcafe.ae` **cannot be reached from the machine this was built on.**
+The network policy blocks the domain outright — three attempts, all
+`EGRESS_BLOCKED`. No price for any item could be sourced anywhere else either.
 
-**Four menu items are real.** English Breakfast, the Beef & Cheddar burger,
-the Underground chicken pizza and the Lamb Doner have names and descriptions
-taken from the restaurant's own delivery listings. They carry a brass dot on
-the page, and the legend sits above the list. Everything else is a layout
-placeholder and has no dot.
+So there are no prices on this page. Not one is guessed. Every item carries
+`price: null`, which renders as nothing today and renders as `AED 42` the
+moment a number goes in it — the menu layout already has the column, the type
+and the alignment reserved.
 
-**The founding year** is shown as `20—` rather than guessed at.
+**Filling them in is a fifteen-minute job with the real menu in hand:** set
+`price` and `desc` on each item in `content.js`. Nothing else changes.
 
-There are no reviews, ratings, awards or superlatives anywhere in this
-project, and there should not be: none of it can be sourced.
+### The menu items are real
 
-### What an earlier draft got wrong
+Names come from the brief (read off the official site) or from public delivery
+listings: Full English Breakfast, Fish & Chips, Cottage Pie, Jacket Potato,
+Doner on Chips, Underground Heat Burger, Doner Burger, Beef & Cheddar Burger,
+Tandoori Pizza, Underground Chicken Pizza, Lamb Doner, Apple Crumble, School
+Dinner Cake with Custard.
 
-The first version of this site was written as a third-wave espresso bar:
-"specialty coffee", a tagline about coffee, and a five-panel horizontal
-section walking through sourcing, roasting, grinding, extraction and the
-pour. Underground does not roast coffee. It is an English kitchen doing
-all-day breakfast, burgers, pizza on a fresh base and a lamb doner in pitta
-rolled from that same dough.
+Descriptions appear **only** where one could be sourced — four of them. The
+rest are left empty rather than written, because a description is a claim about
+what is on the plate. The full menu carries more categories than are built out
+here (Sides, Salads, Kids, Bakery, British Drinks, Healthy Line); the note
+under the menu points at them.
 
-That section is now the opening hours — the one thing about the place that
-is both true and worth a rail — and the roasting scenes have been deleted
-from `src/art/scenes.js` rather than left lying around. It is worth naming
-because it is the exact failure mode this whole `status` system exists to
-prevent, and it still happened: the copy was plausible, internally
-consistent, and about a different business.
+The drinks section names no drink, deliberately: the menu has Hot, Cold and
+British Drinks lists, but not one drink could be sourced by name, so the
+section sells the counter and links to the real menu.
+
+There are no reviews, ratings, awards or invented history anywhere in this
+project.
 
 ---
 
-## The constraint: nothing here is a photograph
+## The drawings
 
-A site for a business cannot show photographs of a room nobody has been
-inside, and stock images of somebody else's cafe are worse than none — they
-are a claim. So the whole image set is generated: `src/art/` is about
-seventeen hundred lines of canvas that draws a room, twenty-odd dishes and
-drinks, six gallery frames and a street map.
+`src/art/` is about two thousand lines of canvas: a garden terrace, twenty-odd
+plates and drinks, six gallery scenes and an illustrated street plan.
 
-It also happens to be the right technical answer while the real photographs
-are missing. Thirty pictures weigh nothing, stay sharp on a 4K panel, need no
-CDN, and can be re-lit by changing one number — and each one is a slot the
-real picture drops straight into, at the same crop, with no layout change.
+A site for a business cannot show photographs of a room nobody has been inside,
+and stock images of somebody else's café are worse than none — they are a
+claim. Every picture here is a **slot**: drop a file into `public/photos/`,
+name it in `content.js`, and the photograph takes over at the same crop with no
+component change. See that folder's README for what each slot wants.
 
-**One lamp lights all of it**, and that is what makes the set read as one body
-of work rather than a folder of unrelated images:
+**Five leaves build everything green.** Monstera, banana, palm, philodendron
+and fern, each drawn around its own origin pointing up, each taking a single
+`t` shade parameter — 0 in full sun, 1 deep in the shade behind. That one
+number is what makes a mass of foliage read as depth rather than a flat green
+shape.
 
-```
-key      warm, upper left, hard-ish, the brass side of white
-fill     almost nothing — the shadows go to near-black
-rim      a cool bounce on the right edge of every form
-ground   never flat: a warm pool with the corners falling away, and grain
-```
-
-Twelve drinks come out of two forms. A latte and a flat white are not two
-different pictures — they are the same cup with a different foam depth, a
-different rim ratio and a different surface pattern, which is also the entire
-difference between them on a bench.
-
-Three menu sections are one drawing each with a parameter on it: a double
-burger is a single with a second patty and the bun lifted, a chicken burger
-is the same with a paler crumbed middle, and a margherita is the chicken
-pizza with the toppings list emptied. Nine menu items, three shapes — which
-is roughly how the kitchen thinks about them too.
-
-All randomness is seeded off the picture's own id, so resizing the window
-redraws the same picture rather than a new one.
+**One sun lights all of it.** Sunlight through leaves is not one lamp: it is a
+huge soft source overhead, a green bounce coming back up off the foliage, and
+hard little coins of light where the canopy has gaps. Nothing goes black
+outdoors — the deepest shade is a saturated green, and the shadow under a plate
+is green too, because that is the colour of the light bouncing into it.
 
 ### Composing for a crop you do not know yet
 
-The same drawing is asked for at 16:10 in the gallery, 4:5 in the hours rail
-and 9:19 behind the hero on a phone. Composing against the real width and
-height gives a picture that works in one of those and falls apart in the rest
-— the bar ends up off the bottom, or a pendant lands on the headline.
+The same drawing is asked for at 16:10 in the gallery, 4:5 in a menu card and
+9:19 behind the hero on a phone. Every scene is composed inside a **virtual
+frame** and scaled to *cover*, with separate landscape and portrait framings —
+because every element is positioned as a fraction of `W` and `H`, handing a
+scene the portrait box re-lays the same terrace out tall instead of cropping a
+quarter out of the wide one.
 
-So every interior is composed inside a **virtual frame** and scaled to *cover*
-the canvas, the way `object-fit: cover` treats a photograph. Each scene
-carries two virtual frames, landscape and portrait, and because every element
-inside is positioned as a fraction of `W` and `H`, handing it the portrait box
-re-lays the same room out tall instead of cropping a quarter out of the wide
-one.
+---
 
 ---
 
@@ -153,7 +139,7 @@ the end, no panel left half off-screen.
 
 ---
 
-## Four bugs worth writing down
+## Bugs worth writing down
 
 **An IntersectionObserver alone cannot drive reveals on a page with a nav.** It
 fires on a *threshold crossing*. Click "Location" and every section in between

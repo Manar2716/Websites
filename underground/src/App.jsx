@@ -1,37 +1,40 @@
 import { usePrefersReducedMotion, useReveals } from './lib/hooks.js'
 import { Cursor, Grain } from './components/ui.jsx'
+import Drift from './components/Drift.jsx'
 import ConceptBadge from './components/ConceptBadge.jsx'
 
 import Nav from './sections/Nav.jsx'
 import Hero from './sections/Hero.jsx'
 import Marquee from './sections/Marquee.jsx'
-import About from './sections/About.jsx'
-import Hours from './sections/Hours.jsx'
+import Story from './sections/Story.jsx'
+import Classics from './sections/Classics.jsx'
 import Menu from './sections/Menu.jsx'
-import Featured from './sections/Featured.jsx'
+import Escape from './sections/Escape.jsx'
+import Drinks from './sections/Drinks.jsx'
 import Gallery from './sections/Gallery.jsx'
-import Location from './sections/Location.jsx'
-import Statement from './sections/Statement.jsx'
+import Visit from './sections/Visit.jsx'
+import Contact from './sections/Contact.jsx'
 import Footer from './sections/Footer.jsx'
 
 /* ═══════════════════════════════════════════════════════════════════
-   Nine sections, and each one is there for a reason:
+   Eleven sections, alternating cream reading bands against full-bleed
+   green ones, and each there for a reason:
 
-     hero        the room, the name, and two things to do
+     hero        the garden, the name, and two things to do
      marquee     a beat between the picture and the reading
-     about       who it is and where, with four facts under it
-     hours       the day, read sideways because a day is a sequence
-     menu        the list, with a picture per item
-     featured    one dish, printed large
-     gallery     the room again, at six sizes
-     location    how to get there, and when it is open
-     statement   the ask
-     footer      everything again, small
+     story       who it is, where, and four facts under it
+     classics    four dishes, printed large, alternating down the page
+     menu        the list, by category, with a picture per item
+     escape      the one section that is only a picture and two lines
+     drinks      the counter, on a green card
+     gallery     the place, at three sizes and three shapes
+     visit       how to get there and when it is open
+     contact     the ask
+     footer      everything again, small, under a giant wordmark
 
-   The reduced-motion preference is read once here and handed down,
-   rather than each component asking for itself: one media query
-   listener, one source of truth, and no chance of half the page
-   animating while the other half holds still.
+   The reduced-motion preference is read once here and handed down: one
+   media query listener, one source of truth, and no chance of half the
+   page animating while the other half holds still.
    ═══════════════════════════════════════════════════════════════════ */
 
 export default function App() {
@@ -41,6 +44,7 @@ export default function App() {
   return (
     <>
       <Grain />
+      <Drift reduced={reduced} />
       <Cursor reduced={reduced} />
       <ConceptBadge />
       <Nav reduced={reduced} />
@@ -48,13 +52,14 @@ export default function App() {
       <main>
         <Hero reduced={reduced} />
         <Marquee />
-        <About reduced={reduced} />
-        <Hours reduced={reduced} />
+        <Story reduced={reduced} />
+        <Classics reduced={reduced} />
         <Menu reduced={reduced} />
-        <Featured reduced={reduced} />
+        <Escape reduced={reduced} />
+        <Drinks reduced={reduced} />
         <Gallery reduced={reduced} />
-        <Location reduced={reduced} />
-        <Statement reduced={reduced} />
+        <Visit reduced={reduced} />
+        <Contact reduced={reduced} />
       </main>
 
       <Footer />

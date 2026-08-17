@@ -24,13 +24,13 @@ export default function ConceptBadge() {
       target="_blank"
       rel="noopener noreferrer"
       data-cursor="link"
-      className="group fixed bottom-3 left-3 z-[97] flex items-center gap-2 rounded-full border border-cream/15 bg-ground/80 px-3 py-2 font-mono text-[0.55rem] uppercase leading-none tracking-[0.16em] text-dust backdrop-blur-md transition-colors duration-500 hover:border-brass/50 hover:text-bone sm:bottom-5 sm:left-5 sm:px-3.5 sm:text-[0.6rem]"
+      className="group fixed bottom-3 left-3 z-[97] flex items-center gap-2 rounded-full border border-ink/15 bg-canvas/90 px-3 py-2 text-[0.55rem] font-semibold uppercase leading-none tracking-[0.14em] text-ink-soft shadow-[0_10px_24px_-18px_rgba(18,48,36,.8)] backdrop-blur-md transition-colors duration-500 hover:border-leaf hover:text-ink sm:bottom-5 sm:left-5 sm:px-3.5 sm:text-[0.6rem]"
       style={{
         marginBottom: 'env(safe-area-inset-bottom, 0px)',
         marginLeft: 'env(safe-area-inset-left, 0px)',
       }}
     >
-      <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-ember" aria-hidden="true" />
+      <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true" />
       <span>
         Design concept
         <span className="hidden sm:inline"> &mdash; not the official site</span>

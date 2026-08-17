@@ -2,18 +2,17 @@
 import { paint } from './art/painters.js'
 
 const GROUPS = [
-  ['Hero + full frame', ['hero'], 3, '16 / 9'],
-  ['Gallery', ['gal-bar', 'gal-pour', 'gal-corner', 'gal-machine', 'gal-arch', 'gal-table'], 3, '16 / 10'],
-  ['Gallery — tall crop', ['gal-pour', 'gal-corner'], 4, '4 / 5'],
-  ['Featured + map', ['featured', 'map'], 2, '16 / 10'],
-  ['Coffee', ['espresso', 'flatwhite', 'cortado', 'v60', 'icedlatte', 'matcha'], 3, '4 / 3'],
-  ['Drinks', ['lemonade', 'icedtea', 'orange', 'sparkling'], 4, '4 / 3'],
-  ['Breakfast', ['english', 'avotoast', 'pancakes', 'benedict'], 4, '4 / 3'],
-  ['Burgers', ['burger', 'burgerDouble', 'burgerChicken', 'chips'], 4, '4 / 3'],
-  ['Pizza', ['pizza', 'pizzaMargherita', 'pizzaPepperoni'], 3, '4 / 3'],
-  ['Doner', ['doner', 'donerChicken', 'sando'], 3, '4 / 3'],
-  ['Desserts', ['cookie', 'basque', 'tiramisu', 'pudding'], 4, '4 / 3'],
-  ['Feature band', ['wide:doner', 'wide:english'], 1, '21 / 9'],
+  ['Hero', ['hero'], 2, '16 / 9'],
+  ['Hero — phone crop', ['hero'], 5, '9 / 16'],
+  ['Scenes', ['about', 'escape', 'map'], 3, '16 / 10'],
+  ['Gallery', ['gal-terrace', 'gal-leaves', 'gal-counter', 'gal-seat', 'gal-window', 'gal-detail'], 3, '16 / 10'],
+  ['Gallery — tall crop', ['gal-terrace', 'gal-window', 'gal-detail'], 4, '4 / 5'],
+  ['British mains', ['english', 'fishchips', 'cottagepie', 'jacket'], 4, '4 / 3'],
+  ['Doner + burgers', ['doner', 'doneronchips', 'burgerHeat', 'burgerDoner'], 4, '4 / 3'],
+  ['Pizza', ['pizza', 'pizzaTandoori', 'pizzaMargherita'], 3, '4 / 3'],
+  ['Puddings', ['crumble', 'cakecustard', 'cookie'], 3, '4 / 3'],
+  ['Drinks', ['icedlatte', 'flatwhite', 'lemonade', 'icedtea'], 4, '4 / 3'],
+  ['Feature band', ['wide:fishchips', 'wide:crumble'], 1, '21 / 9'],
 ]
 
 const out = document.getElementById('out')

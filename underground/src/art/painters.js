@@ -188,16 +188,17 @@ const drinks = {
 
 const SUBJECTS = { ...drinks, ...dishes }
 
-/** Interiors own their whole frame — no stage, lighter grain. */
+/** Scenes own their whole frame — no stage, lighter grain. */
 const FULL_FRAME = {
   hero: scenes.hero,
   about: scenes.about,
-  'gal-bar': scenes['gal-bar'],
-  'gal-pour': scenes['gal-pour'],
-  'gal-corner': scenes['gal-corner'],
-  'gal-machine': scenes['gal-machine'],
-  'gal-arch': scenes['gal-arch'],
-  'gal-table': scenes['gal-table'],
+  escape: scenes.escape,
+  'gal-terrace': scenes['gal-terrace'],
+  'gal-leaves': scenes['gal-leaves'],
+  'gal-counter': scenes['gal-counter'],
+  'gal-seat': scenes['gal-seat'],
+  'gal-window': scenes['gal-window'],
+  'gal-detail': scenes['gal-detail'],
   map: scenes.map,
 }
 
@@ -222,7 +223,7 @@ const STILL_H = 760
  * not afterwards.
  */
 function wide(ctx, w, h, rng, subject) {
-  stage(ctx, w, h, rng, { horizon: 0.74, keyX: 0.66, keyY: 0.46, bokeh: 7 })
+  stage(ctx, w, h, rng, { horizon: 0.76, surface: 'wood', dapples: 14 })
   const SUBJECT_SPAN = 700 // the dish itself, in still-life units
   const s = (w * 0.5) / SUBJECT_SPAN
   ctx.save()
@@ -230,7 +231,7 @@ function wide(ctx, w, h, rng, subject) {
   ctx.scale(s, s)
   subject(ctx, STILL_W, STILL_H, rng)
   ctx.restore()
-  post(ctx, w, h, rng, { vignette: 1, grain: 0.05, warmth: 0.06 })
+  post(ctx, w, h, rng, { edge: 0.5, grain: 0.03, warmth: 0.09 })
 }
 
 export function paint(ctx, id, w, h) {
@@ -246,9 +247,9 @@ export function paint(ctx, id, w, h) {
   if (full) {
     full(ctx, w, h, rng)
     post(ctx, w, h, rng, {
-      vignette: id === 'hero' ? 0.7 : 0.86,
-      grain: 0.045,
-      warmth: 0.05,
+      edge: id === 'hero' ? 0.35 : 0.55,
+      grain: 0.03,
+      warmth: 0.08,
     })
     return
   }
@@ -265,15 +266,14 @@ export function paint(ctx, id, w, h) {
 
   stage(ctx, w, h, rng, {
     horizon: 0.66,
-    keyX: 0.34 + rng() * 0.2,
-    keyY: 0.28,
-    bokeh: 4,
+    surface: rng() > 0.55 ? 'wood' : 'stone',
+    dapples: 9,
   })
   ctx.save()
   cover(ctx, w, h, STILL_W, STILL_H, 0.5)
   subject(ctx, STILL_W, STILL_H, rng)
   ctx.restore()
-  post(ctx, w, h, rng, { vignette: 0.9, grain: 0.05, warmth: 0.05 })
+  post(ctx, w, h, rng, { edge: 0.45, grain: 0.03, warmth: 0.08 })
 }
 
 export const PAINTER_IDS = [

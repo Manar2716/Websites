@@ -215,7 +215,7 @@ function sauceDrip(ctx, cx, cy, r, rng, color) {
 
 function burgerVariants() {
   const build = (o = {}) => (ctx, w, h, rng) => {
-    const { patties = 1, chicken = false } = o
+    const { patties = 1, chicken = false, heat = false, doner = false } = o
     const s = S(w, h)
     const cx = w * 0.46
     const cy = h * 0.68
@@ -294,6 +294,32 @@ function burgerVariants() {
       ctx.restore()
     }
 
+    // A ring of chilli on the heat burger; shaved doner on the other
+    if (heat) {
+      for (let i = 0; i < 9; i++) {
+        ctx.save()
+        ctx.translate(cx + (rng() - 0.5) * bw * 1.7, cy - s * 0.075 - stack + s * 0.075)
+        ctx.rotate(rng() * TAU)
+        ctx.beginPath()
+        ctx.ellipse(0, 0, s * 0.022, s * 0.009, 0, 0, TAU)
+        ctx.fillStyle = mix('#d8341c', '#8a1c0c', rng())
+        ctx.fill()
+        ctx.restore()
+      }
+    }
+    if (doner) {
+      for (let i = 0; i < 14; i++) {
+        ctx.save()
+        ctx.translate(cx + (rng() - 0.5) * bw * 1.6, cy - s * 0.072 - stack + s * 0.075)
+        ctx.rotate((rng() - 0.5) * 1.4)
+        ctx.beginPath()
+        ctx.roundRect(-s * 0.035, -s * 0.007, s * 0.07, s * 0.014, s * 0.006)
+        ctx.fillStyle = mix('#9a5330', '#5c2a14', rng())
+        ctx.fill()
+        ctx.restore()
+      }
+    }
+
     // Leaf
     ctx.save()
     blob(ctx, cx, cy - s * 0.082 - stack + s * 0.075, bw * 1.05, s * 0.026, rng, 0.3, 14)
@@ -334,6 +360,8 @@ function burgerVariants() {
     burger: build(),
     burgerDouble: build({ patties: 2 }),
     burgerChicken: build({ chicken: true }),
+    burgerHeat: build({ heat: true }),
+    burgerDoner: build({ doner: true }),
   }
 }
 
@@ -427,6 +455,16 @@ function pizzaVariants() {
       ],
     }),
     pizzaMargherita: build({ basil: true }),
+    // Tandoori: a marinade-red base under the cheese rather than tomato
+    pizzaTandoori: build({
+      sauce: '#b8451c',
+      toppings: [
+        ['#c4541f', 16, 0.024],
+        ['#e0d6bc', 10, 0.014, true],
+        ['#4a7a35', 10, 0.013, true],
+        ['#7d3a12', 12, 0.011],
+      ],
+    }),
     pizzaPepperoni: build({
       toppings: [['#9c2f1c', 14, 0.028, true]],
     }),
@@ -927,7 +965,326 @@ export const dishes = {
     steam(ctx, cx, cy - s * 0.14, s * 0.18, s * 0.38, rng, 0.55)
   },
 
-  /* Pizza, three ways. Same base, different things on it. */
+
+  /**
+   * Fish & chips. The batter is the whole job: a pale gold shell with a
+   * blistered, uneven edge, sitting on chips rather than beside them.
+   */
+  fishchips(ctx, w, h, rng) {
+    const s = S(w, h)
+    const cx = w * 0.5
+    const cy = h * 0.63
+    plate(ctx, cx, cy, s * 0.44, '#f2ece0')
+
+    // Chips underneath, going every direction
+    for (let i = 0; i < 26; i++) {
+      ctx.save()
+      ctx.translate(cx + (rng() - 0.5) * s * 0.5, cy - s * 0.01 + (rng() - 0.5) * s * 0.1)
+      ctx.rotate((rng() - 0.5) * 2.6)
+      ctx.beginPath()
+      ctx.roundRect(-s * 0.018, -s * 0.075, s * 0.036, s * 0.15, s * 0.01)
+      const fg = ctx.createLinearGradient(-s * 0.018, 0, s * 0.018, 0)
+      fg.addColorStop(0, mix('#f2cf86', '#cfa04a', rng()))
+      fg.addColorStop(1, '#8f6420')
+      ctx.fillStyle = fg
+      ctx.fill()
+      ctx.restore()
+    }
+
+    // The fish, a long blistered wedge
+    ctx.save()
+    ctx.translate(cx - s * 0.02, cy - s * 0.075)
+    ctx.rotate(-0.14)
+    blob(ctx, 0, 0, s * 0.28, s * 0.1, rng, 0.16, 15)
+    const bg = ctx.createLinearGradient(-s * 0.28, -s * 0.1, s * 0.28, s * 0.1)
+    bg.addColorStop(0, '#f6dda0')
+    bg.addColorStop(0.4, '#dcb162')
+    bg.addColorStop(1, '#9a6a20')
+    ctx.fillStyle = bg
+    ctx.fill()
+    ctx.clip()
+    // Blisters
+    for (let i = 0; i < 40; i++) {
+      ctx.beginPath()
+      ctx.ellipse((rng() - 0.5) * s * 0.56, (rng() - 0.5) * s * 0.2,
+        s * 0.016 * rng(), s * 0.011 * rng(), rng() * TAU, 0, TAU)
+      ctx.fillStyle = a(rng() > 0.5 ? '#fdeec2' : '#8a5c17', 0.3 + rng() * 0.4)
+      ctx.fill()
+    }
+    ctx.restore()
+
+    // Lemon and a pot of peas — the two things always on the plate
+    const lx = cx + s * 0.27
+    const ly = cy - s * 0.02
+    ellipse(ctx, lx, ly, s * 0.055, s * 0.042)
+    ctx.fillStyle = '#e8c944'
+    ctx.fill()
+    ellipse(ctx, lx, ly, s * 0.045, s * 0.033)
+    ctx.fillStyle = '#f6e79a'
+    ctx.fill()
+    ctx.save()
+    ellipse(ctx, cx - s * 0.26, cy + s * 0.02, s * 0.075, s * 0.05)
+    ctx.fillStyle = '#e8e2d2'
+    ctx.fill()
+    ellipse(ctx, cx - s * 0.26, cy + s * 0.018, s * 0.062, s * 0.04)
+    ctx.fillStyle = '#5f8a2e'
+    ctx.fill()
+    ctx.restore()
+    crumbs(ctx, cx - s * 0.26, cy + s * 0.018, s * 0.055, rng, 16, '#7fa83c')
+    steam(ctx, cx, cy - s * 0.16, s * 0.16, s * 0.34, rng, 0.45)
+  },
+
+  /** Cottage pie: forked mash browned under a grill, in its own dish. */
+  cottagepie(ctx, w, h, rng) {
+    const s = S(w, h)
+    const cx = w * 0.5
+    const cy = h * 0.6
+    contact(ctx, cx, cy + s * 0.13, s * 0.4, s * 0.1, 0.32)
+
+    // Oval dish
+    ellipse(ctx, cx, cy + s * 0.06, s * 0.34, s * 0.13)
+    ctx.fillStyle = '#d9d2c2'
+    ctx.fill()
+    ellipse(ctx, cx, cy, s * 0.34, s * 0.13)
+    const dg = ctx.createLinearGradient(cx - s * 0.34, 0, cx + s * 0.34, 0)
+    dg.addColorStop(0, '#fffdf6')
+    dg.addColorStop(0.5, '#eee7d8')
+    dg.addColorStop(1, '#c8bfa9')
+    ctx.fillStyle = dg
+    ctx.fill()
+
+    // Mash, forked into ridges and caught brown on the peaks
+    ctx.save()
+    ellipse(ctx, cx, cy - s * 0.005, s * 0.3, s * 0.112)
+    ctx.clip()
+    ctx.fillStyle = '#e8cf90'
+    ctx.fillRect(cx - s * 0.32, cy - s * 0.13, s * 0.64, s * 0.26)
+    for (let i = 0; i < 15; i++) {
+      const y = cy - s * 0.1 + (i / 14) * s * 0.2
+      ctx.beginPath()
+      ctx.moveTo(cx - s * 0.3, y)
+      ctx.bezierCurveTo(cx - s * 0.1, y - s * 0.012, cx + s * 0.1, y + s * 0.012, cx + s * 0.3, y)
+      ctx.strokeStyle = a(i % 2 ? '#a8791f' : '#fbeec0', 0.5)
+      ctx.lineWidth = s * 0.009
+      ctx.stroke()
+    }
+    // Browned patches
+    for (let i = 0; i < 16; i++) {
+      ctx.beginPath()
+      ctx.ellipse(cx + (rng() - 0.5) * s * 0.55, cy + (rng() - 0.5) * s * 0.18,
+        s * 0.03 * rng(), s * 0.014 * rng(), 0, 0, TAU)
+      ctx.fillStyle = a('#8a5c14', 0.16 + rng() * 0.3)
+      ctx.fill()
+    }
+    ctx.restore()
+
+    ctx.strokeStyle = a('#b6ac96', 0.7)
+    ctx.lineWidth = Math.max(1, s * 0.006)
+    ellipse(ctx, cx, cy, s * 0.34, s * 0.13)
+    ctx.stroke()
+    herbs(ctx, cx, cy, s * 0.2, rng, 7, '#5f8a3c')
+    steam(ctx, cx, cy - s * 0.11, s * 0.18, s * 0.36, rng, 0.6)
+  },
+
+  /** Doner on chips: the meat straight over the chips, sauces on top. */
+  doneronchips(ctx, w, h, rng) {
+    const s = S(w, h)
+    const cx = w * 0.5
+    const cy = h * 0.62
+    plate(ctx, cx, cy, s * 0.42, '#efe8da')
+
+    for (let i = 0; i < 40; i++) {
+      ctx.save()
+      ctx.translate(cx + (rng() - 0.5) * s * 0.52, cy + (rng() - 0.5) * s * 0.13)
+      ctx.rotate((rng() - 0.5) * 2.8)
+      ctx.beginPath()
+      ctx.roundRect(-s * 0.017, -s * 0.07, s * 0.034, s * 0.14, s * 0.01)
+      const fg = ctx.createLinearGradient(-s * 0.017, 0, s * 0.017, 0)
+      fg.addColorStop(0, mix('#f0cb80', '#c99b45', rng()))
+      fg.addColorStop(1, '#8a5f1c')
+      ctx.fillStyle = fg
+      ctx.fill()
+      ctx.restore()
+    }
+    for (let i = 0; i < 26; i++) {
+      ctx.save()
+      ctx.translate(cx + (rng() - 0.5) * s * 0.42, cy - s * 0.03 + (rng() - 0.5) * s * 0.1)
+      ctx.rotate((rng() - 0.5) * 1.8)
+      ctx.beginPath()
+      ctx.roundRect(-s * 0.045, -s * 0.009, s * 0.09, s * 0.018, s * 0.008)
+      const mg = ctx.createLinearGradient(0, -s * 0.009, 0, s * 0.009)
+      mg.addColorStop(0, '#a85e34')
+      mg.addColorStop(1, '#5c2a14')
+      ctx.fillStyle = mg
+      ctx.fill()
+      ctx.restore()
+    }
+    // The two sauces
+    for (const [colour, dx] of [['#f6efdb', -0.08], ['#7fa04a', 0.06]]) {
+      ctx.beginPath()
+      let x = cx + s * dx - s * 0.11
+      ctx.moveTo(x, cy - s * 0.08)
+      for (let i = 1; i <= 6; i++) {
+        x += s * 0.038
+        ctx.quadraticCurveTo(x - s * 0.019, cy - s * 0.08 + (i % 2 ? s * 0.026 : -s * 0.016), x, cy - s * 0.062)
+      }
+      ctx.strokeStyle = a(colour, 0.9)
+      ctx.lineWidth = s * 0.012
+      ctx.lineCap = 'round'
+      ctx.stroke()
+    }
+    steam(ctx, cx, cy - s * 0.12, s * 0.15, s * 0.3, rng, 0.4)
+  },
+
+  /** Jacket potato: split, buttered, filled. */
+  jacket(ctx, w, h, rng) {
+    const s = S(w, h)
+    const cx = w * 0.5
+    const cy = h * 0.62
+    plate(ctx, cx, cy, s * 0.4, '#f0e9db')
+
+    ctx.save()
+    blob(ctx, cx, cy - s * 0.04, s * 0.26, s * 0.15, rng, 0.08, 14)
+    const sg = ctx.createLinearGradient(cx - s * 0.26, cy - s * 0.18, cx + s * 0.26, cy + s * 0.1)
+    sg.addColorStop(0, '#a8763c')
+    sg.addColorStop(0.5, '#7d5426')
+    sg.addColorStop(1, '#4a3014')
+    ctx.fillStyle = sg
+    ctx.fill()
+    ctx.clip()
+    for (let i = 0; i < 40; i++) {
+      ctx.beginPath()
+      ctx.ellipse(cx + (rng() - 0.5) * s * 0.5, cy - s * 0.04 + (rng() - 0.5) * s * 0.28,
+        s * 0.012 * rng(), s * 0.008 * rng(), rng() * TAU, 0, TAU)
+      ctx.fillStyle = a(rng() > 0.5 ? '#d8a862' : '#2e1c0a', 0.3)
+      ctx.fill()
+    }
+    ctx.restore()
+
+    // Split down the middle, fluffy inside
+    ctx.save()
+    blob(ctx, cx, cy - s * 0.06, s * 0.19, s * 0.075, rng, 0.14, 12)
+    const ig = ctx.createRadialGradient(cx - s * 0.05, cy - s * 0.09, 0, cx, cy - s * 0.06, s * 0.2)
+    ig.addColorStop(0, '#fdf6dd')
+    ig.addColorStop(1, '#e2cf9a')
+    ctx.fillStyle = ig
+    ctx.fill()
+    ctx.restore()
+    // Butter melting into it
+    ctx.save()
+    ctx.translate(cx + s * 0.01, cy - s * 0.075)
+    ctx.rotate(-0.2)
+    ctx.beginPath()
+    ctx.roundRect(-s * 0.035, -s * 0.018, s * 0.07, s * 0.036, s * 0.007)
+    ctx.fillStyle = '#f6de92'
+    ctx.fill()
+    ctx.restore()
+    crumbs(ctx, cx, cy - s * 0.06, s * 0.16, rng, 18, '#5f8a3c')
+    steam(ctx, cx, cy - s * 0.16, s * 0.14, s * 0.32, rng, 0.5)
+  },
+
+  /** Apple crumble: a dish of rubble with the fruit bubbling up the sides. */
+  crumble(ctx, w, h, rng) {
+    const s = S(w, h)
+    const cx = w * 0.5
+    const cy = h * 0.6
+    contact(ctx, cx, cy + s * 0.14, s * 0.36, s * 0.09, 0.3)
+
+    ellipse(ctx, cx, cy + s * 0.07, s * 0.28, s * 0.11)
+    ctx.fillStyle = '#d5cdbc'
+    ctx.fill()
+    ellipse(ctx, cx, cy, s * 0.28, s * 0.11)
+    const dg = ctx.createLinearGradient(cx - s * 0.28, 0, cx + s * 0.28, 0)
+    dg.addColorStop(0, '#fffdf6')
+    dg.addColorStop(0.5, '#efe8d8')
+    dg.addColorStop(1, '#c6bda7')
+    ctx.fillStyle = dg
+    ctx.fill()
+
+    // Fruit showing at the edge
+    ctx.save()
+    ellipse(ctx, cx, cy, s * 0.25, s * 0.095)
+    ctx.clip()
+    ctx.fillStyle = '#c98a2c'
+    ctx.fillRect(cx - s * 0.3, cy - s * 0.12, s * 0.6, s * 0.24)
+    // The crumble itself: a few hundred small warm lumps
+    for (let i = 0; i < 220; i++) {
+      const th = rng() * TAU
+      const rr = Math.sqrt(rng()) * s * 0.25
+      const x = cx + Math.cos(th) * rr
+      const y = cy + Math.sin(th) * rr * 0.38
+      const r = s * 0.014 * (0.5 + rng())
+      ctx.beginPath()
+      ctx.arc(x, y, r, 0, TAU)
+      ctx.fillStyle = mix('#f0d9a2', '#a5701f', rng() * rng())
+      ctx.fill()
+    }
+    ctx.restore()
+    ctx.strokeStyle = a('#b6ac96', 0.7)
+    ctx.lineWidth = Math.max(1, s * 0.006)
+    ellipse(ctx, cx, cy, s * 0.28, s * 0.11)
+    ctx.stroke()
+    steam(ctx, cx, cy - s * 0.1, s * 0.16, s * 0.34, rng, 0.55)
+  },
+
+  /** School dinner cake: a yellow sponge square, sprinkles, custard poured over. */
+  cakecustard(ctx, w, h, rng) {
+    const s = S(w, h)
+    const cx = w * 0.5
+    const cy = h * 0.63
+    plate(ctx, cx, cy, s * 0.4, '#f2ece0')
+
+    // The custard, poured first and pooling
+    ctx.save()
+    blob(ctx, cx, cy + s * 0.005, s * 0.26, s * 0.085, rng, 0.16, 13)
+    const cg = ctx.createRadialGradient(cx - s * 0.06, cy - s * 0.03, 0, cx, cy, s * 0.28)
+    cg.addColorStop(0, '#ffe9a0')
+    cg.addColorStop(0.6, '#f4d474')
+    cg.addColorStop(1, '#d2a93c')
+    ctx.fillStyle = cg
+    ctx.fill()
+    ctx.restore()
+
+    // Sponge, a proper square slab
+    ctx.save()
+    ctx.translate(cx, cy - s * 0.07)
+    ctx.rotate(-0.05)
+    ctx.beginPath()
+    ctx.moveTo(-s * 0.15, -s * 0.06)
+    ctx.lineTo(s * 0.15, -s * 0.06)
+    ctx.lineTo(s * 0.15, s * 0.05)
+    ctx.lineTo(-s * 0.15, s * 0.05)
+    ctx.closePath()
+    const sg = ctx.createLinearGradient(0, -s * 0.06, 0, s * 0.05)
+    sg.addColorStop(0, '#f6e3a8')
+    sg.addColorStop(1, '#d8b86a')
+    ctx.fillStyle = sg
+    ctx.fill()
+    // The pink icing lid
+    ctx.beginPath()
+    ctx.moveTo(-s * 0.15, -s * 0.06)
+    ctx.lineTo(s * 0.15, -s * 0.06)
+    ctx.lineTo(s * 0.15, -s * 0.032)
+    ctx.quadraticCurveTo(0, -s * 0.018, -s * 0.15, -s * 0.032)
+    ctx.closePath()
+    ctx.fillStyle = '#f2b8c4'
+    ctx.fill()
+    // Hundreds and thousands
+    for (let i = 0; i < 34; i++) {
+      ctx.save()
+      ctx.translate((rng() - 0.5) * s * 0.28, -s * 0.048 + (rng() - 0.5) * s * 0.022)
+      ctx.rotate(rng() * TAU)
+      ctx.beginPath()
+      ctx.roundRect(-s * 0.008, -s * 0.003, s * 0.016, s * 0.006, s * 0.003)
+      ctx.fillStyle = ['#e0483c', '#3c76c4', '#f0c020', '#fffdf6', '#4aa050'][Math.floor(rng() * 5)]
+      ctx.fill()
+      ctx.restore()
+    }
+    ctx.restore()
+    steam(ctx, cx, cy - s * 0.14, s * 0.14, s * 0.3, rng, 0.4)
+  },
+
+  /* Pizza, four ways. Same base, different things on it. */
   ...pizzaVariants(),
 
   /* Doner, two ways. */
