@@ -48,8 +48,13 @@
     /* Text colour is set from measured contrast against the
        lightest ground it is ever set on — the card, #191412 — not
        chosen by eye. Headings land near 15:1, body near 11.5:1,
-       labels near 7.8:1, and the lightest fine-print token near
-       6.2:1 with a 13px floor.
+       labels near 7.8:1, and the faintest token near 6.2:1.
+
+       The smallest type on the page is 11 px mono with wide
+       tracking, which is a normal editorial device and legible at
+       that size — but only if it is not also faint. So --ink-faint
+       is never used below 13 px; anything smaller than that takes
+       --ink-mute or better.
 
        --shell is 3.7:1 on that ground, which is under what small
        text needs, so coral never carries body copy. Coral text is
@@ -592,7 +597,7 @@
     grid-column: 2 / -1;
     margin: .5rem 0 0;
     font-family: var(--mono); font-size: .68rem; letter-spacing: .16em;
-    text-transform: uppercase; color: var(--ink-faint);
+    text-transform: uppercase; color: var(--ink-mute);
   }
   .dish__heat b { color: var(--shell-hi); font-weight: 400; letter-spacing: .1em; }
 
@@ -641,8 +646,14 @@
     font-size: .95rem;
     background: linear-gradient(180deg, #16100d, #0a0807);
   }
-  .no-webgl .pass__poster { display: grid; }
-  .no-webgl .pass__hit, .no-webgl .pass__bar { display: none; }
+  /* With no canvas there is nothing for a 3:2 panel to hold, and a
+     large empty box next to a menu reads as a broken image. The
+     note shrinks to the size of the note. */
+  .no-dish .pass__poster { display: grid; position: static; }
+  .no-dish .pass__canvas,
+  .no-dish .pass__hit,
+  .no-dish .pass__bar { display: none; }
+  .no-dish .pass { position: static; }
 
   .pass__hit {
     position: absolute;
@@ -667,7 +678,7 @@
   .pass__hint {
     margin: 0;
     font-family: var(--mono); font-size: .68rem; letter-spacing: .16em;
-    text-transform: uppercase; color: var(--ink-faint);
+    text-transform: uppercase; color: var(--ink-mute);
   }
 
   /* ── the ingredient tags ────────────────────────────────────
@@ -769,7 +780,7 @@
     margin-top: 1.5rem; padding-top: 1rem;
     border-top: 1px solid var(--hair);
     font-family: var(--mono); font-size: .7rem; letter-spacing: .14em;
-    text-transform: uppercase; color: var(--ink-faint);
+    text-transform: uppercase; color: var(--ink-mute);
   }
 }
 
@@ -1021,6 +1032,14 @@
     .place__grid, .reserve__grid { grid-template-columns: minmax(0, 1fr); }
   }
 
+  /* Between a laptop and a phone the copy has to give ground: the
+     dish is beside it, not behind it, and something has to be
+     narrower. */
+  @media (max-width: 1200px) and (min-width: 901px) {
+    .hero__copy { max-width: 27rem; }
+    .hero__lede { max-width: 24rem; }
+  }
+
   @media (max-width: 900px) {
     :root { --nav-h: 4rem; }
 
@@ -1052,6 +1071,19 @@
     .hero__copy { max-width: none; }
     .hero__rail { font-size: .66rem; }
     .hero__now { display: none; }
+
+    /* On a phone the dish is above the words rather than beside
+       them, so the shade under the copy is a horizon rather than a
+       pool: everything below the plate goes dark, and the type
+       never competes with a lit object for the same pixels. */
+    .hero__stage::after {
+      content: "";
+      position: absolute;
+      inset: 32% 0 0;
+      background: linear-gradient(to bottom, rgba(11, 9, 8, 0), rgba(11, 9, 8, .84) 30%, var(--char) 58%);
+      pointer-events: none;
+    }
+    .hero__copy::before { display: none; }
 
     /* Hover is not available, so the tags cannot wait to be asked
        for. They come in with the deconstruction and they are

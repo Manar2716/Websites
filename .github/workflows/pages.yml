@@ -2,8 +2,9 @@
 #
 # There is no build step: every site in this repo is static, with no
 # dependencies and no network calls, so the artifact is the checkout.
-# The repo root is published, which keeps both sites reachable —
-# `/` is the printer page and `/peets/` is the coffee one.
+# The repo root is published, which keeps every site reachable —
+# `/` is the printer page, `/peets/` is the coffee one and
+# `/shrim/` is the prawn restaurant.
 #
 # `enablement: true` turns Pages on the first time this runs, so the
 # repository does not have to be configured by hand beforehand.

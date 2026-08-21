@@ -61,6 +61,22 @@
     this.meshes = {};
 
     try { this.build(); } catch (e) { this.error = (e && e.message) || String(e); return; }
+
+    /* A GPU reset, a driver update, a laptop switching graphics —
+       contexts are lost in normal use, and a lost one does not
+       throw, it silently stops drawing. Rebuilding every buffer,
+       program and target from here would be a lot of code for a
+       rare event; saying so and falling back to the poster is
+       honest, and it is what the page already does for a browser
+       with no WebGL2 at all. */
+    var self = this;
+    canvas.addEventListener('webglcontextlost', function (e) {
+      e.preventDefault();
+      self.ok = false;
+      self.error = 'context lost';
+      if (self.onLost) self.onLost();
+    }, false);
+
     this.ok = true;
   }
 

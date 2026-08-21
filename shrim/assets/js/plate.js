@@ -104,7 +104,6 @@
       fog: [0.035, 0.048], steam: null
     };
     this._q = [0, 0, 0, 1];
-    this._q2 = [0, 0, 0, 1];
     this._p = [0, 0, 0];
     this._s = [1, 1, 1];
   }
@@ -399,12 +398,24 @@
     var fit = M.clamp(1.45 / Math.max(aspect, 0.34), 1, 3.0);
 
     var dist = dc.dist * fit * (1 + openV * 0.04) * (opt.distMul || 1);
-    var hgt = dc.height * (1 + openV * 0.04)
+    /* The height is scaled by the same `fit` as the distance.
+
+       Pulling back to cover a narrower frame is a longer lens, not
+       a different set-up, and the camera's angle to the table
+       should not change with it. Left absolute, a phone's
+       threefold pull-back dropped the elevation from twenty-one
+       degrees to eight and the plate went almost edge-on. */
+    var hgt = dc.height * fit * (1 + openV * 0.04)
       + this._pointer[1] * 0.34
       + Math.sin(this.time * 0.093) * 0.022 * drift
       + (opt.height || 0);
 
     var cam = this._cam;
+    /* set before anything reads it: `halfHNow` below is derived
+       from the field of view, and taking last frame's would put
+       the subject in the wrong place for one frame every time a
+       caller changed it */
+    cam.fov = (opt.fov || dc.fov || 0.42);
     /* targetX slides the whole frame sideways without turning the
        camera, which is how the hero keeps the dish clear of the
        words: the subject is at the origin and the frame moves off
@@ -422,7 +433,6 @@
     var halfHNow = dist * Math.tan(cam.fov * 0.5);
     cam.target[1] = 0.06 + openV * 0.62 + (opt.targetY || 0) - (opt.frameY || 0) * halfHNow;
     cam.target[2] = 0;
-    cam.fov = (opt.fov || dc.fov || 0.42);
 
     /* Focus is measured, not authored.
 
@@ -441,9 +451,15 @@
     var fy = cam.eye[1] - (0.10 + openV * 0.42);
     var fz = cam.eye[2];
     cam.focus = (Math.sqrt(fx * fx + fy * fy + fz * fz) - openV * 0.34) * (opt.focusMul || 1);
-    /* and the depth of field opens as the camera moves back, the
-       way a real one does at a fixed aperture */
-    cam.dofRange = M.lerp(dc.range, dc.range * 1.9, openV) * Math.max(dist / dc.dist, 0.6);
+    /* The depth of field opens as the camera moves back — but only
+       when moving back actually makes the subject smaller. `fit`
+       is the opposite case: it pulls back precisely to keep the
+       subject the same size in a narrower frame, so it is divided
+       back out here. Left in, a phone got three times the depth of
+       field and the whole point of shooting food wide open went
+       with it. */
+    cam.dofRange = M.lerp(dc.range, dc.range * 1.9, openV)
+      * M.clamp(dist / (dc.dist * fit), 0.6, 2.2);
     cam.dof = opt.dof === undefined ? 1 : opt.dof;
 
     /* ── parts ───────────────────────────────────────────────
@@ -456,7 +472,7 @@
     var stiff = this.reduced ? 420 : 148;
     var damp = this.reduced ? 41 : 22.2;   /* just under critical (2√148 ≈ 24.3) */
 
-    var P = this._p, Q = this._q, Q2 = this._q2, S = this._s;
+    var P = this._p, Q = this._q, S = this._s;
     var i, j, p;
 
     for (i = 0; i < this.parts.length; i++) {

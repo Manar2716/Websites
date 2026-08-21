@@ -116,14 +116,25 @@
 
     heroStage = new SHRIM.Stage(heroCanvas, opts);
     if (!heroStage.ok) {
-      root.classList.add('no-webgl');
+      /* No WebGL2 at all: the hero falls back to its poster and so
+         does the stage in the menu. */
+      root.classList.add('no-webgl', 'no-dish');
       return false;
     }
+    heroStage.onLost = function () { root.classList.add('no-webgl', 'no-dish'); };
     heroPlate = new SHRIM.Plate(heroStage, { reduced: reduced, azimuth: -0.30 });
     heroPlate.load(SHRIM.DISHES[0]);
 
     dishStage = new SHRIM.Stage(dishCanvas, opts);
-    if (!dishStage.ok) { root.classList.add('no-webgl'); return true; }
+    if (!dishStage.ok) {
+      /* The hero got a context and the menu did not — a driver out
+         of contexts, most likely. Only the menu falls back; adding
+         `no-webgl` here would drop a poster over a hero that is
+         rendering perfectly well underneath it. */
+      root.classList.add('no-dish');
+      return true;
+    }
+    dishStage.onLost = function () { root.classList.add('no-dish'); };
     dishPlate = new SHRIM.Plate(dishStage, { reduced: reduced });
     return true;
   }
@@ -167,11 +178,19 @@
            The hero sits a good deal further back, and it slides
            the frame left so the dish clears the words instead of
            being set behind them. */
+        /* How far the dish sits to the right, and how far back, both
+           follow how much of the window the copy is taking. At
+           1440 the words are a third of the width and the platter
+           has room beside them; at 1000 they are half of it, and a
+           framing tuned on a large laptop puts the headline
+           through the middle of the plate. One number, measured
+           off the viewport, does both. */
+        var tight = M.sat((1440 - store.vw) / 540);
         var scene = heroPlate.update(dt, {
-          targetX: wide ? -0.78 : 0,
-          frameY: wide ? 0 : 0.34,
-          height: (wide ? 0.62 : 0.20) + p * 0.55,
-          distMul: (wide ? 1.28 : 1.0) * (1 - p * 0.07),
+          targetX: wide ? -(0.52 + tight * 0.42) : 0,
+          frameY: wide ? 0 : 0.46,
+          height: (wide ? 0.62 : 0) + p * 0.55,
+          distMul: (wide ? 1.28 + tight * 0.24 : 1.0) * (1 - p * 0.07),
           azimuth: p * 0.30,
           fade: 1 - M.smoothstep(0.55, 1, p),
           exposureMul: 1 - p * 0.12,
@@ -270,6 +289,20 @@
     doc.addEventListener('visibilitychange', function () {
       if (!doc.hidden) { lastT = now(); wake(); }
     });
+
+    /* Someone can turn reduced motion on without reloading the
+       page, and on a page whose main feature is motion that is
+       exactly the moment they most want it respected. */
+    var mq = global.matchMedia('(prefers-reduced-motion: reduce)');
+    var onMotion = function () {
+      reduced = mq.matches;
+      root.setAttribute('data-motion', reduced ? 'off' : 'on');
+      if (heroPlate) heroPlate.reduced = reduced;
+      if (dishPlate) dishPlate.reduced = reduced;
+      wake();
+    };
+    if (mq.addEventListener) mq.addEventListener('change', onMotion);
+    else if (mq.addListener) mq.addListener(onMotion);
   }
 
   /* ── go ──────────────────────────────────────────────────── */

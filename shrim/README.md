@@ -200,8 +200,12 @@ hope" is not a way to check that a dish came apart correctly.
 
 Text colour is set from measured contrast against the lightest ground it is
 ever set on — the card, `#191412` — not chosen by eye. Headings land near
-15:1, body near 11.5:1, labels near 7.8:1, and the lightest fine-print token
-near 6.2:1 with a 13 px floor.
+15:1, body near 11.5:1, labels near 7.8:1, and the faintest token near 6.2:1.
+
+The smallest type on the page is 11 px mono with wide tracking. That is a
+normal editorial device and legible at that size — but only if it is not also
+faint, so the faintest token is never used below 13 px and anything smaller
+takes the label tone or better.
 
 The brand coral is 3.7:1 on that ground, which is under what small text needs,
 so coral never carries body copy. Coral text is always the lighter tone, at
@@ -229,6 +233,18 @@ type instead of a canvas, and the menu index still selects dishes and still
 fills in the detail panel — which is where the recipe actually lives. Nothing
 on this page is available only to someone who can see a canvas.
 
+A lost context does the same thing. GPUs reset, drivers update, laptops switch
+between graphics chips, and a lost WebGL context does not throw — it silently
+stops drawing. Each stage listens for it and falls back rather than leaving a
+frozen frame on screen. The two fallbacks are separate classes, because the
+case where the hero has a context and the menu does not is real (a driver out
+of contexts) and dropping a poster over a hero that is rendering perfectly
+well would be worse than the bug.
+
+`prefers-reduced-motion` is also watched rather than read once. Someone can
+turn it on without reloading, and on a page whose main feature is motion that
+is exactly the moment they most want it respected.
+
 An inline head script sets a `js` class before first paint, and the entrance
 card, the canvases and every reveal-on-scroll style are gated behind it, so
 with scripting unavailable the page is the same words in a plain column.
@@ -236,7 +252,7 @@ with scripting unavailable the page is the same words in a plain column.
 The ingredient tags over the stage are decorative duplicates of the bullet list
 in the panel beside it, and the whole tag layer is `aria-hidden` — nothing
 flickers in and out of the accessibility tree as a dish opens. The nav collapses
-into a panel behind a toggle below 940 px, which closes on Escape and on any
+into a panel behind a toggle below 900 px, which closes on Escape and on any
 link.
 
 The booking form validates and then says what it is. Nothing is sent anywhere:
