@@ -1,0 +1,1085 @@
+/* ═══════════════════════════════════════════════════════════
+   shrim.css
+
+   Layer order is the whole architecture: anything later wins, so
+   nothing in here needs `!important` and nothing needs to be more
+   specific than it deserves to be.
+
+   ── the colour system ──────────────────────────────────────
+   Every colour on this page is somewhere in the ninety seconds a
+   prawn spends over heat.
+
+   It starts grey-blue and translucent — that is `--raw`, the one
+   cool value in the project, and it is here so the warm side has
+   something to be warm against. It goes through the pan: char,
+   ember, brass. It comes out coral, which is `--shell`, and coral
+   is the only saturated colour allowed anywhere. Then salt.
+
+   Nothing outside that transition is used. There is no second
+   accent hue, no blue link, no green success state. A palette
+   with one idea in it is what makes a page read as designed
+   rather than assembled, and this is a restaurant with one idea.
+   ═══════════════════════════════════════════════════════════ */
+
+@layer tokens, base, boot, nav, hero, sections, menu, place, reserve, foot, cursor, motion, responsive;
+
+/* ── TOKENS ───────────────────────────────────────────────── */
+@layer tokens {
+  :root {
+    /* raw */
+    --raw:       #7e93a2;
+    --raw-deep:  #3b4a54;
+
+    /* the pan */
+    --void:      #060505;
+    --char:      #0b0908;
+    --ember:     #12100e;
+    --card:      #191412;
+    --card-hi:   #221b18;
+    --pan:       #2a201a;
+
+    /* cooked */
+    --shell:     #c24b2a;
+    --shell-hi:  #e8825f;
+    --flesh:     #f0c6ac;
+    --brass:     #c08a3e;
+    --salt:      #f4eae1;
+
+    /* Text colour is set from measured contrast against the
+       lightest ground it is ever set on — the card, #191412 — not
+       chosen by eye. Headings land near 15:1, body near 11.5:1,
+       labels near 7.8:1, and the lightest fine-print token near
+       6.2:1 with a 13px floor.
+
+       --shell is 3.7:1 on that ground, which is under what small
+       text needs, so coral never carries body copy. Coral text is
+       always --shell-hi, at 6.8:1. */
+    --ink:       #f4eae1;
+    --ink-dim:   rgba(244, 234, 225, .86);
+    --ink-mute:  rgba(238, 212, 192, .76);
+    --ink-faint: rgba(238, 212, 192, .66);
+
+    --line:      rgba(194, 75, 42, .22);
+    --line-hi:   rgba(194, 75, 42, .50);
+    --hair:      rgba(244, 234, 225, .12);
+
+    --display: ui-serif, "Hoefler Text", "Didot", "Bodoni MT", "Playfair Display", Georgia, "Times New Roman", serif;
+    --sans: "Helvetica Neue", Helvetica, Arial, system-ui, -apple-system, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --gutter: clamp(1.25rem, 5vw, 5rem);
+    --nav-h: 4.5rem;
+    --measure: 33rem;
+    --radius: 2px;
+
+    /* One easing for everything that moves under a pointer, and a
+       slower one for anything that arrives on scroll. Two curves
+       is a house style; six is a mess. */
+    --ease: cubic-bezier(.22, .61, .21, 1);
+    --ease-out: cubic-bezier(.16, 1, .3, 1);
+  }
+}
+
+/* ── BASE ─────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    background: var(--char);
+    color: var(--ink-dim);
+    font-family: var(--sans);
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    /* the nav is fixed, so anchors have to stop short of it */
+    scroll-padding-top: calc(var(--nav-h) + 1rem);
+  }
+
+  body {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.62;
+    letter-spacing: .002em;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 { margin: 0; font-weight: 400; color: var(--ink); }
+  p { margin: 0 0 1.1em; }
+  p:last-child { margin-bottom: 0; }
+
+  a { color: inherit; text-decoration: none; }
+  a:focus-visible, button:focus-visible, input:focus-visible,
+  select:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--shell-hi);
+    outline-offset: 3px;
+    border-radius: var(--radius);
+  }
+
+  img, canvas, svg { display: block; max-width: 100%; }
+
+  ::selection { background: var(--shell); color: var(--salt); }
+
+  .wrap {
+    width: 100%;
+    max-width: 84rem;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .u-sr {
+    position: absolute; width: 1px; height: 1px; padding: 0;
+    margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+
+  .skip {
+    position: fixed; top: .6rem; left: .6rem; z-index: 200;
+    transform: translateY(-160%);
+    background: var(--shell); color: var(--salt);
+    padding: .7rem 1.1rem; font: 500 .875rem var(--sans);
+    border-radius: var(--radius);
+    transition: transform .22s var(--ease);
+  }
+  .skip:focus { transform: none; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .75rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: 0 0 1.15rem;
+  }
+
+  /* ── buttons ────────────────────────────────────────────────
+     Two of them, and both are the same object: a label, an arrow,
+     and a fill that rises from the bottom edge on hover.
+
+     The press is a scale of 0.985 held for as long as the pointer
+     is down, which is small enough that it reads as the surface
+     giving rather than as an animation. Everything here is
+     transform and opacity — no box-shadow transitions, no
+     background-position tricks, nothing that repaints. */
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: .7em;
+    padding: .92em 1.5em;
+    border: 1px solid var(--line-hi);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--ink);
+    font: 500 .9375rem/1 var(--sans);
+    letter-spacing: .02em;
+    cursor: pointer;
+    overflow: hidden;
+    isolation: isolate;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .22s var(--ease), border-color .22s var(--ease), color .22s var(--ease);
+  }
+  .btn::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: var(--shell);
+    transform: translateY(101%);
+    transition: transform .38s var(--ease-out);
+    z-index: -1;
+  }
+  .btn__label, .btn__arrow { position: relative; }
+  .btn__arrow { transition: transform .32s var(--ease-out); }
+
+  .btn--solid {
+    border-color: transparent;
+    background: var(--shell);
+    color: var(--salt);
+  }
+  .btn--solid::before { background: var(--shell-hi); }
+
+  .btn--sm { padding: .72em 1.1em; font-size: .875rem; }
+  .btn--wide { width: 100%; justify-content: center; }
+
+  .btn:active { transform: scale(.985); }
+  .btn[disabled] { opacity: .5; pointer-events: none; }
+
+  @media (hover: hover) {
+    .btn:hover { border-color: transparent; color: var(--salt); }
+    .btn:hover::before { transform: none; }
+    .btn:hover .btn__arrow { transform: translateX(.28em); }
+    .btn--ghost:hover { color: var(--salt); }
+  }
+
+  /* ── reveals ────────────────────────────────────────────────
+     Nothing on this page fades in. Everything arrives — a little
+     lower and a little further away — and lands. That is one
+     composited transform per element, and it is the difference
+     between a page that assembles and a page that cross-fades. */
+  .js .reveal {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0) scale(.988);
+    transition: opacity .72s var(--ease-out), transform .86s var(--ease-out);
+    transition-delay: var(--d, 0ms);
+    will-change: transform, opacity;
+  }
+  .js .reveal.is-in {
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+  }
+}
+
+/* ── ENTRANCE ─────────────────────────────────────────────── */
+@layer boot {
+  .boot {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 1.1rem;
+    background: var(--char);
+    color: var(--shell);
+    pointer-events: none;
+  }
+  .boot__mark {
+    display: block;
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+    animation: bootMark .52s var(--ease-out) .04s forwards;
+  }
+  .boot__word {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: .78rem;
+    letter-spacing: .42em;
+    text-indent: .42em;
+    color: var(--ink-mute);
+    opacity: 0;
+    animation: bootWord .46s var(--ease-out) .16s forwards;
+  }
+  @keyframes bootMark { to { opacity: 1; transform: none; } }
+  @keyframes bootWord { to { opacity: 1; } }
+
+  /* The card is gone in a second, and it spends most of that
+     second already transparent — the hero is fading up behind it
+     from 400ms. There is nothing being waited for here; the page
+     is not loading anything. */
+  html:not(.is-booting) .boot {
+    opacity: 0;
+    transition: opacity .42s var(--ease) .04s, visibility 0s .5s;
+    visibility: hidden;
+  }
+
+  /* everything the entrance moves */
+  .js.is-booting .hero__copy > *,
+  .js.is-booting .hero__rail,
+  .js.is-booting .nav { opacity: 0; }
+  .js.is-booting .hero__stage { opacity: 0; }
+}
+
+/* ── NAV ──────────────────────────────────────────────────── */
+@layer nav {
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 90;
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 3vw, 2.5rem);
+    padding-inline: var(--gutter);
+    color: var(--ink);
+    transition: opacity .5s var(--ease) .34s, transform .6s var(--ease-out) .34s;
+  }
+  /* A ground that arrives only once the hero is behind you. Over
+     the hero the nav floats on the image; over the page it needs
+     its own surface or the links land on whatever is underneath. */
+  .nav::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: rgba(11, 9, 8, .82);
+    backdrop-filter: blur(14px) saturate(1.1);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    border-bottom: 1px solid var(--hair);
+    opacity: 0;
+    transition: opacity .34s var(--ease);
+    z-index: -1;
+  }
+  .nav.is-stuck::before { opacity: 1; }
+
+  .nav__brand { display: flex; align-items: center; gap: .7rem; margin-right: auto; }
+  .nav__mark { color: var(--shell); display: block; transition: transform .5s var(--ease-out); }
+  .nav__word { display: grid; line-height: 1.1; }
+  .nav__name { font-family: var(--display); font-size: 1.22rem; letter-spacing: .005em; }
+  .nav__sub { font-family: var(--mono); font-size: .62rem; letter-spacing: .2em; color: var(--ink-mute); text-transform: uppercase; }
+  @media (hover: hover) { .nav__brand:hover .nav__mark { transform: translateX(3px) rotate(-4deg); } }
+
+  .nav__links { display: flex; align-items: center; gap: clamp(.9rem, 2vw, 1.9rem); }
+  .nav__link {
+    position: relative;
+    font-size: .9375rem;
+    color: var(--ink-dim);
+    padding: .4rem 0;
+    transition: color .24s var(--ease);
+  }
+  /* the underline wipes in from the left and out to the right, so
+     moving along the row reads as one continuous gesture */
+  .nav__link::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: .1rem;
+    height: 1px;
+    background: var(--shell-hi);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform .34s var(--ease-out);
+  }
+  .nav__link.is-on { color: var(--ink); }
+  .nav__link.is-on::after { transform: scaleX(1); }
+  @media (hover: hover) {
+    .nav__link:hover { color: var(--ink); }
+    .nav__link:hover::after { transform: scaleX(1); }
+  }
+
+  .nav__book { padding: .68em 1.15em; font-size: .875rem; }
+
+  .nav__toggle {
+    display: none;
+    width: 2.75rem; height: 2.75rem;
+    align-items: center; justify-content: center;
+    background: none; border: 1px solid var(--hair); border-radius: var(--radius);
+    color: var(--ink); cursor: pointer;
+  }
+  .nav__bars { display: grid; gap: 5px; width: 18px; }
+  .nav__bars i { display: block; height: 1px; background: currentColor; transition: transform .3s var(--ease); }
+  .nav__toggle[aria-expanded="true"] .nav__bars i:first-child { transform: translateY(3px) rotate(45deg); }
+  .nav__toggle[aria-expanded="true"] .nav__bars i:last-child { transform: translateY(-3px) rotate(-45deg); }
+}
+
+/* ── HERO ─────────────────────────────────────────────────── */
+@layer hero {
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    align-content: end;
+    padding: calc(var(--nav-h) + 3rem) var(--gutter) clamp(2.5rem, 6vh, 4.5rem);
+    isolation: isolate;
+  }
+
+  .hero__stage {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    transition: opacity .8s var(--ease) .05s;
+  }
+  .hero__canvas { width: 100%; height: 100%; }
+
+  /* A poster for browsers without WebGL2: four gradients standing
+     in for a lit table. It is only ever shown when the canvas
+     could not be created. */
+  .hero__poster {
+    position: absolute; inset: 0;
+    display: none;
+    background:
+      radial-gradient(60% 46% at 52% 44%, rgba(194, 75, 42, .30), transparent 68%),
+      radial-gradient(38% 30% at 30% 26%, rgba(240, 198, 172, .16), transparent 70%),
+      radial-gradient(90% 70% at 50% 108%, rgba(42, 32, 26, .95), transparent 70%),
+      linear-gradient(178deg, #0d0a09 0%, #16100d 52%, #0a0807 100%);
+  }
+  .no-webgl .hero__poster { display: block; }
+
+  /* The copy sits in its own pool of shade. The dish is a lit
+     object on the same screen, and the two are blocked apart
+     rather than one being laid over the other — the food takes
+     the middle and the right, the words take the bottom left. */
+  .hero__copy {
+    position: relative;
+    max-width: 32rem;
+    padding-top: 2rem;
+  }
+  .hero__copy::before {
+    content: "";
+    position: absolute;
+    inset: -3rem -6rem -4rem -8rem;
+    background: radial-gradient(74% 92% at 22% 68%, rgba(6, 5, 5, .90), rgba(6, 5, 5, 0) 72%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .hero__title {
+    font-family: var(--display);
+    font-size: clamp(3.1rem, 8.4vw, 6.8rem);
+    line-height: .92;
+    letter-spacing: -.022em;
+    margin: 0 0 1.3rem;
+  }
+  .hero__line { display: block; }
+  .hero__line--em { font-style: italic; color: var(--flesh); padding-left: .06em; }
+
+  .hero__lede {
+    max-width: 27rem;
+    color: var(--ink-dim);
+    text-shadow: 0 1px 14px rgba(6, 5, 5, .9);
+  }
+
+  .hero__actions { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 1.9rem; }
+
+  .hero__rail {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+    margin-top: clamp(2rem, 6vh, 3.6rem);
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--hair);
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .hero__scroll { display: inline-flex; align-items: center; gap: .7rem; }
+  .hero__scroll i {
+    display: block; width: 1px; height: 1.6rem;
+    background: linear-gradient(to bottom, var(--shell-hi), transparent);
+    animation: railDrip 2.6s var(--ease) infinite;
+  }
+  @keyframes railDrip {
+    0%, 100% { transform: scaleY(.35); transform-origin: 50% 0; opacity: .5; }
+    45% { transform: scaleY(1); opacity: 1; }
+  }
+
+  /* the entrance: the copy rises, one beat after the image */
+  .js .hero__copy > * , .js .hero__rail {
+    transition: opacity .62s var(--ease-out) var(--d, 0ms), transform .78s var(--ease-out) var(--d, 0ms);
+  }
+  .js.is-booting .hero__copy > *, .js.is-booting .hero__rail {
+    transform: translate3d(0, 18px, 0);
+  }
+}
+
+/* ── SECTIONS ─────────────────────────────────────────────── */
+@layer sections {
+  section { position: relative; }
+
+  .sec__head { max-width: 46rem; margin-bottom: clamp(2.4rem, 5vw, 4rem); }
+  .sec__title {
+    font-family: var(--display);
+    font-size: clamp(2rem, 4.3vw, 3.35rem);
+    line-height: 1.04;
+    letter-spacing: -.018em;
+  }
+  .sec__note { margin-top: 1.2rem; max-width: var(--measure); color: var(--ink-dim); }
+  .sec__note em { color: var(--flesh); font-style: normal; }
+
+  .story {
+    padding: clamp(5rem, 12vh, 9rem) 0 clamp(4rem, 9vh, 7rem);
+    background:
+      radial-gradient(70% 46% at 12% 0%, rgba(194, 75, 42, .07), transparent 62%),
+      var(--char);
+  }
+  .story__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: clamp(1.6rem, 3vw, 3rem);
+  }
+  .beat { border-top: 1px solid var(--line); padding-top: 1.5rem; }
+  .beat__no {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .2em;
+    color: var(--shell-hi); margin-bottom: .9rem;
+  }
+  .beat__title { font-family: var(--display); font-size: 1.42rem; line-height: 1.2; margin-bottom: .75rem; }
+  .beat p { color: var(--ink-dim); font-size: 1rem; }
+
+  .story__pull {
+    margin: clamp(3rem, 7vw, 5.5rem) 0 0;
+    max-width: 46rem;
+    font-family: var(--display);
+    font-size: clamp(1.4rem, 2.9vw, 2.15rem);
+    line-height: 1.28;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .story__attr {
+    display: block; margin-top: 1.1rem;
+    font-family: var(--mono); font-size: .74rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-mute);
+  }
+}
+
+/* ── MENU ─────────────────────────────────────────────────── */
+@layer menu {
+  .menu {
+    padding: clamp(4rem, 10vh, 7.5rem) 0 clamp(5rem, 11vh, 8rem);
+    background:
+      radial-gradient(58% 40% at 78% 22%, rgba(194, 75, 42, .09), transparent 66%),
+      linear-gradient(180deg, var(--char), var(--ember) 40%, var(--char));
+  }
+
+  .menu__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 25rem) minmax(0, 1fr);
+    grid-template-areas: "index pass" "detail pass";
+    align-items: start;
+    gap: clamp(1.6rem, 3.4vw, 3.6rem);
+  }
+  .index { grid-area: index; }
+  .pass { grid-area: pass; }
+  .detail { grid-area: detail; }
+
+  /* ── the index ─────────────────────────────────────────── */
+  .index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+
+  .dish {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: .1rem .9rem;
+    width: 100%;
+    padding: 1.05rem .2rem 1.05rem 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: none;
+    color: inherit;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color .28s var(--ease);
+  }
+  /* the fill that runs in from the left edge on hover and stays
+     for the selected row — one transform, no repaint */
+  .dish::before {
+    content: "";
+    position: absolute; inset: 0 -1rem;
+    background: linear-gradient(90deg, rgba(194, 75, 42, .16), rgba(194, 75, 42, 0) 72%);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform .42s var(--ease-out);
+    pointer-events: none;
+  }
+  @media (hover: hover) { .dish:hover::before { transform: scaleX(1); } }
+  .dish.is-on::before { transform: scaleX(1); }
+
+  .dish__no {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .12em;
+    color: var(--ink-mute);
+    transition: color .28s var(--ease);
+  }
+  .dish.is-on .dish__no { color: var(--shell-hi); }
+
+  .dish__name {
+    font-family: var(--display);
+    font-size: clamp(1.2rem, 1.9vw, 1.55rem);
+    line-height: 1.16;
+    color: var(--ink);
+  }
+  .dish__price {
+    font-family: var(--mono); font-size: .9rem; color: var(--ink-mute);
+    font-variant-numeric: tabular-nums;
+  }
+  .dish__price::before { content: "£"; opacity: .6; margin-right: .1em; }
+  .dish__line {
+    grid-column: 2 / -1;
+    margin: .38rem 0 0;
+    font-size: .9375rem;
+    color: var(--ink-mute);
+    max-width: 28rem;
+  }
+  .dish__heat {
+    grid-column: 2 / -1;
+    margin: .5rem 0 0;
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .dish__heat b { color: var(--shell-hi); font-weight: 400; letter-spacing: .1em; }
+
+  /* ── the pass ──────────────────────────────────────────── */
+  .pass { position: sticky; top: calc(var(--nav-h) + 1.4rem); }
+  /* Everything that sits over the stage is stacked explicitly.
+
+     A WebGL canvas is composited in a layer of its own, and so is
+     anything with a 3D transform on it — which the ingredient tags
+     have, because they are moved with one every frame. Left to
+     paint order, whether a promoted tag lands above or below a
+     promoted canvas is up to the compositor, and under a software
+     one it landed below: the tags were in the DOM, at the right
+     coordinates, fully opaque, and not on screen. An isolated
+     stacking context and four z-indexes settle it. */
+  .pass__inner {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: linear-gradient(180deg, #0f0c0b, #080706);
+  }
+  .pass__canvas {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    /* 3:2, which is the aspect every dish's camera was framed at.
+       A 4:3 card left a third of the frame as empty table above
+       an elliptical plate. */
+    aspect-ratio: 3 / 2;
+    /* the canvas is the picture; nothing may sit on top of it that
+       is not a label or the hit area */
+    background: transparent;
+  }
+
+  .pass__poster {
+    position: absolute; inset: 0;
+    z-index: 5;
+    display: none;
+    place-content: center;
+    padding: 2rem;
+    text-align: center;
+    color: var(--ink-mute);
+    font-size: .95rem;
+    background: linear-gradient(180deg, #16100d, #0a0807);
+  }
+  .no-webgl .pass__poster { display: grid; }
+  .no-webgl .pass__hit, .no-webgl .pass__bar { display: none; }
+
+  .pass__hit {
+    position: absolute;
+    z-index: 2;
+    inset: 0 0 4rem;
+    border: 0; background: transparent; padding: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pass__bar {
+    position: absolute;
+    z-index: 4;
+    left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .9rem 1rem;
+    background: linear-gradient(to top, rgba(6, 5, 5, .92), rgba(6, 5, 5, 0));
+  }
+  .pass__hint {
+    margin: 0;
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+
+  /* ── the ingredient tags ────────────────────────────────────
+     One per ingredient, parked at the projected centroid of that
+     ingredient's cluster and carrying a hairline back toward it.
+     Positioned with a translate off a 0–100% anchor, so moving
+     one costs a composite and never a layout. */
+  .pass__labels { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
+
+  .tag {
+    position: absolute;
+    top: 0; left: 0;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    opacity: 0;
+    transform: translate3d(-50%, -50%, 0);
+    transition: opacity .34s var(--ease);
+    white-space: nowrap;
+  }
+  .tag.is-in { opacity: 1; }
+  .tag__dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--shell-hi);
+    box-shadow: 0 0 0 4px rgba(194, 75, 42, .18);
+    flex: none;
+  }
+  .tag__rule { width: var(--rule, 1.6rem); height: 1px; background: var(--line-hi); flex: none; }
+  /* No backdrop-filter here, and that is deliberate rather than an
+     omission. A `backdrop-filter` on an element that is already
+     promoted by a 3D transform has to sample and blur the layer
+     behind it every frame — behind these is a WebGL canvas, which
+     is the most expensive thing on the page to read back — and
+     under software compositing the tags do not draw at all. The
+     ground is nearly opaque instead, which is what the type needed
+     from it anyway. */
+  .tag__text {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding: .3rem .55rem;
+    background: rgba(8, 6, 6, .90);
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+  }
+  .tag--left { flex-direction: row-reverse; }
+
+  /* ── the detail panel ──────────────────────────────────── */
+  .detail { margin-top: clamp(1.4rem, 3vw, 2.4rem); }
+  .detail__inner {
+    border-top: 1px solid var(--line);
+    padding-top: 1.5rem;
+  }
+  .detail__meta {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.2rem;
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-mute);
+    margin: 0 0 1.1rem;
+  }
+  .detail__copy { color: var(--ink-dim); font-size: 1rem; max-width: 30rem; }
+
+  .detail__label {
+    margin: 1.6rem 0 .8rem;
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--shell-hi);
+  }
+  .parts { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; }
+  /* The list is legible before the dish is opened and brightens
+     as each ingredient leaves the plate. It does not *start*
+     unreadable: the recipe is the content of this section, and
+     gating it behind an animation would put it behind a
+     capability rather than a click. */
+  .parts li {
+    display: grid;
+    grid-template-columns: .55rem minmax(0, 1fr);
+    gap: .7rem;
+    align-items: baseline;
+    font-size: .95rem;
+    color: var(--ink-mute);
+    opacity: .8;
+    transform: translate3d(0, 4px, 0);
+    transition: opacity .34s var(--ease), transform .42s var(--ease-out), color .34s var(--ease);
+  }
+  .parts li.is-in { opacity: 1; transform: none; color: var(--ink-dim); }
+  .parts li::before {
+    content: "";
+    width: .35rem; height: .35rem; border-radius: 50%;
+    background: var(--shell); align-self: center;
+    transform: scale(.5);
+    transition: transform .34s var(--ease-out);
+  }
+  .parts li.is-in::before { transform: none; }
+  .parts b { font-weight: 500; color: var(--ink); }
+  .parts span { color: var(--ink-faint); }
+
+  .detail__allergens {
+    margin-top: 1.5rem; padding-top: 1rem;
+    border-top: 1px solid var(--hair);
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+}
+
+/* ── LOCATION ─────────────────────────────────────────────── */
+@layer place {
+  .place {
+    padding: clamp(4rem, 10vh, 7.5rem) 0;
+    background: var(--char);
+  }
+  .place__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: clamp(1.8rem, 4vw, 4rem);
+    align-items: start;
+  }
+  .place__map {
+    position: sticky;
+    top: calc(var(--nav-h) + 2rem);
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--ember);
+  }
+  .place__map canvas { width: 100%; aspect-ratio: 1 / 1; display: block; }
+  .place__maplabel {
+    position: absolute; left: 1rem; bottom: .9rem; margin: 0;
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-mute);
+  }
+
+  .place__info { display: grid; gap: 2.2rem; }
+  .fact__title {
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--shell-hi); margin-bottom: .8rem;
+  }
+  .fact__body { font-style: normal; font-size: 1.05rem; color: var(--ink); line-height: 1.7; }
+  .fact__body a { border-bottom: 1px solid var(--line-hi); padding-bottom: 1px; transition: border-color .24s var(--ease); }
+  @media (hover: hover) { .fact__body a:hover { border-color: var(--shell-hi); } }
+  .fact__note { margin: .7rem 0 0; font-size: .9375rem; color: var(--ink-mute); }
+
+  .hours { width: 100%; border-collapse: collapse; font-size: .98rem; }
+  .hours th, .hours td { text-align: left; padding: .45rem 0; font-weight: 400; }
+  .hours th { color: var(--ink-dim); }
+  .hours td { text-align: right; font-family: var(--mono); font-size: .9rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .hours tr + tr th, .hours tr + tr td { border-top: 1px solid var(--hair); }
+  .hours__off th, .hours__off td { color: var(--ink-faint); }
+
+  /* the directions panel: it expands, it does not appear */
+  .directions {
+    overflow: hidden;
+    margin-top: 1.2rem;
+    border-left: 1px solid var(--line-hi);
+    padding-left: 1.3rem;
+  }
+  .js .directions {
+    display: block;
+    height: 0;
+    opacity: 0;
+    transition: height .46s var(--ease-out), opacity .3s var(--ease);
+  }
+  .js .directions.is-open { opacity: 1; }
+  .directions ol { margin: 0 0 1rem; padding-left: 1.1rem; color: var(--ink-dim); font-size: .98rem; }
+  .directions li { margin-bottom: .5rem; }
+  .directions__note { font-size: .9375rem; color: var(--ink-mute); margin: 0; }
+}
+
+/* ── RESERVE ──────────────────────────────────────────────── */
+@layer reserve {
+  .reserve {
+    padding: clamp(4rem, 10vh, 7.5rem) 0 clamp(5rem, 11vh, 8rem);
+    background:
+      radial-gradient(60% 44% at 84% 8%, rgba(194, 75, 42, .09), transparent 64%),
+      var(--ember);
+  }
+  .reserve__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 27rem);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+  .book {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.1rem;
+    padding: clamp(1.4rem, 3vw, 2.2rem);
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+  .field { grid-column: 1 / -1; display: grid; gap: .45rem; }
+  .field--half { grid-column: span 1; }
+  .field label {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-mute);
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: .8rem .85rem;
+    background: var(--void);
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+    color: var(--ink);
+    font: 400 .98rem var(--sans);
+    transition: border-color .24s var(--ease);
+  }
+  .field input::placeholder { color: var(--ink-faint); }
+  .field input:hover, .field select:hover { border-color: var(--line-hi); }
+  .field input:focus, .field select:focus { border-color: var(--shell-hi); }
+  .field input[aria-invalid="true"] { border-color: var(--shell); }
+  .book .btn { grid-column: 1 / -1; margin-top: .4rem; }
+
+  .book__status {
+    grid-column: 1 / -1;
+    margin: 0;
+    min-height: 1.4em;
+    font-family: var(--mono); font-size: .74rem; letter-spacing: .1em;
+    color: var(--ink-mute);
+  }
+  .book__status.is-ok { color: var(--shell-hi); }
+}
+
+/* ── FOOTER ───────────────────────────────────────────────── */
+@layer foot {
+  .foot {
+    padding: clamp(2.5rem, 6vh, 4rem) 0 clamp(2rem, 5vh, 3rem);
+    border-top: 1px solid var(--hair);
+    background: var(--char);
+  }
+  .foot__inner { display: grid; gap: 1.4rem; }
+  .foot__mark { margin: 0; font-family: var(--display); font-size: 1.5rem; color: var(--ink); }
+  .foot__links { display: flex; flex-wrap: wrap; gap: 1.4rem; font-size: .9375rem; color: var(--ink-mute); }
+  .foot__links a { transition: color .24s var(--ease); }
+  @media (hover: hover) { .foot__links a:hover { color: var(--ink); } }
+  .foot__note {
+    margin: 0; max-width: 42rem;
+    font-size: .8125rem; line-height: 1.6; color: var(--ink-faint);
+  }
+}
+
+/* ── CURSOR ───────────────────────────────────────────────── */
+@layer cursor {
+  /* A ring that lags and a dot that does not. The ring is the only
+     thing on the page allowed to be behind the pointer, and it is
+     eighteen pixels — big enough to be felt, small enough that
+     nobody has to look at it. Fine pointers only, and never under
+     reduced motion. */
+  .cursor { display: none; }
+
+  @media (hover: hover) and (pointer: fine) {
+    html[data-motion="on"].js .cursor {
+      display: block;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 120;
+      pointer-events: none;
+      mix-blend-mode: normal;
+    }
+    .cursor__ring, .cursor__dot {
+      position: absolute;
+      top: 0; left: 0;
+      border-radius: 50%;
+      transform: translate3d(-50%, -50%, 0);
+      will-change: transform;
+    }
+    .cursor__ring {
+      width: 20px; height: 20px;
+      border: 1px solid rgba(240, 198, 172, .55);
+      transition: width .3s var(--ease-out), height .3s var(--ease-out),
+                  border-color .3s var(--ease), background-color .3s var(--ease);
+    }
+    .cursor__dot { width: 3px; height: 3px; background: var(--flesh); }
+    .cursor__label {
+      position: absolute;
+      top: 0; left: 0;
+      transform: translate3d(-50%, calc(-50% + 26px), 0);
+      font-family: var(--mono); font-size: .6rem; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--flesh);
+      opacity: 0;
+      white-space: nowrap;
+      transition: opacity .24s var(--ease);
+    }
+    .cursor.is-link .cursor__ring { width: 34px; height: 34px; border-color: rgba(232, 130, 95, .8); }
+    .cursor.is-apart .cursor__ring {
+      width: 62px; height: 62px;
+      border-color: rgba(232, 130, 95, .7);
+      background: rgba(194, 75, 42, .1);
+    }
+    .cursor.is-apart .cursor__label { opacity: 1; }
+    .cursor.is-down .cursor__ring { width: 16px; height: 16px; }
+  }
+}
+
+/* ── MOTION ───────────────────────────────────────────────── */
+@layer motion {
+  /* Everything that moves on its own stops. Everything that moves
+     because it was asked to — opening a dish, expanding the
+     directions, the nav panel — keeps moving, because that is
+     navigation rather than decoration, and a control that changes
+     state with no transition at all is harder to follow, not
+     easier. Those are shortened instead. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    .js .reveal { opacity: 1; transform: none; }
+    .js.is-booting .hero__copy > *, .js.is-booting .hero__rail,
+    .js.is-booting .nav, .js.is-booting .hero__stage { opacity: 1; }
+    .boot { display: none; }
+    .hero__scroll i { animation: none; opacity: .8; }
+
+    .btn, .dish, .tag, .parts li, .directions {
+      transition-duration: .12s !important;
+    }
+  }
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@layer responsive {
+  /* ── the menu stacks before the nav does, because the pass
+        needs width more than the nav needs room ───────────── */
+  @media (max-width: 1080px) {
+    .menu__layout {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "pass" "index" "detail";
+    }
+    /* On a phone the stage stays put at the top and the index
+       scrolls under it, so choosing a dish and watching it change
+       are the same glance. */
+    .pass { position: sticky; top: var(--nav-h); z-index: 2; }
+    /* `aspect-ratio` with `width: 100%` and a `max-height` does not
+       keep the ratio — the width wins and the height is simply
+       clipped, which turned a 5:4 card into a 2.5:1 letterbox. The
+       height is the definite dimension here and the width follows
+       from it. */
+    .pass__canvas {
+      width: auto;
+      height: min(52svh, 76vw);
+      max-width: 100%;
+      aspect-ratio: 5 / 4;
+      margin-inline: auto;
+    }
+    .index { margin-top: 1.6rem; }
+    .place__grid, .reserve__grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 900px) {
+    :root { --nav-h: 4rem; }
+
+    .nav__toggle { display: flex; }
+    .nav__book { display: none; }
+
+    .nav__links {
+      position: fixed;
+      top: var(--nav-h); left: 0; right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: .5rem var(--gutter) 1.6rem;
+      background: rgba(11, 9, 8, .96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--hair);
+      transform: translate3d(0, -8px, 0);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .26s var(--ease), transform .32s var(--ease-out), visibility 0s .32s;
+    }
+    .nav__links.is-open { opacity: 1; transform: none; visibility: visible; transition-delay: 0s; }
+    .nav__link { padding: .95rem 0; border-bottom: 1px solid var(--hair); font-size: 1.05rem; }
+    .nav__link::after { display: none; }
+    .nav__link.is-on { color: var(--shell-hi); }
+
+    .hero { min-height: 92svh; }
+    .hero__copy { max-width: none; }
+    .hero__rail { font-size: .66rem; }
+    .hero__now { display: none; }
+
+    /* Hover is not available, so the tags cannot wait to be asked
+       for. They come in with the deconstruction and they are
+       smaller and closer in — six labels at desktop size do not
+       fit across a phone. */
+    .tag__text { font-size: .62rem; padding: .26rem .45rem; }
+    .tag__rule { width: .8rem; }
+  }
+
+  @media (max-width: 620px) {
+    .dish { grid-template-columns: 2.1rem minmax(0, 1fr) auto; padding-block: .9rem; }
+    .dish__line { font-size: .875rem; }
+    .book { grid-template-columns: 1fr; }
+    .field--half { grid-column: 1 / -1; }
+    .hero__actions .btn { flex: 1 1 auto; justify-content: center; }
+  }
+
+  /* There is no `content-visibility: auto` on the long sections,
+     and that is a decision rather than an oversight.
+
+     It is the right tool when the expensive thing on a page is
+     laying out and painting a lot of DOM. Here the expensive thing
+     is two WebGL pipelines, and those are already culled by scroll
+     position, stop with the loop and cost nothing off screen. What
+     `content-visibility` did buy was a subtree that the browser is
+     entitled to skip rendering — which meant `getBoundingClientRect`
+     inside it returned zeros to the reveal sweep, and, on a
+     software compositor, whole sections that simply did not paint.
+     Trading a measurable correctness problem for an unmeasurable
+     saving is a bad trade. */
+}
