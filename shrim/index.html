@@ -17,9 +17,15 @@
      classes, so with scripting unavailable the page is the same
      words in a plain column. */
   document.documentElement.classList.add('js', 'is-booting');
-  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    document.documentElement.setAttribute('data-motion', 'off');
-  }
+  /* Set in both directions rather than only when it is off. The
+     attribute is on <html> in the markup as the no-JS default, but
+     anything that lifts this page into a document it did not write
+     the root element of — a preview wrapper, an embed — has the
+     markup without the attribute, and the custom cursor is gated on
+     it. The script is the authority; the attribute is the fallback. */
+  var reduce = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.documentElement.setAttribute('data-motion', reduce ? 'off' : 'on');
 </script>
 </head>
 <body>
