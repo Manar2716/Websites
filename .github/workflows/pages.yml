@@ -2,8 +2,15 @@
 #
 # There is no build step: every site in this repo is static, with no
 # dependencies and no network calls, so the artifact is the checkout.
-# The repo root is published, which keeps both sites reachable —
-# `/` is the printer page and `/peets/` is the coffee one.
+# The repo root is published, which keeps every site reachable —
+# `/` is the printer page, `/peets/` is the coffee one and
+# `/shrimparty/` is the seafood one.
+#
+# The trigger used to name the Peet's branch, which stopped existing
+# the moment its pull request merged — so the last thing this workflow
+# published was that branch, and nothing has deployed since. It names
+# the default branch now, plus whichever feature branch is currently
+# being previewed.
 #
 # `enablement: true` turns Pages on the first time this runs, so the
 # repository does not have to be configured by hand beforehand.
@@ -11,7 +18,9 @@ name: Pages
 
 on:
   push:
-    branches: [claude/peets-coffee-website-sfihui]
+    branches:
+      - claude/3d-printer-scroll-animations-h3123z   # the default branch
+      - claude/shrimparty-website-redesign-mydysg    # previewing this one
   workflow_dispatch:
 
 permissions:

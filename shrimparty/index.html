@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en" data-motion="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shrimparty — Seafood buckets, Al Satwa, Dubai</title>
+<meta name="description" content="Shrimparty, Al Satwa: Cajun seafood buckets, tagines and sizzling plates, served on the table with no cutlery. A redesign concept built around a shrimp you can take apart.">
+<meta name="theme-color" content="#0A0806">
+<meta name="color-scheme" content="dark">
+<link rel="stylesheet" href="assets/css/shrimparty.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230A0806'/%3E%3Cpath d='M22 9c-7 0-11 3.6-11 8.2 0 3.4 2.6 5.8 6 5.8 2.2 0 3.6-1 3.6-2.4 0-1.2-.9-2-2.2-2' stroke='%23FF5A1F' stroke-width='2.6' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='21.5' cy='12.4' r='1.35' fill='%23FF5A1F'/%3E%3C/svg%3E">
+<script>
+  /* Runs before first paint. The boot card, the sticky film, the
+     canvas and every reveal are gated on this class, so with
+     scripting unavailable the page is the same words in a plain
+     column rather than a black screen. */
+  document.documentElement.classList.add('js', 'is-booting');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.dataset.motion = 'off';
+</script>
+</head>
+<body>
+
+<a class="skip" href="#menu">Skip to the menu</a>
+
+<!-- ══════════════ BOOT ══════════════ -->
+<div class="boot" id="boot" aria-hidden="true">
+  <div class="boot__in">
+    <span class="boot__mark"></span>
+    <p class="boot__word">SHRIMPARTY</p>
+    <p class="boot__sub mono">Al Satwa · Dubai</p>
+  </div>
+</div>
+
+<!-- ══════════════ THE CANVAS ══════════════
+     One WebGL2 context for the whole site. It is fixed behind
+     the page and is only *visible* in two places: behind the
+     film at the top, and behind the table when it is open.
+     Everywhere else it is culled and not rendering at all. -->
+<canvas id="gl" class="gl" aria-hidden="true"></canvas>
+
+<!-- ══════════════ NAV ══════════════ -->
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="Shrimparty, home">
+    <!-- The mark is the shape the whole site is about: a cooked
+         shrimp's curve, the segment breaks across it, the tail
+         fan, one antenna. Drawn open rather than closed, because
+         a closed curve at this size is a letter G. -->
+    <svg class="brand__mark" viewBox="0 0 40 40" width="34" height="34" aria-hidden="true" focusable="false">
+      <path d="M26.5 30.5C16.2 30.5 9.5 25 9.5 17.6 9.5 11.6 14.4 7.5 20.6 7.5c4.4 0 7.4 2.4 7.4 5.6"
+            stroke="currentColor" stroke-width="4.2" fill="none" stroke-linecap="round"/>
+      <path d="M17.6 8.7l1.5 3M23.4 8.2l.6 3.2M12.2 12.6l2.4 2.2M10.1 19.9l3-.4M12.6 25.1l2.6-1.6"
+            stroke="var(--g0)" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>
+      <path d="M26.5 30.5l5.4-3.3M26.5 30.5l4.6 1.1M26.5 30.5l1.1 4.4"
+            stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <circle cx="27.4" cy="11.6" r="1.5" fill="var(--g0)"/>
+      <path d="M29.4 11.2c2.6-2.1 4.6-2.9 6.6-2.6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".75"/>
+    </svg>
+    <span class="brand__word">
+      <span class="brand__name">SHRIMPARTY</span>
+      <span class="brand__ar" lang="ar">شرمبارتي</span>
+    </span>
+  </a>
+
+  <nav class="nav__links" id="navlinks" aria-label="Primary">
+    <a href="#rule" class="nav__link">The house rule</a>
+    <a href="#menu" class="nav__link">Menu</a>
+    <a href="#visit" class="nav__link">Visit</a>
+    <button class="nav__table" type="button" data-open-table>Open the table</button>
+    <a href="#book" class="nav__book">Book a table</a>
+  </nav>
+
+  <button class="nav__toggle" id="navtoggle" aria-expanded="false" aria-controls="navlinks">
+    <span class="nav__bars" aria-hidden="true"></span>
+    <span class="sr">Menu</span>
+  </button>
+</header>
+
+<!-- ══════════════ THE FILM ══════════════
+     Three acts on one scroll value: a shrimp in the dark, that
+     shrimp coming apart, and the camera pulling back to find the
+     bucket it came out of. -->
+<div class="film" id="top">
+  <div class="film__stage">
+
+    <!-- What is shown when there is no WebGL2, and what sits
+         under the canvas while it boots. Four gradients, no
+         image file. -->
+    <div class="poster" aria-hidden="true">
+      <span class="poster__pool"></span>
+      <span class="poster__body"></span>
+      <span class="poster__steam"></span>
+    </div>
+
+    <!-- The captions are a JavaScript layer, so with scripting
+         off the hero would be an empty black box. This is the
+         same title card in markup, and it is the only thing on
+         the page shown *because* the scripts did not arrive. -->
+    <div class="hero-static">
+      <p class="brow mono">Al Satwa · Dubai · since 2020</p>
+      <h1>Shrimparty</h1>
+      <p class="lede">Cajun seafood buckets, tagines and sizzling plates. No cutlery, no plates, no ceremony — the boil goes straight onto the table and you use your hands.</p>
+      <p class="cta-row"><a class="cta cta--solid" href="#menu">See the menu</a> <a class="cta" href="#book">Book a table</a></p>
+    </div>
+
+    <div class="scrim" aria-hidden="true"></div>
+
+    <!-- Captions duplicate prose that is also in `#rule` below,
+         so the whole layer is hidden from assistive technology
+         rather than flickering in and out of the tree. -->
+    <div class="caps" aria-hidden="true">
+      <div class="cap cap--hero" data-from="0" data-to="0.26">
+        <p class="brow mono">Al Satwa · Dubai · since 2020</p>
+        <h2 class="cap__title">SHRIMPARTY</h2>
+        <p class="cap__body">One shrimp, boiled in Cajun butter. There are about four hundred more where this came from.</p>
+        <p class="cta-row"><a class="cta cta--solid" href="#menu">See the menu</a> <button class="cta" type="button" data-open-table>Open the table</button></p>
+      </div>
+
+      <div class="cap cap--left" data-from="0.31" data-to="0.60">
+        <p class="brow mono">Keep scrolling</p>
+        <p class="cap__body cap__body--big">Head. Six shell plates, tail end first. The fan. Then what you came for.</p>
+      </div>
+
+      <div class="cap cap--left" data-from="0.72" data-to="0.99">
+        <p class="brow mono">Mix Shrimparty Bucket</p>
+        <p class="cap__body cap__body--big">Shrimp, crab, lobster, calamari and mussels, boiled together with baby potato and sweet corn.</p>
+        <p class="cta-row"><button class="cta cta--solid" type="button" data-open-table data-dish="mix-shrimparty-bucket">Take it apart</button></p>
+      </div>
+    </div>
+
+    <p class="hint mono" aria-hidden="true">Scroll</p>
+  </div>
+</div>
+
+<!-- ══════════════ THE HOUSE RULE ══════════════ -->
+<section class="rule" id="rule">
+  <div class="rule__in">
+    <p class="brow mono">The house rule</p>
+    <h2 class="rule__head">There is no cutlery.</h2>
+    <div class="rule__cols" data-reveal>
+      <div class="rule__col">
+        <p>Shrimparty was put together by chefs with more than twenty-five years in kitchens, who took the American Cajun way with seafood and ran it through everything else they knew. The first room opened in Dubai in 2020.</p>
+      </div>
+      <div class="rule__col rule__col--wide">
+        <p>The rule of the house is that there is no cutlery. Seafood arrives in a bucket, sauce and all, and it goes onto the table rather than onto plates. You wear the bib, you use your hands, and the table gets messy — that is the format, not an accident of it.</p>
+        <p>Twenty-five years of kitchens went into the sauces. The concept is American Cajun seafood, run through everything else the chefs knew, and it opened its first room here in 2020.</p>
+      </div>
+    </div>
+    <p class="rule__foot mono">Shell-ebration · شرمبارتي</p>
+  </div>
+</section>
+
+<!-- ══════════════ THE MENU ══════════════
+     The whole menu, in markup. The table is the experience; this
+     is the reference — it prints, it copies, it reads with the
+     canvas turned off, and every row opens its dish. -->
+<section class="menu" id="menu">
+  <div class="menu__head">
+    <p class="brow mono">The menu</p>
+    <h2>Thirty things, and you eat all of them with your hands.</h2>
+    <p class="menu__note">
+      Every dish below is on the table in three dimensions — pick a row and the camera goes to it.
+      <button class="link" type="button" data-open-table>Open the table</button>
+    </p>
+  </div>
+
+  <div class="menu__body" id="menulist">
+      <section class="cat" data-reveal>
+        <div class="cat__head">
+          <h3 class="cat__name" id="cat-soups">Soups</h3>
+          <p class="cat__kicker mono">Hot, and served first</p>
+        </div>
+        <button class="dish" type="button" data-dish="sea-carnival-soup">
+          <span class="dish__name">Sea Carnival Soup</span>
+          <span class="dish__price">AED 33</span>
+          <p class="dish__desc">Fresh shrimp, calamari and fish cooked in fresh cream and our mix spice.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="shrimparty-soup">
+          <span class="dish__name">Shrimparty Soup</span>
+          <span class="dish__price">AED 33</span>
+          <p class="dish__desc">Fresh shrimp, calamari, mix spice and fish cooked in fresh red sauce.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+      </section>
+      <section class="cat" data-reveal>
+        <div class="cat__head">
+          <h3 class="cat__name" id="cat-salad">Salad</h3>
+          <p class="cat__kicker mono">One, done properly</p>
+        </div>
+        <button class="dish" type="button" data-dish="shrimp-caesar-salad">
+          <span class="dish__name">Shrimp Caesar Salad</span>
+          <span class="dish__price">AED 33</span>
+          <p class="dish__desc">Sauteed shrimp on fresh crispy romaine, parmesan cheese and iceberg lettuce tossed in caesar dressing.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+      </section>
+      <section class="cat" data-reveal>
+        <div class="cat__head">
+          <h3 class="cat__name" id="cat-appetizers">Appetizers</h3>
+          <p class="cat__kicker mono">Fried, salted, shared</p>
+        </div>
+        <button class="dish" type="button" data-dish="fisherman-catch">
+          <span class="dish__name">Fisherman Catch</span>
+          <span class="dish__price">AED 52</span>
+          <p class="dish__desc">Fried mix crispy seafood spiced with our secret seasoning mix, served with lemon wedges and cold sauce.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="fried-shrimp-basket">
+          <span class="dish__name">Fried Shrimp Basket</span>
+          <span class="dish__price">AED 49</span>
+          <p class="dish__desc">Fried shrimp topped with our secret spices, served with lemon wedges and peri mayonnaise sauce.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="fried-calamari-basket">
+          <span class="dish__name">Fried Calamari Basket</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Deep fried calamari topped with secret spices, served with honey mustard sauce and lemon wedge.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="fried-fish-fingers-basket">
+          <span class="dish__name">Fried Fish Fingers Basket</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Deep fried fish fingers topped with secret spices, served with tartar sauce and lemon wedge.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="baked-mussels-cheese">
+          <span class="dish__name">Baked Mussels &amp; Cheese</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Baked mussels cooked in creamy cheesy sauce and melted cheese.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+      </section>
+      <section class="cat" data-reveal>
+        <div class="cat__head">
+          <h3 class="cat__name" id="cat-buckets">Seafood Buckets</h3>
+          <p class="cat__kicker mono">No cutlery. That is the point.</p>
+        </div>
+        <p class="cat__note">Every bucket is boiled with lemon, celery and fresh vegetables, cooked through with baby potato and sweet corn, finished in the Shrimparty hot sauce you choose, and served with white rice.</p>
+        <button class="dish" type="button" data-dish="shrimp-bucket">
+          <span class="dish__name">Shrimp Bucket<span class="dish__hero">Take it apart</span></span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Shrimp cooked with lemon flavor, celery, fresh vegetables cooked with baby potato, sweet corn and your choice of hot shrimparty sauces, served with white rice.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="mix-seafood-bucket">
+          <span class="dish__name">Mix Seafood Bucket</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Mix shrimp, mussels, crab, calamari cooked with lemon flavor, celery, fresh vegetables cooked with baby potato, sweet corn and your choice of hot shrimparty sauces, served with white rice.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="crabs-bucket">
+          <span class="dish__name">Crabs Bucket</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Crab cooked with lemon flavor, celery, fresh vegetables cooked with baby potato, sweet corn and your choice of hot shrimparty sauces, served with white rice.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="mussels-bucket">
+          <span class="dish__name">Mussels Bucket</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Mussels cooked with lemon wedges, celery, fresh vegetables cooked with baby potato, sweet corn and your choice of hot shrimparty sauces, served with white rice.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="mix-shrimparty-bucket">
+          <span class="dish__name">Mix Shrimparty Bucket<span class="dish__hero">Take it apart</span></span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">A boiled mix of shrimp, crab, lobster, calamari and mussels cooked together with baby potato and sweet corn with your choice of one of Shrimparty's hot sauces, served with white rice.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="lobster-bucket">
+          <span class="dish__name">Lobster Bucket</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Lobster cooked with lemon flavor, celery, fresh vegetables cooked with baby potato, sweet corn and your choice of hot shrimparty sauces, served with white rice.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+      </section>
+      <section class="cat" data-reveal>
+        <div class="cat__head">
+          <h3 class="cat__name" id="cat-tagine">Tagine</h3>
+          <p class="cat__kicker mono">Baked, and opened at the table</p>
+        </div>
+        <p class="cat__note">Every tagine is served with Shrimparty bread — RASHOUSH.</p>
+        <button class="dish" type="button" data-dish="mix-seafood-tagin">
+          <span class="dish__name">Mix Seafood Tagin</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Shrimp, fish fillet and fresh calamari cooked with garlic, white onion, celery and spices in a Yemeni tagine with your choice of tagine sauce, served with Shrimparty bread (RASHOUSH).</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="fish-filet-tagin">
+          <span class="dish__name">Fish Filet Tagin</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Baked fish fillet cooked together with your choice of any of the tagin sauces, served with Shrimparty bread (RASHOUSH).</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="shrimp-tagin">
+          <span class="dish__name">Shrimp Tagin</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Baked fresh shrimp cooked together with your choice of any of the tagin sauces, served with Shrimparty bread (RASHOUSH).</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="calamari-tagin">
+          <span class="dish__name">Calamari Tagin</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Baked calamari cooked with your choice of spicy marinara sauce, cajun creamy sauce or creamy cheesy sauce, served with Shrimparty bread (RASHOUSH).</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+      </section>
+      <section class="cat" data-reveal>
+        <div class="cat__head">
+          <h3 class="cat__name" id="cat-mains">Main Dishes</h3>
+          <p class="cat__kicker mono">Off the grill, out of the oven</p>
+        </div>
+        <button class="dish" type="button" data-dish="shrimparty-sizzling">
+          <span class="dish__name">Shrimparty Sizzling<span class="dish__hero">Take it apart</span></span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Collection of salmon, shrimp and calamari marinated in our seasoned olive oil and spice mix, served with lemon dill sauce on a sizzling plate.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="grilled-salmon">
+          <span class="dish__name">Grilled Salmon</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc dish__desc--none">Shrimparty does not publish a description for this one.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="lobster-thermidor">
+          <span class="dish__name">Lobster Thermidor<span class="dish__hero">Take it apart</span></span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Lobster meat and fresh shrimp cooked in lobster creamy sauce served in lobster shell topped with melted mozzarella cheese in the oven, served with one side item of your choice.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="fried-seabass">
+          <span class="dish__name">Fried Seabass</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Seabass fillet seasoned with secret spice mix and self raising breading fried to golden brown color, served with Spanish rice, tahina and sweet and sour sauce.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+      </section>
+      <section class="cat" data-reveal>
+        <div class="cat__head">
+          <h3 class="cat__name" id="cat-sides">Sides</h3>
+          <p class="cat__kicker mono">What goes under it</p>
+        </div>
+        <button class="dish" type="button" data-dish="steamed-white-rice">
+          <span class="dish__name">Steamed White Rice</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Steamed white rice.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="baked-baby-potato">
+          <span class="dish__name">Baked Baby Potato</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Baked baby potato seasoned with rosemary garlic butter sauce.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+      </section>
+      <section class="cat" data-reveal>
+        <div class="cat__head">
+          <h3 class="cat__name" id="cat-drinks">Drinks</h3>
+          <p class="cat__kicker mono">Cold, mostly</p>
+        </div>
+        <button class="dish" type="button" data-dish="fresh-juice">
+          <span class="dish__name">Fresh Juices</span>
+          <span class="dish__price">AED 23</span>
+          <p class="dish__desc">Fresh juices prepared upon order.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="mojito">
+          <span class="dish__name">Mojitos</span>
+          <span class="dish__price">AED 24</span>
+          <p class="dish__desc">Enjoy the fresh lemon, lime together with 7up, fresh mint, mojito syrup and choose your favorite flavor.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="shrimparty-soda">
+          <span class="dish__name">Shrimparty Soda</span>
+          <span class="dish__price">AED 21</span>
+          <p class="dish__desc">Flavoured soda with the most authentic flavours.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="soft-drink">
+          <span class="dish__name">Soft Drinks</span>
+          <span class="dish__price">AED 10</span>
+          <p class="dish__desc">Carbonated soft drink.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="bottled-ice-tea">
+          <span class="dish__name">Bottled Ice Tea</span>
+          <span class="dish__price">AED 8</span>
+          <p class="dish__desc">Iced tea with different flavours.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+        <button class="dish" type="button" data-dish="water">
+          <span class="dish__name">Water</span>
+          <span class="dish__price dish__price--none">Price not published</span>
+          <p class="dish__desc">Stay hydrated and refreshed with our water.</p>
+          <span class="dish__go">Open it →</span>
+        </button>
+      </section>
+  </div>
+
+  <noscript>
+    <p class="menu__note">The table needs JavaScript and WebGL2. The menu above is the whole menu either way.</p>
+  </noscript>
+
+  <p class="menu__legal mono">
+    Prices in AED, shown where Shrimparty publishes them. Where a price is not shown it is not published online —
+    call <a href="tel:+97142550033">+971&nbsp;4&nbsp;255&nbsp;0033</a>.
+  </p>
+</section>
+
+<!-- ══════════════ VISIT ══════════════ -->
+<section class="visit" id="visit">
+  <div class="visit__in">
+    <div class="visit__block">
+      <p class="brow mono">Where</p>
+      <p class="visit__big">58 21st St<br>Al Satwa, Dubai<br>United Arab Emirates</p>
+    </div>
+    <div class="visit__block">
+      <p class="brow mono">When</p>
+      <table class="hours">
+        <tbody>
+          <tr><th scope="row">Sunday – Thursday</th><td class="mono">12:00 – 01:00</td></tr>
+          <tr><th scope="row">Friday – Saturday</th><td class="mono">12:00 – 01:30</td></tr>
+        </tbody>
+      </table>
+      <p class="visit__now mono" id="opennow"></p>
+    </div>
+    <div class="visit__block">
+      <p class="brow mono">Reach us</p>
+      <p class="visit__big">
+        <a href="tel:+97142550033">+971 4 255 0033</a><br>
+        <a href="mailto:info@shrimparty.com">info@shrimparty.com</a>
+      </p>
+      <p class="visit__social">
+        <a href="https://www.instagram.com/shrimparty/" rel="noopener">Instagram</a>
+        <a href="https://www.facebook.com/ShrimPartyUAE/" rel="noopener">Facebook</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ── booking ────────────────────────────────────────────
+       Shrimparty books by phone, so this books by phone. The
+       form composes the message and hands it to the call or the
+       mail client; it does not pretend to hold a table. -->
+  <div class="book" id="book">
+    <div class="book__in">
+      <p class="brow mono">Book a table</p>
+      <h2 class="book__head">Tell us when, and we will call it in.</h2>
+      <form class="book__form" id="bookform">
+        <p class="field">
+          <label for="b-when">Date</label>
+          <input type="date" id="b-when" name="when" required>
+        </p>
+        <p class="field">
+          <label for="b-time">Time</label>
+          <input type="time" id="b-time" name="time" value="20:00" min="12:00" required>
+        </p>
+        <p class="field field--narrow">
+          <label for="b-size">People</label>
+          <input type="number" id="b-size" name="size" min="1" max="30" value="4" required>
+        </p>
+        <p class="field field--wide">
+          <label for="b-name">Name</label>
+          <input type="text" id="b-name" name="name" autocomplete="name" required>
+        </p>
+        <p class="book__actions">
+          <a class="cta cta--solid" href="tel:+97142550033">Call +971 4 255 0033</a>
+          <button class="cta" type="submit">Send it by email</button>
+        </p>
+        <p class="book__said mono" id="booksaid" role="status"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="foot__in">
+    <p class="foot__word">SHRIMPARTY</p>
+    <p class="foot__note">
+      An unofficial redesign concept for Shrimparty, Al Satwa, Dubai. Not affiliated with or produced for the
+      restaurant. Menu text, prices, hours, address and contact details are the restaurant's own; everything
+      drawn on this page is generated in code, and no photograph is used anywhere in it.
+    </p>
+    <p class="foot__links">
+      <a href="#menu">Menu</a><a href="#visit">Visit</a><a href="#book">Book</a>
+      <a href="https://shrimparty.com/" rel="noopener">shrimparty.com</a>
+    </p>
+  </div>
+</footer>
+
+<!-- ══════════════ THE TABLE ══════════════
+     The 3D menu. Thirty dishes on one board; the camera dollies
+     along it and moves into whichever one you open. -->
+<div class="table" id="table" hidden>
+  <div class="table__top">
+    <p class="table__brand mono">SHRIMPARTY · the table</p>
+    <div class="table__cats" id="tablecats" role="tablist" aria-label="Menu sections"></div>
+    <button class="table__close" type="button" id="tableclose" aria-label="Close the table">Close <span aria-hidden="true">✕</span></button>
+  </div>
+
+  <div class="table__caption" id="tablecap">
+    <p class="table__cat mono" id="capcat"></p>
+    <h2 class="table__name" id="capname"></h2>
+    <p class="table__price mono" id="capprice"></p>
+    <p class="table__desc" id="capdesc"></p>
+    <p class="table__cue mono" id="capcue"></p>
+    <p class="table__act">
+      <button class="cta cta--solid" type="button" id="capopen">Open it</button>
+      <button class="cta" type="button" id="capback" hidden>Back to the table</button>
+    </p>
+  </div>
+
+  <p class="table__part mono" id="tablepart" aria-live="polite"></p>
+
+  <div class="table__nav">
+    <button class="table__arrow" type="button" id="tprev" aria-label="Previous dish">‹</button>
+    <p class="table__count mono" id="tcount"></p>
+    <button class="table__arrow" type="button" id="tnext" aria-label="Next dish">›</button>
+  </div>
+
+  <p class="table__help mono" id="tablehelp">Drag to move along the table · click a dish to open it · drag any piece · Esc to leave</p>
+  <p class="table__perf mono" id="tableperf" hidden></p>
+</div>
+
+<script src="assets/js/math.js"></script>
+<script src="assets/js/gl.js"></script>
+<script src="assets/js/shaders.js"></script>
+<script src="assets/js/forms.js"></script>
+<script src="assets/js/menu.js"></script>
+<script src="assets/js/camera.js"></script>
+<script src="assets/js/stage.js"></script>
+<script src="assets/js/dishes.js"></script>
+<script src="assets/js/plates.js"></script>
+<script src="assets/js/acts.js"></script>
+<script src="assets/js/scenes.js"></script>
+<script src="assets/js/site.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
