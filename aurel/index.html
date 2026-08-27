@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en" data-motion="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AUREL — Dental Studio, DIFC Dubai</title>
+<meta name="description" content="AUREL is a design concept for a private dental studio in Dubai: considered general, cosmetic and restorative dentistry, an interactive anatomy study, and a six-step appointment booking.">
+<meta name="theme-color" content="#F6F2EC">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="assets/css/aurel.css" as="style">
+<link rel="stylesheet" href="assets/css/aurel.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230E1A24'/%3E%3Cpath d='M16 8.4c2.6-1.9 6.4-1.2 7.3 2.1.8 3-.6 5.4-1.3 8.4-.6 2.6-.7 5.1-2.4 5.1-1.5 0-1.6-3.4-3.6-3.4s-2.1 3.4-3.6 3.4c-1.7 0-1.8-2.5-2.4-5.1-.7-3-2.1-5.4-1.3-8.4.9-3.3 4.7-4 7.3-2.1z' fill='%23F6F2EC'/%3E%3C/svg%3E">
+<script>
+  /* Runs before first paint. Everything that would leave the page
+     unusable if the scripts never arrive — reveal-on-scroll starts,
+     collapsed panels, the media plates — is gated behind this class,
+     so with scripting off the page is the same words in a plain
+     column with every panel already open. */
+  document.documentElement.classList.add('js');
+</script>
+</head>
+<body>
+
+<a class="skip" href="#treatments">Skip to treatments</a>
+
+<!-- ══════════════════════════ NAV ══════════════════════════ -->
+<header class="nav" id="nav" data-state="top">
+  <div class="nav__bar">
+    <a class="nav__brand" href="#top" aria-label="AUREL Dental Studio, home">
+      <span class="nav__mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="26" height="26" focusable="false">
+          <path d="M16 8.4c2.6-1.9 6.4-1.2 7.3 2.1.8 3-.6 5.4-1.3 8.4-.6 2.6-.7 5.1-2.4 5.1-1.5 0-1.6-3.4-3.6-3.4s-2.1 3.4-3.6 3.4c-1.7 0-1.8-2.5-2.4-5.1-.7-3-2.1-5.4-1.3-8.4.9-3.3 4.7-4 7.3-2.1z"
+                fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="nav__word">
+        <span class="nav__name">AUREL</span>
+        <span class="nav__sub">Dental Studio · DIFC</span>
+      </span>
+    </a>
+
+    <nav class="nav__links" id="navlinks" aria-label="Primary">
+      <a href="#treatments" class="nav__link">Treatments</a>
+      <a href="#about" class="nav__link">About</a>
+      <a href="#dentists" class="nav__link">Dentists</a>
+      <a href="#results" class="nav__link">Results</a>
+      <a href="#reviews" class="nav__link">Reviews</a>
+      <a href="#clinic" class="nav__link">Contact</a>
+    </nav>
+
+    <div class="nav__end">
+      <a href="#book" class="btn btn--solid nav__cta" data-magnetic>Book Appointment</a>
+      <button class="nav__burger" id="burger" type="button"
+              aria-expanded="false" aria-controls="drawer" aria-label="Open menu">
+        <span class="nav__burger-line"></span>
+        <span class="nav__burger-line"></span>
+      </button>
+    </div>
+  </div>
+  <span class="nav__rule" aria-hidden="true"></span>
+</header>
+
+<!-- ════════════════════ MOBILE DRAWER ═════════════════════ -->
+<div class="drawer" id="drawer" hidden>
+  <nav class="drawer__inner" aria-label="Mobile">
+    <a href="#treatments" class="drawer__link"><span class="drawer__idx">01</span>Treatments</a>
+    <a href="#anatomy"    class="drawer__link"><span class="drawer__idx">02</span>Anatomy</a>
+    <a href="#about"      class="drawer__link"><span class="drawer__idx">03</span>About</a>
+    <a href="#dentists"   class="drawer__link"><span class="drawer__idx">04</span>Dentists</a>
+    <a href="#results"    class="drawer__link"><span class="drawer__idx">05</span>Results</a>
+    <a href="#reviews"    class="drawer__link"><span class="drawer__idx">06</span>Reviews</a>
+    <a href="#clinic"     class="drawer__link"><span class="drawer__idx">07</span>Contact</a>
+    <a href="#book" class="btn btn--solid drawer__cta">Book Appointment</a>
+    <p class="drawer__foot">
+      Gate Village 4, DIFC, Dubai<br>
+      <a href="tel:+97140000000" class="ln">+971 4 000 0000</a>
+    </p>
+  </nav>
+</div>
+
+<main id="top">
+
+<!-- ══════════════════════════ HERO ═════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero__grid">
+
+    <div class="hero__copy">
+      <p class="eyebrow reveal" data-reveal="1">Private dental studio — Dubai</p>
+
+      <h1 class="hero__title">
+        <span class="line" data-reveal="2"><span class="line__in">Dentistry</span></span>
+        <span class="line" data-reveal="3"><span class="line__in">that reads as</span></span>
+        <span class="line" data-reveal="4"><span class="line__in em">no dentistry</span></span>
+        <span class="line" data-reveal="5"><span class="line__in">at all.</span></span>
+      </h1>
+
+      <p class="hero__lede reveal" data-reveal="6">
+        We work to a single standard: the result should be difficult to
+        identify as work. Enamel-matched shade, preserved anatomy, margins
+        you cannot feel with your tongue.
+      </p>
+
+      <div class="hero__acts reveal" data-reveal="7">
+        <a href="#book" class="btn btn--solid" data-magnetic>Book an Appointment</a>
+        <a href="#treatments" class="btn btn--ghost" data-magnetic>Explore Treatments</a>
+      </div>
+
+      <dl class="hero__facts reveal" data-reveal="8">
+        <div><dt>Established</dt><dd>2011</dd></div>
+        <div><dt>Clinicians</dt><dd>Four specialists</dd></div>
+        <div><dt>Scanning</dt><dd>Intraoral, no trays</dd></div>
+      </dl>
+    </div>
+
+    <figure class="hero__plate" data-parallax="hero">
+      <div class="media media--specimen media--hero" data-media="tooth-specimen"></div>
+      <span class="hero__shadow" aria-hidden="true"></span>
+      <figcaption class="hero__cap">
+        <span class="rule" aria-hidden="true"></span>
+        Mandibular first molar — three roots, intact occlusal table.
+      </figcaption>
+    </figure>
+
+  </div>
+
+  <div class="hero__strip" aria-hidden="true">
+    <div class="hero__strip-track">
+      <span>Diagnostics</span><i></i><span>Cosmetic</span><i></i><span>Implantology</span><i></i>
+      <span>Orthodontics</span><i></i><span>Endodontics</span><i></i><span>Preventive</span><i></i>
+      <span>Diagnostics</span><i></i><span>Cosmetic</span><i></i><span>Implantology</span><i></i>
+      <span>Orthodontics</span><i></i><span>Endodontics</span><i></i><span>Preventive</span><i></i>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════ ABOUT ═════════════════════════ -->
+<section class="about" id="about">
+  <div class="about__head">
+    <p class="eyebrow reveal">About the studio</p>
+    <h2 class="h-display reveal">
+      One chair. One clinician.<br>
+      <span class="em">The whole way through.</span>
+    </h2>
+  </div>
+
+  <div class="about__body">
+    <div class="about__col reveal">
+      <p class="lede">
+        AUREL was opened in 2011 by four specialists who were tired of
+        handing patients between rooms. Whoever plans your treatment
+        performs it, reviews it, and sees you at the follow-up.
+      </p>
+      <p>
+        The studio occupies one floor in Gate Village. There are four
+        surgeries, a scanning room and a ceramics bench — which is
+        unusual, and is the reason a veneer case that would normally
+        take three weeks takes eight days here.
+      </p>
+      <a href="#dentists" class="ln ln--arrow">Meet the clinicians</a>
+    </div>
+
+    <figure class="about__figure" data-parallax="about">
+      <div class="media media--tall" data-media="studio-interior"></div>
+    </figure>
+
+    <ol class="about__nums">
+      <li class="reveal"><span class="num" data-count="14" data-suffix="">0</span><span class="num__label">Years in DIFC</span></li>
+      <li class="reveal"><span class="num" data-count="9" data-suffix="k">0</span><span class="num__label">Cases completed</span></li>
+      <li class="reveal"><span class="num" data-count="4" data-suffix="">0</span><span class="num__label">Resident specialists</span></li>
+      <li class="reveal"><span class="num" data-count="8" data-suffix=" days">0</span><span class="num__label">In-house ceramics</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ═══════════════════════ TREATMENTS ══════════════════════ -->
+<section class="tx" id="treatments">
+  <div class="tx__head">
+    <p class="eyebrow reveal">Treatments</p>
+    <h2 class="h-display reveal">Eight things<br><span class="em">we do properly.</span></h2>
+    <p class="tx__note reveal">
+      Select a treatment to read the protocol, what it costs to begin,
+      and how many visits it takes.
+    </p>
+  </div>
+
+  <ul class="tx__list" id="txlist">
+    <!-- rows are written by treatments.js from one data table -->
+  </ul>
+
+  <!-- Scripting off: the index above is empty, so here are the
+       same eight treatments as a plain list. Names only — the
+       protocols, prices and visit counts stay in data.js rather
+       than being maintained in two places. -->
+  <noscript>
+    <ul class="fallback">
+      <li><b>General Dentistry</b> — examinations, cleanings, fillings</li>
+      <li><b>Cosmetic Dentistry</b> — shape, proportion and shade</li>
+      <li><b>Teeth Whitening</b> — to the brightest shade your enamel supports</li>
+      <li><b>Porcelain Veneers</b> — cut thin, bonded once</li>
+      <li><b>Dental Implants</b> — placed to a plan made from a scan</li>
+      <li><b>Orthodontics</b> — fixed appliances</li>
+      <li><b>Invisalign</b> — scanned, staged, reviewed every six weeks</li>
+      <li><b>Preventive Care</b> — hygiene, sealants, night guards</li>
+      <li class="fallback__note">For what each involves, call
+        <a class="ln" href="tel:+97140000000">+971 4 000 0000</a>.</li>
+    </ul>
+  </noscript>
+
+  <!-- follows the cursor over the list on pointer devices -->
+  <div class="tx__peek" id="txpeek" aria-hidden="true"><div class="tx__peek-in"></div></div>
+</section>
+
+<!-- ════════════════════════ ANATOMY ════════════════════════ -->
+<section class="anat" id="anatomy">
+  <div class="anat__head">
+    <p class="eyebrow reveal">Anatomy</p>
+    <h2 class="h-display reveal">Where the work<br><span class="em">actually happens.</span></h2>
+    <p class="anat__note reveal">
+      Four regions of a single tooth, and what we do to each of them.
+      Select a marker to look closer.
+    </p>
+  </div>
+
+  <noscript>
+    <ul class="fallback">
+      <li><b>Occlusal table</b> — cusps and fissures, where decay usually starts.</li>
+      <li><b>Enamel</b> — the hardest tissue in the body, and the only one that cannot repair itself.</li>
+      <li><b>Cervical margin</b> — where crown meets root, and where the gum sits.</li>
+      <li><b>Roots and canals</b> — three roots and, more often than the textbook says, four canals.</li>
+    </ul>
+  </noscript>
+
+  <div class="anat__stage" id="anatstage">
+    <div class="anat__frame">
+      <div class="anat__zoom" id="anatzoom">
+        <div class="media media--specimen media--anat" data-media="tooth-specimen"></div>
+        <div class="anat__pins" id="anatpins" role="group" aria-label="Regions of the tooth"></div>
+      </div>
+      <button class="anat__reset" id="anatreset" type="button" hidden>Show the whole tooth</button>
+    </div>
+
+    <div class="anat__panel" id="anatpanel" aria-live="polite">
+      <div class="anat__panel-in" data-empty>
+        <p class="eyebrow">Select a region</p>
+        <p class="anat__hint">
+          Enamel, dentine, pulp and the gingival margin each fail in a
+          different way — and each has its own treatment.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════ RESULTS ════════════════════════ -->
+<section class="res" id="results">
+  <div class="res__head">
+    <p class="eyebrow reveal">Results</p>
+    <h2 class="h-display reveal">Before, and<br><span class="em">eight days later.</span></h2>
+    <p class="res__note reveal">
+      Drag the divider — or use the arrow keys — to move between the two
+      photographs. Both are the same patient, same camera, same light.
+    </p>
+  </div>
+
+  <figure class="cmp" id="cmp">
+    <div class="cmp__box" id="cmpbox">
+      <div class="cmp__layer cmp__layer--after">
+        <div class="media media--wide" data-media="case-after"></div>
+      </div>
+      <div class="cmp__layer cmp__layer--before" id="cmpclip">
+        <div class="cmp__shift">
+          <div class="media media--wide" data-media="case-before"></div>
+        </div>
+      </div>
+
+      <span class="cmp__tag cmp__tag--b">Before</span>
+      <span class="cmp__tag cmp__tag--a">After</span>
+
+      <div class="cmp__handle" id="cmphandle">
+        <span class="cmp__bar" aria-hidden="true"></span>
+        <button class="cmp__grip" id="cmpgrip" type="button"
+                role="slider" aria-label="Reveal before or after"
+                aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-orientation="horizontal">
+          <svg viewBox="0 0 24 16" width="24" height="16" aria-hidden="true" focusable="false">
+            <path d="M9.5 2.5 4 8l5.5 5.5M14.5 2.5 20 8l-5.5 5.5" fill="none"
+                  stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <figcaption class="cmp__cap">
+      <span class="rule" aria-hidden="true"></span>
+      <span>
+        Case 041 — four porcelain veneers, 12 to 22. Photographs are
+        unretouched and shown at the same crop; individual results vary
+        with the condition of the underlying tooth.
+      </span>
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ═══════════════════════ DENTISTS ════════════════════════ -->
+<section class="team" id="dentists">
+  <div class="team__head">
+    <p class="eyebrow reveal">Clinicians</p>
+    <h2 class="h-display reveal">Four specialists,<br><span class="em">no generalists.</span></h2>
+  </div>
+  <div class="team__roster" id="roster">
+    <!-- profiles written by team.js -->
+  </div>
+
+  <noscript>
+    <ul class="fallback">
+      <li><b>Dr Yara Haddad</b> — Prosthodontics &amp; Smile Design</li>
+      <li><b>Dr Elias Rahman</b> — Implantology &amp; Oral Surgery</li>
+      <li><b>Dr Noor Al-Bakri</b> — Orthodontics</li>
+      <li><b>Dr Sami Okonkwo</b> — Endodontics &amp; Preventive Care</li>
+    </ul>
+  </noscript>
+</section>
+
+<!-- ════════════════════════ REVIEWS ════════════════════════ -->
+<section class="rev" id="reviews">
+  <div class="rev__head">
+    <div>
+      <p class="eyebrow reveal">Reviews</p>
+      <h2 class="h-display reveal">What people say<br><span class="em">a year later.</span></h2>
+    </div>
+    <div class="rev__score reveal">
+      <span class="rev__num" data-count="4.9" data-decimals="1">0.0</span>
+      <span class="rev__ticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="rev__meta">Average of 612 verified reviews</span>
+    </div>
+  </div>
+
+  <div class="rev__rail" id="revrail" tabindex="0" role="region"
+       aria-label="Patient reviews, draggable">
+    <div class="rev__track" id="revtrack"><!-- cards written by reviews.js --></div>
+  </div>
+
+  <noscript>
+    <ul class="fallback">
+      <li>612 verified reviews, averaging 4.9 out of 5.</li>
+      <li class="fallback__note">The reviews themselves need scripting to read here.</li>
+    </ul>
+  </noscript>
+
+  <div class="rev__ctrl">
+    <button class="rev__btn" id="revprev" type="button" aria-label="Previous reviews">
+      <svg viewBox="0 0 20 12" width="20" height="12" aria-hidden="true" focusable="false"><path d="M6.5 1 1 6l5.5 5M1 6h18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="rev__btn" id="revnext" type="button" aria-label="Next reviews">
+      <svg viewBox="0 0 20 12" width="20" height="12" aria-hidden="true" focusable="false"><path d="M13.5 1 19 6l-5.5 5M19 6H1" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- ════════════════════════ BOOKING ════════════════════════ -->
+<section class="book" id="book">
+  <div class="book__head">
+    <p class="eyebrow reveal">Appointments</p>
+    <h2 class="h-display reveal">Six questions.<br><span class="em">Under a minute.</span></h2>
+    <p class="book__note reveal">
+      Nothing is charged and nothing is confirmed until we call you back
+      to agree the slot.
+    </p>
+  </div>
+
+  <div class="book__shell">
+    <ol class="book__rail" id="bookrail" aria-hidden="true">
+      <li data-step="1"><span class="book__rail-n">01</span><span class="book__rail-l">Treatment</span></li>
+      <li data-step="2"><span class="book__rail-n">02</span><span class="book__rail-l">Clinician</span></li>
+      <li data-step="3"><span class="book__rail-n">03</span><span class="book__rail-l">Date</span></li>
+      <li data-step="4"><span class="book__rail-n">04</span><span class="book__rail-l">Time</span></li>
+      <li data-step="5"><span class="book__rail-n">05</span><span class="book__rail-l">Details</span></li>
+      <li data-step="6"><span class="book__rail-n">06</span><span class="book__rail-l">Confirm</span></li>
+      <span class="book__rail-fill" id="bookfill"></span>
+    </ol>
+
+    <form class="book__form" id="bookform" novalidate>
+      <p class="book__count" id="bookcount" aria-live="polite">Step 1 of 6</p>
+
+      <noscript>
+        <p class="fallback__note">
+          Choosing a treatment, a clinician and a slot needs scripting.
+          Call <a class="ln" href="tel:+97140000000">+971 4 000 0000</a>
+          or write to
+          <a class="ln" href="mailto:appointments@aurel.example">appointments@aurel.example</a>
+          and we will book it with you.
+        </p>
+      </noscript>
+
+      <div class="book__stage" id="bookstage">
+      <!-- 01 ── treatment ───────────────────────────────── -->
+      <fieldset class="book__step is-on" data-step="1">
+        <legend class="book__q">What are we seeing you for?</legend>
+        <div class="book__opts book__opts--tx" id="opttx"><!-- treatments.js --></div>
+      </fieldset>
+
+      <!-- 02 ── clinician ───────────────────────────────── -->
+      <fieldset class="book__step" data-step="2">
+        <legend class="book__q">Who would you like to see?</legend>
+        <div class="book__opts book__opts--dr" id="optdr"><!-- team.js --></div>
+      </fieldset>
+
+      <!-- 03 ── date ────────────────────────────────────── -->
+      <fieldset class="book__step" data-step="3">
+        <legend class="book__q">Which day suits you?</legend>
+        <div class="cal" id="cal">
+          <div class="cal__bar">
+            <button class="cal__nav" type="button" id="calprev" aria-label="Previous month">
+              <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M7.5 1.5 3 6l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <p class="cal__month" id="calmonth" aria-live="polite">—</p>
+            <button class="cal__nav" type="button" id="calnext" aria-label="Next month">
+              <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M4.5 1.5 9 6l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="cal__dow" aria-hidden="true"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="cal__grid" id="calgrid" role="grid" aria-label="Available dates"></div>
+          <p class="cal__key">The studio is closed on Sundays and on days already fully booked.</p>
+        </div>
+      </fieldset>
+
+      <!-- 04 ── time ────────────────────────────────────── -->
+      <fieldset class="book__step" data-step="4">
+        <legend class="book__q">And what time?</legend>
+        <div class="book__opts book__opts--time" id="opttime"><!-- booking.js --></div>
+      </fieldset>
+
+      <!-- 05 ── details ─────────────────────────────────── -->
+      <fieldset class="book__step" data-step="5">
+        <legend class="book__q">How do we reach you?</legend>
+        <div class="book__fields">
+          <p class="fld">
+            <input id="f-name" name="name" type="text" autocomplete="name" required placeholder=" ">
+            <label for="f-name">Full name</label>
+            <span class="fld__err" id="e-name" aria-live="polite"></span>
+          </p>
+          <p class="fld">
+            <input id="f-phone" name="phone" type="tel" autocomplete="tel" required placeholder=" ">
+            <label for="f-phone">Mobile number</label>
+            <span class="fld__err" id="e-phone" aria-live="polite"></span>
+          </p>
+          <p class="fld fld--wide">
+            <input id="f-mail" name="email" type="email" autocomplete="email" required placeholder=" ">
+            <label for="f-mail">Email</label>
+            <span class="fld__err" id="e-mail" aria-live="polite"></span>
+          </p>
+          <p class="fld fld--wide">
+            <textarea id="f-note" name="note" rows="3" placeholder=" "></textarea>
+            <label for="f-note">Anything we should know (optional)</label>
+          </p>
+        </div>
+        <p class="book__legal">
+          A design concept — the form does not transmit anything. Nothing
+          you type here leaves your browser.
+        </p>
+      </fieldset>
+
+      <!-- 06 ── confirmation ────────────────────────────── -->
+      <fieldset class="book__step book__step--done" data-step="6">
+        <legend class="book__q sr-only">Confirmation</legend>
+        <div class="done" id="done">
+          <span class="done__mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48" width="48" height="48" focusable="false">
+              <circle class="done__ring" cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="1.2"/>
+              <path class="done__tick" d="M15 24.5l6.2 6.2L33.5 18.4" fill="none" stroke="currentColor"
+                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <h3 class="done__h">That's in the book.</h3>
+          <p class="done__p">
+            We'll call to confirm within one working day. If the slot has
+            gone in the meantime we'll offer you the nearest one.
+          </p>
+          <dl class="done__list" id="donelist"></dl>
+          <button class="btn btn--ghost" type="button" id="bookagain">Book another appointment</button>
+        </div>
+      </fieldset>
+
+      </div><!-- /stage -->
+
+      <div class="book__acts" id="bookacts">
+        <button class="btn btn--quiet" type="button" id="bookback" disabled>Back</button>
+        <button class="btn btn--solid" type="button" id="booknext" data-magnetic>Continue</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ═════════════════════════ CLINIC ════════════════════════ -->
+<section class="clin" id="clinic">
+  <div class="clin__head">
+    <p class="eyebrow reveal">The studio</p>
+    <h2 class="h-display reveal">Gate Village 4,<br><span class="em">second floor.</span></h2>
+  </div>
+
+  <div class="clin__grid">
+    <figure class="clin__shot" data-parallax="clinic">
+      <div class="media media--room" data-media="clinic-facade"></div>
+    </figure>
+
+    <div class="clin__info">
+      <div class="clin__block reveal">
+        <p class="lbl">Address</p>
+        <p class="clin__addr">
+          AUREL Dental Studio<br>
+          Gate Village Building 4, Level 2<br>
+          Dubai International Financial Centre<br>
+          Dubai, United Arab Emirates
+        </p>
+      </div>
+
+      <div class="clin__block reveal">
+        <p class="lbl">Hours</p>
+        <table class="hrs">
+          <tbody>
+            <tr><th scope="row">Monday — Thursday</th><td>09:00 — 20:00</td></tr>
+            <tr><th scope="row">Friday</th><td>09:00 — 17:00</td></tr>
+            <tr><th scope="row">Saturday</th><td>10:00 — 16:00</td></tr>
+            <tr><th scope="row">Sunday</th><td>Closed</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="clin__block reveal">
+        <p class="lbl">Direct</p>
+        <p class="clin__lines">
+          <a class="ln" href="tel:+97140000000">+971 4 000 0000</a><br>
+          <a class="ln" href="mailto:appointments@aurel.example">appointments@aurel.example</a><br>
+          <a class="ln" href="#book">Emergencies — same-day chair</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="map" id="map">
+      <div class="map__frame">
+        <svg class="map__svg" id="mapsvg" viewBox="0 0 800 520" role="img"
+             aria-label="Stylised map of the Dubai International Financial Centre showing the studio in Gate Village 4">
+          <g id="mapworld">
+            <rect x="0" y="0" width="800" height="520" fill="none"/>
+
+            <!-- city blocks -->
+            <g class="map__blocks">
+              <rect x="86"  y="66"  width="150" height="118" rx="2"/>
+              <rect x="262" y="66"  width="112" height="72"  rx="2"/>
+              <rect x="262" y="156" width="112" height="118" rx="2"/>
+              <rect x="612" y="86"  width="132" height="152" rx="2"/>
+              <rect x="86"  y="212" width="150" height="96"  rx="2"/>
+              <rect x="86"  y="336" width="204" height="120" rx="2"/>
+              <rect x="470" y="336" width="176" height="120" rx="2"/>
+              <rect x="672" y="300" width="96"  height="156" rx="2"/>
+            </g>
+
+            <!-- the gate village cluster -->
+            <g class="map__village">
+              <rect x="404" y="176" width="74" height="60" rx="2"/>
+              <rect x="490" y="176" width="62" height="60" rx="2"/>
+              <rect x="404" y="248" width="74" height="56" rx="2"/>
+              <rect x="490" y="248" width="62" height="56" rx="2"/>
+            </g>
+
+            <!-- roads -->
+            <g class="map__roads">
+              <path class="map__road map__road--big" d="M-20 78 L820 24"/>
+              <path class="map__road" d="M60 160 H760"/>
+              <path class="map__road" d="M60 320 H760"/>
+              <path class="map__road" d="M248 -10 V530"/>
+              <path class="map__road" d="M576 -10 V530"/>
+              <path class="map__road map__road--thin" d="M392 160 V320"/>
+              <path class="map__road map__road--thin" d="M248 244 H576"/>
+            </g>
+
+            <!-- metro -->
+            <path class="map__metro" d="M-20 452 C 180 452, 300 400, 520 398 S 760 372, 820 356"/>
+
+            <!-- points of interest -->
+            <g class="map__pois">
+              <g class="map__poi" data-poi="Financial Centre Metro — 6 minutes on foot" transform="translate(520,398)">
+                <circle class="map__poi-dot" r="5"/><circle class="map__poi-halo" r="13"/>
+              </g>
+              <g class="map__poi" data-poi="Gate Village car park P2 — validated for patients" transform="translate(392,300)">
+                <circle class="map__poi-dot" r="5"/><circle class="map__poi-halo" r="13"/>
+              </g>
+              <g class="map__poi" data-poi="The Gate — valet drop-off on the podium" transform="translate(660,160)">
+                <circle class="map__poi-dot" r="5"/><circle class="map__poi-halo" r="13"/>
+              </g>
+            </g>
+
+            <!-- the studio -->
+            <g class="map__pin" id="mappin" transform="translate(441,206)">
+              <circle class="map__pulse" r="14"/>
+              <circle class="map__pin-o" r="11"/>
+              <circle class="map__pin-i" r="3.4"/>
+            </g>
+
+            <text class="map__lbl" x="441" y="168" text-anchor="middle">GATE VILLAGE 4</text>
+            <text class="map__lbl map__lbl--dim" x="700" y="60" text-anchor="middle">SHEIKH ZAYED RD</text>
+            <text class="map__lbl map__lbl--dim" x="150" y="486" text-anchor="middle">METRO LINE</text>
+          </g>
+        </svg>
+
+        <div class="map__tip" id="maptip" hidden></div>
+
+        <div class="map__zoom">
+          <button type="button" id="mapin"  aria-label="Zoom in">+</button>
+          <button type="button" id="mapout" aria-label="Zoom out">−</button>
+        </div>
+
+        <p class="map__hint" id="maphint">Drag to move · click the map, then scroll to zoom</p>
+      </div>
+
+      <a class="btn btn--ghost map__cta"
+         href="https://www.google.com/maps/search/?api=1&amp;query=Gate+Village+4+DIFC+Dubai"
+         target="_blank" rel="noopener noreferrer" data-magnetic>
+        Get directions
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═════════════════════════ FOOTER ════════════════════════ -->
+<footer class="foot">
+  <div class="foot__top">
+    <a class="foot__brand" href="#top">AUREL</a>
+    <p class="foot__line">
+      Considered dentistry in the Dubai International Financial Centre.
+    </p>
+    <a href="#book" class="btn btn--solid" data-magnetic>Book Appointment</a>
+  </div>
+
+  <div class="foot__cols">
+    <nav class="foot__col" aria-label="Treatments">
+      <p class="lbl">Treatments</p>
+      <a class="ln" href="#treatments">General Dentistry</a>
+      <a class="ln" href="#treatments">Cosmetic Dentistry</a>
+      <a class="ln" href="#treatments">Whitening</a>
+      <a class="ln" href="#treatments">Veneers</a>
+      <a class="ln" href="#treatments">Implants</a>
+      <a class="ln" href="#treatments">Invisalign</a>
+    </nav>
+    <nav class="foot__col" aria-label="Studio">
+      <p class="lbl">Studio</p>
+      <a class="ln" href="#about">About</a>
+      <a class="ln" href="#dentists">Clinicians</a>
+      <a class="ln" href="#results">Results</a>
+      <a class="ln" href="#reviews">Reviews</a>
+      <a class="ln" href="#clinic">Find us</a>
+    </nav>
+    <div class="foot__col">
+      <p class="lbl">Contact</p>
+      <a class="ln" href="tel:+97140000000">+971 4 000 0000</a>
+      <a class="ln" href="mailto:appointments@aurel.example">appointments@aurel.example</a>
+      <p class="foot__addr">Gate Village 4, Level 2<br>DIFC, Dubai</p>
+    </div>
+  </div>
+
+  <p class="foot__colophon">
+    AUREL is a design concept. The studio, its clinicians, their
+    credentials, the case notes and the reviews on this page are
+    invented for the purposes of the design, and no part of it is an
+    offer of dental treatment or medical advice.
+  </p>
+</footer>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/media.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/nav.js"></script>
+<script src="assets/js/treatments.js"></script>
+<script src="assets/js/anatomy.js"></script>
+<script src="assets/js/compare.js"></script>
+<script src="assets/js/team.js"></script>
+<script src="assets/js/reviews.js"></script>
+<script src="assets/js/booking.js"></script>
+<script src="assets/js/clinic.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
