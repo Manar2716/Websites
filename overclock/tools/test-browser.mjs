@@ -221,6 +221,28 @@ try {
       errors.slice(0, 3).join(' | '));
 
     await page.screenshot({ path: `/tmp/claude-0/-home-user-Websites/99d555a1-6dc1-5f8b-9a46-b142ab0dd50f/scratchpad/overclock-${vp.name.replace(/\s+/g, '-')}.png` }).catch(() => {});
+
+    /* Aim training, from the menu. It shares almost nothing with the match
+       path above, which is exactly why it needs its own walk-through. */
+    if (vp.mobile) await page.click('.touch__btn[data-action="menu"]');
+    else await page.keyboard.press('Escape');
+    await page.waitForSelector('#screen-pause.is-active', { timeout: 5000 });
+    ok(true, vp.mobile ? 'the on-screen MENU button pauses the match' : 'Escape pauses the match');
+    await page.click('#screen-pause [data-action="quit"]');
+    await page.waitForSelector('#screen-main.is-active', { timeout: 5000 });
+    ok(true, 'leaving the match returns to the main menu');
+    await page.click('[data-go="training"]');
+    await page.waitForSelector('#screen-training.is-active', { timeout: 5000 });
+    const drills = await page.$$eval('#trainingModes .card', (n) => n.length);
+    ok(drills === 4, `four aim-training drills are offered (${drills})`);
+    await page.click('#trainStart');
+    await sleep(2500);
+    const tr = await page.evaluate(() => ({ ...window.__ocDebug(), hud: !document.getElementById('hud').hidden }));
+    ok(tr.mode === 'training' && tr.hud, 'aim training starts and takes over the HUD');
+    ok(tr.vmParts > 0, `the weapon is drawn in training too (${tr.vmParts} parts)`);
+
+    ok(errors.length === 0, `no console errors across match and training (${errors.length})`,
+      errors.slice(0, 3).join(' | '));
     await ctx.close();
   }
 

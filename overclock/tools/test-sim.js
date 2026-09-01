@@ -153,6 +153,18 @@ section('match flow');
   ok(m.players[0].alive, 'and everyone is spawned in');
 }
 
+/* ── Map metadata survives the build ──────────────────────────────── */
+section('map metadata');
+{
+  const range = getMap('range');
+  ok(!!range.training, 'the aim range carries its training volume through the builder');
+  ok(range.training && range.training.stand && Number.isFinite(range.training.stand.z),
+    'the training stand position is usable');
+  const a = range.training.area;
+  ok(a && a.maxX > a.minX && a.maxY > a.minY && a.maxZ > a.minZ, 'the target volume is non-degenerate');
+  ok(getMap('foundry').training === null, 'a normal map has no training volume');
+}
+
 /* ── Bots ─────────────────────────────────────────────────────────── */
 section('bots');
 {

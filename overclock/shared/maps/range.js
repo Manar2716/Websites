@@ -17,9 +17,9 @@ export function build() {
     blurb: 'Aim training hall. Flat light, no clutter, marked distances.',
     modes: ['aim'],
     theme: {
-      sky: '#151a20', horizon: '#1d242c', fog: '#1a2027', fogNear: 40, fogFar: 130,
-      sun: [0.1, -0.95, 0.28], sunColor: '#dce8f4', ambient: '#586878', ambientGround: '#2e3742',
-      exposure: 1.0,
+      sky: '#222b34', horizon: '#2d3843', fog: '#28313a', fogNear: 60, fogFar: 190,
+      sun: [0.1, -0.95, 0.28], sunColor: '#f0f6ff', ambient: '#7d90a4', ambientGround: '#49545f',
+      exposure: 1.22,
     },
     /* Where the trainer is allowed to put targets, and where you stand. */
     training: {
@@ -52,7 +52,7 @@ export function build() {
   m.box(-W + 1.5, 0, Z0 + 1.5, W * 2 - 3, 7, 0.6, P.wallDark);
   for (let i = 0; i < 6; i++) m.box(-W + 2 + i * 6, 0, Z0 + 2.1, 5, 0.5 + i % 2, 0.4, P.line);
 
-  for (let z = 24; z >= -28; z -= 13) m.light(0, 9, z, 34, '#e6f0fa', 0.75);
+  for (let z = 24; z >= -28; z -= 13) m.light(0, 9, z, 40, '#e6f0fa', 0.95);
 
   // Only used if somebody loads this map into a normal match.
   m.spawn(0, 0.6, 30, 0, 0);

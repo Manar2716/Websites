@@ -98,6 +98,7 @@ export class AimTrainer {
     this.hud.show(true);
     this.hud.hideDeath();
     this.hud.applySettings();
+    document.getElementById('minimapWrap').hidden = true;
     this.audio.ambience(this.world.theme);
     for (let i = 0; i < drill.targets; i++) this.spawnTarget(i === 0 ? 0 : this.rnd() * 300);
   }
@@ -342,10 +343,10 @@ export class AimTrainer {
       const r = t.r * scale;
       const flash = t.hitFlash;
       batch.push(t.x, t.y, t.z, r, r, r, 0, 0,
-        0.92, 0.24 + flash * 0.6, 0.32 + flash * 0.5, 0.35 + flash * 0.5, alpha);
+        0.96, 0.22 + flash * 0.7, 0.30 + flash * 0.6, 0.78 + flash * 0.22, alpha);
       // A brighter cap on the upper third, marking the head zone.
       batch.push(t.x, t.y + r * 0.66, t.z, r * 0.66, r * 0.34, r * 0.66, 0, 0,
-        1, 0.86, 0.32, 0.7, alpha);
+        1, 0.88, 0.34, 0.92, alpha);
     }
   }
 

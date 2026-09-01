@@ -21,6 +21,13 @@ export class DesktopInput {
     this.down = new Set();
     this.locked = false;
     this.enabled = false;
+    /* Pointer lock is not always available — an iframe without the
+       pointer-lock permission refuses it, and so do some kiosk and
+       privacy modes. Rather than leaving the player unable to look, the
+       game falls back to raw mousemove deltas without the lock. The
+       cursor stays visible and can leave the window, which is worse, but
+       it is the difference between playable and not. */
+    this.lockDenied = false;
     this.onMenu = null;
     this.onChat = null;
     this.onLockChange = null;
@@ -40,12 +47,25 @@ export class DesktopInput {
   requestLock() {
     if (this.locked) return;
     const el = this.canvas;
-    const p = el.requestPointerLock && el.requestPointerLock({ unadjustedMovement: true });
-    /* `unadjustedMovement` is the request for genuinely raw input. Where
-       it is unsupported the promise rejects and the plain call still gets
-       us OS-accelerated deltas, which is better than nothing. */
-    if (p && p.catch) p.catch(() => { try { el.requestPointerLock(); } catch {} });
-    else if (!p) { try { el.requestPointerLock(); } catch {} }
+    if (!el.requestPointerLock) { this.lockDenied = true; return; }
+    /* `unadjustedMovement` asks for genuinely raw input. Where it is
+       unsupported the promise rejects and the plain call still gets
+       OS-accelerated deltas, which is better than nothing. */
+    let p;
+    try { p = el.requestPointerLock({ unadjustedMovement: true }); } catch { p = null; }
+    if (p && p.catch) {
+      p.catch(() => {
+        try {
+          const q = el.requestPointerLock();
+          if (q && q.catch) q.catch(() => { this.lockDenied = true; });
+        } catch { this.lockDenied = true; }
+      });
+    } else if (!p) {
+      try { el.requestPointerLock(); } catch { this.lockDenied = true; }
+    }
+    /* Nothing rejected, but nothing locked either: some embedders simply
+       ignore the request. Give it a moment, then fall back. */
+    setTimeout(() => { if (!this.locked) this.lockDenied = true; }, 700);
   }
 
   releaseLock() { if (document.pointerLockElement) document.exitPointerLock(); }
@@ -58,7 +78,7 @@ export class DesktopInput {
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (!this.locked || !this.enabled) return;
+      if (!this.enabled || !this.active) return;
       const s = this.settings;
       const base = s.sensitivity * (this._ads ? s.adsSensitivity : 1);
       this.state.lookDX += e.movementX * RAD_PER_COUNT * base * s.sensitivityX * (s.invertX ? -1 : 1);
@@ -66,8 +86,7 @@ export class DesktopInput {
     }, { passive: true });
 
     window.addEventListener('mousedown', (e) => {
-      if (!this.enabled) return;
-      if (!this.locked) return;
+      if (!this.enabled || !this.active) return;
       e.preventDefault();
       if (e.button === 0) this.state.set(BTN.FIRE, true);
       if (e.button === 2) this._setAds(true);
@@ -79,10 +98,10 @@ export class DesktopInput {
       if (e.button === 2) this._setAds(false);
     });
 
-    window.addEventListener('contextmenu', (e) => { if (this.locked) e.preventDefault(); });
+    window.addEventListener('contextmenu', (e) => { if (this.enabled) e.preventDefault(); });
 
     window.addEventListener('wheel', (e) => {
-      if (!this.enabled || !this.locked) return;
+      if (!this.enabled || !this.active) return;
       this.state.wheel += Math.sign(e.deltaY);
     }, { passive: true });
 
@@ -99,6 +118,10 @@ export class DesktopInput {
     window.addEventListener('keyup', (e) => { this.down.delete(e.code); });
     window.addEventListener('blur', () => { this.down.clear(); this.state.reset(); });
   }
+
+  /* Playable right now: either the pointer is locked, or we know the lock
+     is unavailable and are reading unlocked deltas instead. */
+  get active() { return this.locked || this.lockDenied; }
 
   isBound(code) {
     for (const k in this.bindings) if (this.bindings[k].includes(code)) return true;
@@ -118,7 +141,7 @@ export class DesktopInput {
   /* Called once per simulation tick. */
   poll() {
     const s = this.state;
-    if (!this.enabled || !this.locked) { s.moveX = 0; s.moveZ = 0; s.buttons &= BTN.ADS; return s; }
+    if (!this.enabled || !this.active) { s.moveX = 0; s.moveZ = 0; s.buttons &= BTN.ADS; return s; }
     s.moveZ = (this.isDown('forward') ? 1 : 0) - (this.isDown('back') ? 1 : 0);
     s.moveX = (this.isDown('right') ? 1 : 0) - (this.isDown('left') ? 1 : 0);
     s.set(BTN.JUMP, this.isDown('jump'));

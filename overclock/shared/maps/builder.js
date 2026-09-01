@@ -198,6 +198,10 @@ function finalize(m) {
 
   const world = {
     id: m.id, name: m.name, blurb: m.blurb, theme: m.theme,
+    /* Carried through from the map's meta. The aim range uses it to say
+       where you stand and where targets may appear; dropping it here is
+       how the trainer came to crash on a map that defines it. */
+    training: m.training || null,
     modes: m.modes || ['ffa', 'tdm', 'gungame', 'practice'],
     brushes: m.brushes, solids, spawns: m.spawns, lights: m.lights,
     bounds: { minX, minZ, minY, maxX, maxZ, maxY },

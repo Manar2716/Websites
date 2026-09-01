@@ -80,11 +80,13 @@ async function boot() {
   desktop.setBindings(settings.bindings);
   desktop.onMenu = () => togglePause();
   desktop.onLockChange = (locked) => {
-    if (!locked && mode !== 'menu' && !$('#screen-pause').classList.contains('is-active')) togglePause(true);
+    if (locked) { desktop.lockDenied = false; return; }
+    if (mode !== 'menu' && !$('#screen-pause').classList.contains('is-active')) togglePause(true);
   };
 
   touch = new TouchControls($('#touch'), input, settings);
   touch.setLayout(settings.touchLayout);
+  touch.onMenu = () => togglePause();
   gyro = new Gyro(input, settings);
 
   game = new Game({ net, audio, hud, settings, input, renderer });
@@ -601,7 +603,16 @@ function updatePerf() {
 /* A very small read-only debug surface. The browser test uses it to check
    that each client really is tracking the other players rather than just
    rendering an empty room, and it is handy from a console. */
-window.__ocDebug = () => ({
+let __lastPos = null, __moved = 0, __turned = 0, __lastYaw = 0;
+window.__ocDebug = () => {
+  if (game && game.prediction) {
+    const p = game.prediction.ph.pos;
+    if (__lastPos) __moved += Math.hypot(p.x - __lastPos.x, p.z - __lastPos.z);
+    __lastPos = { x: p.x, z: p.z };
+    __turned += Math.abs(input.yaw - __lastYaw) > 3 ? 0 : Math.abs(input.yaw - __lastYaw);
+    __lastYaw = input.yaw;
+  }
+  return {
   mode,
   fps,
   frameMs: +frameMs.toFixed(2),
@@ -614,7 +625,11 @@ window.__ocDebug = () => ({
   peers: game && game.remotes ? game.remotes.tracks.size : 0,
   unacked: game && game.prediction ? game.prediction.pending.length : 0,
   error: game && game.prediction ? +game.prediction.worstError.toFixed(3) : 0,
-});
+  yaw: +input.yaw.toFixed(3),
+  movedRecently: __moved > 1.5,
+  turned: __turned > 0.15,
+  };
+};
 window.__ocPeers = () => (game && game.remotes ? game.remotes.tracks.size : -1);
 
 boot();

@@ -13,6 +13,16 @@ There is no build step and no dependency to install. The server is one Node
 process using nothing but the standard library; the client is ES modules
 served as files.
 
+For a copy you can open from anywhere — no server, no network, offline
+against bots:
+
+```bash
+node tools/bundle.mjs overclock-standalone.html
+```
+
+That inlines the whole module graph, the stylesheet and the markup into one
+455 kB file that makes no external requests at all.
+
 **This is an original game.** It is built around the same appeal as the
 browser arena shooters — instant to start, fast to move, quick to kill — but
 every map, weapon, model, sound, name and pixel of interface here was made
@@ -222,6 +232,7 @@ tools/test-*.js             simulation, server and browser checks
 ```bash
 npm test                    # simulation and a real server over a real socket
 npm run test:browser        # Chromium, three viewport sizes, two clients in one room
+npm run test:bundle         # the single-file build, loaded from file://
 ```
 
 `test-sim.js` runs the real match loop rather than a mock: map reachability,
@@ -232,7 +243,10 @@ over a real WebSocket — handshake, room codes, host authority, binary
 snapshots, input moving a player server-side, ammo authority, reconnection
 by token, and that malformed input leaves it running. `test-browser.mjs`
 plays a match through the real interface at phone, tablet and desktop sizes,
-then puts two browsers in one room.
+then puts two browsers in one room. `test-bundle.mjs` opens the single-file
+build straight off the filesystem and plays it, including with pointer lock
+refused — the case an embedded copy hits, and one that would otherwise leave
+a desktop player unable to look around.
 
 ## Deploying
 

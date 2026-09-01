@@ -141,6 +141,10 @@ export class LocalTransport {
    works unchanged behind any host or tunnel; overridable for a client
    served from static hosting that talks to a server elsewhere. */
 export function defaultServerUrl() {
+  /* The standalone single-file build sets this: there is no server behind
+     it, so the menu should offer offline play rather than spend nine
+     seconds timing out against a host that does not exist. */
+  if (window.__OVERCLOCK_OFFLINE) return null;
   const override = new URLSearchParams(location.search).get('server');
   if (override) { const u = asWebSocketUrl(override); if (u) return u; }
   const stored = localStorage.getItem('overclock.server');

@@ -8,6 +8,8 @@
   "scripts": {
     "start": "node server/index.js",
     "test": "node tools/test-sim.js && node tools/test-server.js",
-    "test:browser": "node tools/test-browser.mjs"
+    "test:browser": "node tools/test-browser.mjs",
+    "bundle": "node tools/bundle.mjs overclock-standalone.html",
+    "test:bundle": "node tools/bundle.mjs /tmp/overclock-bundle-test.html && node tools/test-bundle.mjs /tmp/overclock-bundle-test.html"
   }
 }

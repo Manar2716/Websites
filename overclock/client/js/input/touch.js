@@ -34,11 +34,15 @@ export const DEFAULT_LAYOUT = {
   swap: { x: 67, y: 35, size: 11 },
   sprint: { x: 19, y: 33, size: 11 },
   scores: { x: 50, y: 93, size: 9 },
+  /* Without this a player on a phone can start a match and then have no
+     way out of it short of reloading the page. It sits clear of the
+     minimap and the score line, and out of thumb reach on purpose. */
+  menu: { x: 30, y: 9, size: 9 },
 };
 
 const LABELS = {
   fire: 'FIRE', ads: 'ADS', jump: 'JUMP', crouch: 'CRCH',
-  reload: 'RLD', swap: 'SWAP', sprint: 'RUN', scores: 'TAB',
+  reload: 'RLD', swap: 'SWAP', sprint: 'RUN', scores: 'TAB', menu: 'MENU',
 };
 
 export class TouchControls {
@@ -54,7 +58,7 @@ export class TouchControls {
     this.look = { id: -1, lastX: 0, lastY: 0, movedAt: 0, startX: 0, startY: 0, moved: 0 };
     this.adsHeld = false;
     this.sprintLatched = false;
-    this.onScores = null;
+    this.onMenu = null;
     this.onEditChange = null;
     this._build();
     this._bind();
@@ -227,7 +231,8 @@ export class TouchControls {
       case 'sprint':
         if (down) { this.sprintButton = !this.sprintButton; }
         break;
-      case 'scores': if (down && this.onScores) this.onScores(); s.scoreboard = down; break;
+      case 'scores': s.scoreboard = down; break;
+      case 'menu': if (down && this.onMenu) this.onMenu(); break;
       default: break;
     }
     if (down && navigator.vibrate && this.settings.haptics) navigator.vibrate(action === 'fire' ? 8 : 12);
