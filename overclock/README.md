@@ -151,6 +151,21 @@ underside of every box plus a blob under each player does the job a shadow
 actually does at this scale — telling you whether somebody is on your floor
 or the balcony above it.
 
+The look is high-key on purpose: saturated flat colour, long sightlines,
+and nothing lost in shadow. That is harder to light than a dark game, in a
+specific way — raise albedo, ambient and exposure together and every
+surface clips to flat white, which reads as a rendering bug and is really
+an arithmetic one. `tools/check-lighting.mjs` evaluates the same expression
+the shader does, for every map and several surface orientations, and fails
+if anything clips or crushes. The palette is balanced by measurement rather
+than by eye.
+
+Because the world is bright, the interface cannot rely on it being dark.
+Every HUD value carries a hard four-way outline plus a soft shadow, so the
+ammo counter is legible over a white floor and a black doorway alike, and
+the browser tests assert that no HUD element runs off the edge of the
+screen at any of the three viewport sizes.
+
 The performance dial that matters most on a phone is resolution, so it is
 automatic: the backing store shrinks when frames run long and grows back
 grudgingly, dropping resolution rather than frames. Quality presets set the

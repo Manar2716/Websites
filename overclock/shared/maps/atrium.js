@@ -15,10 +15,10 @@
 import { MapBuilder } from './builder.js';
 
 const P = {
-  floor: '#d8d5cd', floorAlt: '#c9c6bd', carpet: '#5f6f7a',
-  wall: '#eceae4', wallDark: '#b0ada5', trim: '#8d99a3',
-  glass: '#9fd4e8', desk: '#7d6d58', foliage: '#6fa05c',
-  accent: '#e8a33d', lamp: '#fff3d6', step: '#a9a69d',
+  floor: '#dbd8cf', floorAlt: '#c8c5bc', carpet: '#3f9dc4',
+  wall: '#e6e4de', wallDark: '#aab0b8', trim: '#57b4d8',
+  glass: '#7ad2f2', desk: '#dd8636', foliage: '#4fb25c',
+  accent: '#efa42c', lamp: '#efeade', step: '#c3c0b7',
 };
 
 export function build() {
@@ -27,9 +27,9 @@ export function build() {
     name: 'ATRIUM',
     blurb: 'Three floors around an open void. Glass you can see through and shoot through.',
     theme: {
-      sky: '#cfe3ef', horizon: '#eef4f8', fog: '#dfe9ef', fogNear: 30, fogFar: 110,
-      sun: [-0.35, -0.82, -0.45], sunColor: '#fff6e2', ambient: '#c9dae6', ambientGround: '#9aa2a6',
-      exposure: 1.06,
+      sky: '#7fd0f5', horizon: '#eaf7ff', fog: '#e9f5fc', fogNear: 62, fogFar: 215,
+      sun: [-0.35, -0.82, -0.45], sunColor: '#ffffff', ambient: '#c2e4f7', ambientGround: '#cbd0d6',
+      exposure: 1.26,
     },
   });
 

@@ -13,9 +13,9 @@
 import { MapBuilder } from './builder.js';
 
 const P = {
-  floor: '#2f3a3a', floorAlt: '#27302f', deck: '#3c4a48', grate: '#46524f',
-  wall: '#39443f', wallDark: '#2b3431', trim: '#5c6d66',
-  core: '#1d2523', glow: '#4be0a8', amber: '#e8a13c', pipe: '#6b7d74',
+  floor: '#587a72', floorAlt: '#4e6d66', deck: '#78a89b', grate: '#87b8ab',
+  wall: '#6a8d85', wallDark: '#4a6862', trim: '#9acdc0',
+  core: '#28504a', glow: '#5cf0a8', amber: '#f0b533', pipe: '#96afa8',
 };
 
 export function build() {
@@ -24,9 +24,9 @@ export function build() {
     name: 'REACTOR',
     blurb: 'Containment hall. No sightline crosses the middle — the core is in the way.',
     theme: {
-      sky: '#16211f', horizon: '#243430', fog: '#1e2b28', fogNear: 22, fogFar: 74,
-      sun: [0.3, -0.9, 0.32], sunColor: '#dcf2e6', ambient: '#54706a', ambientGround: '#33403c',
-      exposure: 1.16,
+      sky: '#5ad6c0', horizon: '#c2f1e5', fog: '#cdeee5', fogNear: 42, fogFar: 148,
+      sun: [0.3, -0.9, 0.32], sunColor: '#f4fffb', ambient: '#abe2d4', ambientGround: '#7eaca1',
+      exposure: 1.30,
     },
   });
 

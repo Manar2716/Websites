@@ -14,18 +14,21 @@ import { PLAYER_HEIGHT } from '../../../shared/constants.js';
 import { parseColour } from '../engine/gl.js';
 
 const SKIN_COLOURS = [
-  '#7f8794', '#8a6f5c', '#5f7f6a', '#8a6a86', '#6f7a95', '#94836a',
-  '#5d8590', '#8f6f6f', '#79856a', '#6a6f8f', '#8a8060', '#6d8a7c',
+  '#ff5a5a', '#ffa63d', '#ffd23f', '#8fd44a', '#3fc98a', '#3fc8d8',
+  '#4f9bff', '#8b6cf0', '#e05ce0', '#ff6fa8', '#c98f5a', '#9aa7b5',
 ];
-export const TEAM_COLOURS = { 1: '#3f8fe8', 2: '#f0762f', 0: '#c9cdd4' };
+export const TEAM_COLOURS = { 1: '#2f9bff', 2: '#ff7a2f', 0: '#ffd23f' };
 
 export function avatarColours(team, skin, isBot) {
-  const base = parseColour('#3c4149');
+  /* The body is a mid neutral rather than a dark one: against a bright
+     map a dark silhouette reads as a hole, and against a pale wall it
+     disappears entirely. The team colour does the identifying. */
+  const base = parseColour('#e8ecf0');
   const accentHex = team ? TEAM_COLOURS[team] : SKIN_COLOURS[skin % SKIN_COLOURS.length];
   return {
     base,
     accent: parseColour(accentHex),
-    dark: parseColour('#23262b'),
+    dark: parseColour('#3a4048'),
     /* Bots wear an emissive band. The scoreboard and kill feed tag them
        too, but a tag you have to open a menu to read is no use in the
        middle of a fight. */

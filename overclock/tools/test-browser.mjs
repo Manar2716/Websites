@@ -193,6 +193,22 @@ try {
     });
     ok(perf.fps > 4, `the render loop runs (${perf.fps.toFixed(1)} fps under software GL)`);
 
+    const spill = await page.evaluate(() => {
+      const out = [];
+      const sel = '#hud .hud__top, #hud .hud__feed, #hud .hud__minimap, #hud .hud__bottomleft,'
+        + ' #hud .hud__bottomright, #hud .vitals__bar, #hud .ammo, #hud .ammo__slots, #hud .scoreline';
+      for (const el of document.querySelectorAll(sel)) {
+        if (el.offsetParent === null) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width === 0) continue;
+        if (r.left < -0.5 || r.top < -0.5 || r.right > innerWidth + 0.5 || r.bottom > innerHeight + 0.5) {
+          out.push(`${el.className.split(' ')[0]} ${r.left.toFixed(0)},${r.top.toFixed(0)} ${r.right.toFixed(0)}x${r.bottom.toFixed(0)}`);
+        }
+      }
+      return out;
+    });
+    ok(spill.length === 0, `no HUD element runs off the screen (${spill.length})`, spill.join(' | '));
+
     const dbg = await page.evaluate(() => window.__ocDebug());
     ok(dbg.vmParts > 0, `the weapon is drawn in first person (${dbg.vmParts} parts)`);
     ok(dbg.instances > 20, `the world is batched into instances (${dbg.instances})`);

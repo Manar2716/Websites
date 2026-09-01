@@ -60,7 +60,7 @@ export const DEFAULTS = {
 
   // Gameplay
   crosshairStyle: 'cross',  // cross | dot | circle | none
-  crosshairColour: '#6ef3c8',
+  crosshairColour: '#4dffd0',
   crosshairSize: 8,
   crosshairGap: 5,
   crosshairThickness: 2,

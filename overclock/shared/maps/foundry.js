@@ -11,10 +11,10 @@
 import { MapBuilder } from './builder.js';
 
 const P = {
-  floor: '#3b3f45', floorAlt: '#33373d', deck: '#4a4038',
-  wall: '#4b5158', wallDark: '#3a3f45', rib: '#5b6068',
-  rust: '#8a5432', hot: '#e0713a', crate: '#7a6a4a',
-  rail: '#6d7178', glass: '#7fb6c8', lamp: '#ffcf8f',
+  floor: '#a8afb8', floorAlt: '#979ea8', deck: '#dd7c25',
+  wall: '#bcc4cd', wallDark: '#828e9b', rib: '#586573',
+  rust: '#e86a30', hot: '#f0bf2e', crate: '#dfb43a',
+  rail: '#eaa02f', glass: '#6cc8f0', lamp: '#f2e6c4',
 };
 
 export function build() {
@@ -23,9 +23,9 @@ export function build() {
     name: 'FOUNDRY',
     blurb: 'Casting hall. Sunken pit, catwalk overhead, mezzanine on three walls.',
     theme: {
-      sky: '#242c34', horizon: '#3a4048', fog: '#2f353d', fogNear: 30, fogFar: 104,
-      sun: [0.42, -0.78, 0.28], sunColor: '#ffe0bc', ambient: '#5c6a78', ambientGround: '#3f342a',
-      exposure: 1.1,
+      sky: '#7fd0f5', horizon: '#cfeafb', fog: '#dceefa', fogNear: 58, fogFar: 195,
+      sun: [0.42, -0.78, 0.28], sunColor: '#fffaf0', ambient: '#a2c9e8', ambientGround: '#cdb99c',
+      exposure: 1.30,
     },
   });
 

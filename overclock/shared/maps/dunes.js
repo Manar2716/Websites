@@ -10,9 +10,9 @@
 import { MapBuilder } from './builder.js';
 
 const P = {
-  sand: '#d9b878', sandDark: '#c2a065', rock: '#9a7f5e', rockDark: '#7c6449',
-  crete: '#b8b0a0', creteDark: '#948c7d', metal: '#7d6f5f', rust: '#a3623a',
-  cloth: '#4f7d86', dark: '#3b3229', lamp: '#ffd9a0', tunnel: '#6b5c48',
+  sand: '#f6d07c', sandDark: '#e7b55b', rock: '#da9c57', rockDark: '#b97c40',
+  crete: '#f0e7d4', creteDark: '#d5c9b0', metal: '#8b95a1', rust: '#ff7a3d',
+  cloth: '#3fb8c4', dark: '#6d5737', lamp: '#ffd98f', tunnel: '#a68350',
 };
 
 export function build() {
@@ -21,9 +21,9 @@ export function build() {
     name: 'DUNES',
     blurb: 'Open lake bed, a ridge that sees everything, and a tunnel that sees none of it.',
     theme: {
-      sky: '#8fc4e8', horizon: '#e6d3ae', fog: '#dcc8a4', fogNear: 46, fogFar: 170,
-      sun: [0.5, -0.72, -0.48], sunColor: '#fff0cf', ambient: '#bcd4e8', ambientGround: '#c4a271',
-      exposure: 1.1, outdoor: true,
+      sky: '#37b6e8', horizon: '#ffe9b8', fog: '#f3e0b0', fogNear: 75, fogFar: 265,
+      sun: [0.5, -0.72, -0.48], sunColor: '#fff6d8', ambient: '#92d2ef', ambientGround: '#e2ba7a',
+      exposure: 1.30, outdoor: true,
     },
   });
 

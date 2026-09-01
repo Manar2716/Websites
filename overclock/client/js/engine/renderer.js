@@ -99,7 +99,8 @@ export class Renderer {
       sunDir: new Float32Array(3), sunColour: new Float32Array(3),
       ambientSky: new Float32Array(3), ambientGround: new Float32Array(3),
       fogColour: new Float32Array(3), fogRange: new Float32Array(2),
-      exposure: 1, lightPos: this.lightPos, lightCol: this.lightCol, lightCount: 0,
+      exposure: 1, saturation: 1.15,
+      lightPos: this.lightPos, lightCol: this.lightCol, lightCount: 0,
     };
     this.stats = { brushes: 0, instances: 0, sprites: 0, calls: 0, viewmodel: 0 };
     this.world = null;
@@ -170,11 +171,14 @@ export class Renderer {
     const sl = Math.hypot(th.sun[0], th.sun[1], th.sun[2]) || 1;
     s.sunDir[0] = th.sun[0] / sl; s.sunDir[1] = th.sun[1] / sl; s.sunDir[2] = th.sun[2] / sl;
     s.sunColour.set(th.sunColour);
-    /* Ambient used to be scaled down hard enough that anything facing
-       away from the sun fell to near black on the darker maps, which is
-       atmospheric in a screenshot and unplayable in a firefight. */
-    s.ambientSky.set(th.ambient.map((v) => v * 0.82));
-    s.ambientGround.set(th.ambientGround.map((v) => v * 0.62));
+    /* High-key by design, but the terms have to sum to about one for a
+       fully lit surface. Ambient is a fill and a hue, not a second sun:
+       scaled up to match the sun it doubles every surface before exposure
+       is applied and the whole map clips to flat colour. These figures are
+       checked by tools/check-lighting.mjs. */
+    s.ambientSky.set(th.ambient.map((v) => v * 0.42));
+    s.ambientGround.set(th.ambientGround.map((v) => v * 0.30));
+    s.saturation = th.saturation === undefined ? 1.15 : th.saturation;
     s.fogColour.set(th.fog);
     s.fogRange[0] = Math.min(th.fogNear, this.renderDistance * 0.55);
     s.fogRange[1] = Math.min(th.fogFar, this.renderDistance);

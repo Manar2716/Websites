@@ -8,7 +8,7 @@
 
 import { MapBuilder } from './builder.js';
 
-const P = { floor: '#2a2f38', line: '#3d4653', wall: '#333a44', wallDark: '#252b33', trim: '#4d94c0', pad: '#1e2229' };
+const P = { floor: '#5b7994', line: '#82a6c4', wall: '#7691ab', wallDark: '#5a7488', trim: '#f0be2e', pad: '#3d5670' };
 
 export function build() {
   const m = new MapBuilder({
@@ -17,9 +17,9 @@ export function build() {
     blurb: 'Aim training hall. Flat light, no clutter, marked distances.',
     modes: ['aim'],
     theme: {
-      sky: '#222b34', horizon: '#2d3843', fog: '#28313a', fogNear: 60, fogFar: 190,
-      sun: [0.1, -0.95, 0.28], sunColor: '#f0f6ff', ambient: '#7d90a4', ambientGround: '#49545f',
-      exposure: 1.22,
+      sky: '#8fd8f8', horizon: '#daeffc', fog: '#d2e8f6', fogNear: 85, fogFar: 250,
+      sun: [0.1, -0.95, 0.28], sunColor: '#ffffff', ambient: '#abd6ef', ambientGround: '#7290a8',
+      exposure: 1.30,
     },
     /* Where the trainer is allowed to put targets, and where you stand. */
     training: {

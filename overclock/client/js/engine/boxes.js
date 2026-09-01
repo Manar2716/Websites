@@ -102,6 +102,7 @@ uniform vec3 uAmbientGround;
 uniform vec3 uFogColour;
 uniform vec2 uFogRange;
 uniform float uExposure;
+uniform float uSaturation;
 #if ${maxLights} > 0
 uniform vec4 uLightPos[${Math.max(1, maxLights)}];   // xyz + radius
 uniform vec4 uLightCol[${Math.max(1, maxLights)}];   // rgb + intensity
@@ -144,10 +145,19 @@ ${detail ? `
 ` : ''}
   // Contact darkening toward the underside of every box: cheap grounding
   // that stands in for the shadow map this renderer deliberately omits.
-  base *= 0.80 + 0.20 * smoothstep(-1.0, -0.2, vLocal.y);
+  // Kept light — on a high-key palette a heavy version reads as grime.
+  base *= 0.87 + 0.13 * smoothstep(-1.0, -0.2, vLocal.y);
 
   vec3 col = base * light * uExposure;
-  col = mix(col, base * 1.35 + vec3(0.12), vParams.x);      // emissive
+
+  /* Flat-lit low-poly loses chroma the moment several light terms are
+     summed, and the result is a bright picture made of greys. Pushing
+     saturation back up after lighting is what keeps the palette reading
+     as the colours the map actually specifies. */
+  float lum = dot(col, vec3(0.299, 0.587, 0.114));
+  col = mix(vec3(lum), col, uSaturation);
+
+  col = mix(col, base * 1.45 + vec3(0.14), vParams.x);      // emissive
 
   float fog = clamp((vDepth - uFogRange.x) / max(uFogRange.y - uFogRange.x, 0.001), 0.0, 1.0);
   fog *= fog * (3.0 - 2.0 * fog);
@@ -192,6 +202,7 @@ export class BoxRenderer {
     gl.uniform3fv(p.u.uFogColour, scene.fogColour);
     gl.uniform2fv(p.u.uFogRange, scene.fogRange);
     gl.uniform1f(p.u.uExposure, scene.exposure);
+    gl.uniform1f(p.u.uSaturation, scene.saturation === undefined ? 1 : scene.saturation);
     if (this.maxLights > 0) {
       const n = Math.min(this.maxLights, scene.lightCount | 0);
       gl.uniform1i(p.u.uLightCount, n);
