@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, maximum-scale=1">
+<title>OVERCLOCK — fast arcade multiplayer FPS in your browser</title>
+<meta name="description" content="An original fast arcade first-person shooter that runs in any browser. Real online multiplayer, bots, four game modes, four maps, built for phones first.">
+<meta name="theme-color" content="#0a0d11">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="client/css/app.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0d11'/%3E%3Cpath d='M16 6v6M16 20v6M6 16h6M20 16h6' stroke='%236ef3c8' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%236ef3c8'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<canvas id="view" aria-label="Game viewport"></canvas>
+
+<!-- ══════════ HUD ══════════ -->
+<div id="hud" class="hud" hidden>
+  <div class="hud__crosshair" id="crosshair" aria-hidden="true">
+    <span class="ch ch--t"></span><span class="ch ch--b"></span>
+    <span class="ch ch--l"></span><span class="ch ch--r"></span>
+    <span class="ch__dot"></span>
+    <span class="ch__hit" id="hitmarker">
+      <span></span><span></span><span></span><span></span>
+    </span>
+  </div>
+
+  <div class="hud__top">
+    <div class="scoreline" id="scoreline">
+      <span class="scoreline__a" id="scoreA">0</span>
+      <span class="scoreline__timer" id="matchTimer">--:--</span>
+      <span class="scoreline__b" id="scoreB">0</span>
+    </div>
+    <div class="hud__mode" id="hudMode"></div>
+  </div>
+
+  <div class="hud__feed" id="killFeed" aria-live="polite"></div>
+
+  <div class="hud__minimap" id="minimapWrap">
+    <canvas id="minimap" width="180" height="180"></canvas>
+  </div>
+
+  <div class="hud__bottomleft">
+    <div class="vitals">
+      <div class="vitals__bar">
+        <div class="vitals__fill" id="healthFill"></div>
+        <span class="vitals__num" id="healthNum">100</span>
+      </div>
+      <div class="vitals__armour" id="armourWrap"><div class="vitals__afill" id="armourFill"></div></div>
+    </div>
+  </div>
+
+  <div class="hud__bottomright">
+    <div class="ammo">
+      <span class="ammo__mag" id="ammoMag">30</span>
+      <span class="ammo__sep">/</span>
+      <span class="ammo__res" id="ammoRes">150</span>
+    </div>
+    <div class="ammo__weapon" id="weaponName">RIFT-7</div>
+    <div class="ammo__slots" id="weaponSlots"></div>
+  </div>
+
+  <div class="hud__banner" id="hudBanner"></div>
+  <div class="hud__damage" id="damageDirs" aria-hidden="true"></div>
+  <div class="hud__flash" id="damageFlash" aria-hidden="true"></div>
+  <div class="hud__names" id="nameplates" aria-hidden="true"></div>
+  <div class="hud__numbers" id="damageNumbers" aria-hidden="true"></div>
+
+  <div class="hud__stats" id="perfStats" hidden></div>
+
+  <div class="deathscreen" id="deathScreen" hidden>
+    <p class="deathscreen__by">Eliminated by</p>
+    <p class="deathscreen__who" id="killerName">—</p>
+    <p class="deathscreen__weapon" id="killerWeapon"></p>
+    <div class="deathscreen__ring"><span id="respawnCount">3</span></div>
+    <p class="deathscreen__hint">Respawning</p>
+  </div>
+
+  <div class="scoreboard" id="scoreboard" hidden>
+    <header class="scoreboard__head">
+      <h2 id="sbTitle">SCOREBOARD</h2>
+      <p id="sbSub"></p>
+    </header>
+    <div id="sbBody"></div>
+  </div>
+</div>
+
+<div id="touch" class="touch" hidden></div>
+
+<!-- ══════════ SCREENS ══════════ -->
+<div id="screens" class="screens">
+
+  <section class="screen screen--main is-active" id="screen-main">
+    <div class="brand">
+      <h1 class="brand__name">OVER<span>CLOCK</span></h1>
+      <p class="brand__tag">Fast arcade FPS. Runs in the browser, built for the phone in your hand.</p>
+    </div>
+    <nav class="menu">
+      <button class="menu__item menu__item--primary" data-go="play">
+        <span class="menu__label">PLAY</span>
+        <span class="menu__sub">Quick match, lobbies and private rooms</span>
+      </button>
+      <button class="menu__item" data-go="training"><span class="menu__label">AIM TRAINING</span><span class="menu__sub">Targets, timers and your accuracy</span></button>
+      <button class="menu__item" data-go="loadout"><span class="menu__label">LOADOUT</span><span class="menu__sub">Pick your weapons and colours</span></button>
+      <button class="menu__item" data-go="stats"><span class="menu__label">STATISTICS</span><span class="menu__sub">Level, K/D, accuracy, headshots</span></button>
+      <button class="menu__item" data-go="settings"><span class="menu__label">SETTINGS</span><span class="menu__sub">Graphics, controls, audio, crosshair</span></button>
+    </nav>
+    <footer class="mainfoot">
+      <div class="profile" id="profileChip">
+        <span class="profile__level" id="profileLevel">1</span>
+        <input class="profile__name" id="profileName" maxlength="16" spellcheck="false" autocomplete="off" aria-label="Your name">
+      </div>
+      <p class="mainfoot__note" id="serverNote"></p>
+    </footer>
+  </section>
+
+  <section class="screen" id="screen-play">
+    <header class="screen__head"><button class="back" data-back>← BACK</button><h2>PLAY</h2></header>
+    <div class="cards">
+      <button class="card card--wide" data-action="quick">
+        <h3>QUICK MATCH</h3>
+        <p>Join the busiest open lobby, or start one. Real players plus bots to fill the room.</p>
+      </button>
+      <button class="card" data-action="solo">
+        <h3>PLAY OFFLINE</h3>
+        <p>Host a match against bots in this tab. No server needed, no connection needed.</p>
+      </button>
+      <button class="card" data-action="create">
+        <h3>CREATE LOBBY</h3>
+        <p>Set the mode, map, bots and rules, then invite people with a room code.</p>
+      </button>
+      <button class="card" data-action="browse">
+        <h3>SERVER BROWSER</h3>
+        <p>See what is running and join it.</p>
+      </button>
+      <div class="card card--join">
+        <h3>JOIN WITH A CODE</h3>
+        <div class="joinrow">
+          <input id="joinCode" maxlength="5" placeholder="ABCD" spellcheck="false" autocomplete="off" aria-label="Room code">
+          <button class="btn btn--go" data-action="join">JOIN</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-browser">
+    <header class="screen__head"><button class="back" data-back>← BACK</button><h2>SERVER BROWSER</h2>
+      <button class="btn btn--ghost" data-action="refresh">REFRESH</button></header>
+    <div class="roomlist" id="roomList"></div>
+  </section>
+
+  <section class="screen screen--setup" id="screen-setup">
+    <header class="screen__head"><button class="back" data-back>← BACK</button><h2>GAME SETUP</h2>
+      <span class="roomcode" id="roomCode"></span></header>
+
+    <div class="setup">
+      <div class="setup__choice">
+        <h3><span class="setup__n">1</span> GAME MODE</h3>
+        <div class="chips" id="modeChips"></div>
+        <p class="setup__hint" id="modeHint"></p>
+      </div>
+
+      <div class="setup__choice">
+        <h3><span class="setup__n">2</span> MAP</h3>
+        <div class="maps" id="mapCards"></div>
+      </div>
+
+      <div class="setup__choice">
+        <h3><span class="setup__n">3</span> BOTS</h3>
+        <div class="chips" id="botChips"></div>
+        <div class="chips chips--sub" id="difficultyChips"></div>
+      </div>
+
+      <div class="setup__choice">
+        <h3><span class="setup__n">4</span> MATCH SETTINGS</h3>
+        <div class="fields" id="matchFields"></div>
+      </div>
+    </div>
+
+    <aside class="setup__side">
+      <h3>PLAYERS <span id="rosterCount"></span></h3>
+      <ul class="roster" id="roster"></ul>
+      <div class="setup__actions">
+        <button class="btn btn--ready" id="readyBtn">READY</button>
+        <button class="btn btn--primary" id="startBtn">START MATCH</button>
+        <button class="btn btn--ghost" id="inviteBtn">COPY INVITE</button>
+      </div>
+      <p class="setup__note" id="hostNote"></p>
+    </aside>
+  </section>
+
+  <section class="screen" id="screen-loadout">
+    <header class="screen__head"><button class="back" data-back>← BACK</button><h2>LOADOUT</h2></header>
+    <div class="loadout">
+      <div class="loadout__list">
+        <h3>PRIMARY</h3><div class="guns" id="primaryList"></div>
+        <h3>SIDEARM</h3><div class="guns" id="secondaryList"></div>
+        <h3>COLOUR</h3><div class="skins" id="skinList"></div>
+      </div>
+      <aside class="loadout__detail" id="gunDetail"></aside>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-stats">
+    <header class="screen__head"><button class="back" data-back>← BACK</button><h2>STATISTICS</h2></header>
+    <div class="stats" id="statsBody"></div>
+  </section>
+
+  <section class="screen" id="screen-settings">
+    <header class="screen__head"><button class="back" data-back>← BACK</button><h2>SETTINGS</h2>
+      <button class="btn btn--ghost" id="resetGroup">RESET TAB</button></header>
+    <nav class="tabs" id="settingsTabs"></nav>
+    <div class="options" id="settingsBody"></div>
+  </section>
+
+  <section class="screen" id="screen-training">
+    <header class="screen__head"><button class="back" data-back>← BACK</button><h2>AIM TRAINING</h2></header>
+    <div class="training">
+      <div class="training__modes" id="trainingModes"></div>
+      <div class="fields" id="trainingFields"></div>
+      <button class="btn btn--primary" id="trainStart">START</button>
+      <div class="training__best" id="trainingBest"></div>
+    </div>
+  </section>
+
+  <section class="screen screen--results" id="screen-results">
+    <header class="results__head">
+      <p class="results__label" id="resultLabel">MATCH OVER</p>
+      <h2 class="results__winner" id="resultWinner">—</h2>
+      <p class="results__sub" id="resultSub"></p>
+    </header>
+    <div class="results__table" id="resultTable"></div>
+    <div class="results__xp" id="resultXp"></div>
+    <div class="results__actions">
+      <button class="btn btn--primary" data-action="again">PLAY AGAIN</button>
+      <button class="btn" data-action="lobby">RETURN TO LOBBY</button>
+      <button class="btn btn--ghost" data-action="main">MAIN MENU</button>
+    </div>
+  </section>
+
+  <section class="screen screen--pause" id="screen-pause">
+    <div class="pause">
+      <h2>PAUSED</h2>
+      <button class="btn btn--primary" data-action="resume">RESUME</button>
+      <button class="btn" data-go="settings">SETTINGS</button>
+      <button class="btn" data-action="layout">EDIT TOUCH LAYOUT</button>
+      <button class="btn btn--ghost" data-action="quit">LEAVE MATCH</button>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════ OVERLAYS ══════════ -->
+<div class="countdown" id="countdown" hidden><span id="countdownNum">3</span><em id="countdownSub"></em></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="rotate" id="rotatePrompt" hidden><p>Turn your device sideways</p><span>OVERCLOCK plays in landscape</span></div>
+<div class="layoutbar" id="layoutBar" hidden>
+  <span>Drag buttons to move them</span>
+  <label>Size <input type="range" id="layoutSize" min="6" max="26" step="0.5"></label>
+  <button class="btn btn--ghost" id="layoutReset">RESET</button>
+  <button class="btn btn--primary" id="layoutDone">DONE</button>
+</div>
+<div class="boot" id="boot"><div class="boot__bar"><i></i></div><p id="bootMsg">Building the world…</p></div>
+<noscript><div class="boot"><p>OVERCLOCK needs JavaScript. It is a game.</p></div></noscript>
+
+<script type="module" src="client/js/main.js"></script>
+</body>
+</html>

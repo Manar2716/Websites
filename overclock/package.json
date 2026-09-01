@@ -1,0 +1,13 @@
+{
+  "name": "overclock",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OVERCLOCK — an original fast arcade multiplayer FPS that runs in the browser.",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node tools/test-sim.js && node tools/test-server.js",
+    "test:browser": "node tools/test-browser.mjs"
+  }
+}
