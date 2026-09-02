@@ -19,6 +19,10 @@ export class DesktopInput {
     this.settings = settings;
     this.bindings = { ...DEFAULT_BINDINGS };
     this.down = new Set();
+    /* Keys pressed since the last poll. Input is sampled once a frame, so
+       without this a jump tapped between two frames is silently lost —
+       which is worst exactly when the frame rate is worst. */
+    this.tapped = new Set();
     this.locked = false;
     this.enabled = false;
     /* Pointer lock is not always available — an iframe without the
@@ -40,7 +44,16 @@ export class DesktopInput {
   isDown(action) {
     const keys = this.bindings[action];
     if (!keys) return false;
-    for (const k of keys) if (this.down.has(k)) return true;
+    for (const k of keys) if (this.down.has(k) || this.tapped.has(k)) return true;
+    return false;
+  }
+
+  /* True only on the poll that follows the key going down. Used for the
+     things that must fire once per press however long it is held. */
+  wasTapped(action) {
+    const keys = this.bindings[action];
+    if (!keys) return false;
+    for (const k of keys) if (this.tapped.has(k)) return true;
     return false;
   }
 
@@ -81,7 +94,8 @@ export class DesktopInput {
       if (!this.enabled || !this.active) return;
       const s = this.settings;
       const base = s.sensitivity * (this._ads ? s.adsSensitivity : 1);
-      this.state.lookDX += e.movementX * RAD_PER_COUNT * base * s.sensitivityX * (s.invertX ? -1 : 1);
+      // Negated: mouse-right is a yaw decrease. See InputState.lookDX.
+      this.state.lookDX += -e.movementX * RAD_PER_COUNT * base * s.sensitivityX * (s.invertX ? -1 : 1);
       this.state.lookDY += -e.movementY * RAD_PER_COUNT * base * s.sensitivityY * (s.invertY ? -1 : 1);
     }, { passive: true });
 
@@ -110,13 +124,14 @@ export class DesktopInput {
       const code = e.code;
       if (this.isBound(code)) e.preventDefault();
       this.down.add(code);
+      this.tapped.add(code);
       if (!this.enabled) return;
       if (this.matches('menu', code) && this.onMenu) this.onMenu();
       if (this.matches('chat', code) && this.onChat) this.onChat();
     });
 
     window.addEventListener('keyup', (e) => { this.down.delete(e.code); });
-    window.addEventListener('blur', () => { this.down.clear(); this.state.reset(); });
+    window.addEventListener('blur', () => { this.down.clear(); this.tapped.clear(); this.state.reset(); });
   }
 
   /* Playable right now: either the pointer is locked, or we know the lock
@@ -141,7 +156,7 @@ export class DesktopInput {
   /* Called once per simulation tick. */
   poll() {
     const s = this.state;
-    if (!this.enabled || !this.active) { s.moveX = 0; s.moveZ = 0; s.buttons &= BTN.ADS; return s; }
+    if (!this.enabled || !this.active) { s.moveX = 0; s.moveZ = 0; s.buttons &= BTN.ADS; this.tapped.clear(); return s; }
     s.moveZ = (this.isDown('forward') ? 1 : 0) - (this.isDown('back') ? 1 : 0);
     s.moveX = (this.isDown('right') ? 1 : 0) - (this.isDown('left') ? 1 : 0);
     s.set(BTN.JUMP, this.isDown('jump'));
@@ -151,9 +166,12 @@ export class DesktopInput {
     s.set(BTN.W1, this.isDown('weapon1'));
     s.set(BTN.W2, this.isDown('weapon2'));
     s.set(BTN.W3, this.isDown('weapon3'));
-    if (this.isDown('swap')) s.pendingSwap = true;
+    /* Edge-triggered: holding the swap key used to cycle the whole loadout
+       over and over, one weapon every 320 ms. */
+    if (this.wasTapped('swap')) s.pendingSwap = true;
     s.scoreboard = this.isDown('scoreboard');
     s.source = 'keyboard';
+    this.tapped.clear();
     return s;
   }
 }

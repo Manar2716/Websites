@@ -68,4 +68,72 @@ for (const id of ALL_MAP_IDS) {
 }
 console.log(`\nbrightest point anywhere: ${worst.toFixed(3)} (${worstWhere})`);
 console.log(worst > 1 ? 'FAIL — surfaces clip to flat colour' : 'ok — nothing clips');
-process.exit(worst > 1 ? 1 : 0);
+
+/* The composite, checked with the same arithmetic the shader runs.
+ *
+ * This exists because of a specific mistake that is easy to make twice.
+ * The scene renders into an 8-bit target, so the colour arriving at the
+ * composite has already been exposed and clamped by the box shader above.
+ * A filmic tone curve there is tone-mapping the same image a second time,
+ * and the symptom — a bright palette going flat and grey — looks exactly
+ * like a lighting bug, which is where anyone would go looking first.
+ *
+ * Three properties keep the composite honest, and every one of them was
+ * violated by the ACES fit that used to sit here:
+ *
+ *   below the knee, the curve is the identity — mid-tones and shadows pass
+ *   through untouched, so nothing the lighting check just measured is
+ *   altered after the fact;
+ *   full scale stays full scale — white is still white;
+ *   it is monotonic — no pair of distinguishable inputs collapses onto one
+ *   output, which is what "washed out" means numerically.
+ */
+const KNEE = 0.94;   // must match PostFX.knee
+const rolloff = (x) => {
+  if (x <= KNEE) return x;
+  const over = x - KNEE, head = 1 - KNEE;
+  return KNEE + head * over / (over + head);
+};
+
+console.log('\ncomposite');
+let bad = 0;
+const check = (label, cond, detail) => {
+  console.log(`  ${cond ? 'ok  ' : 'FAIL'} ${label}${cond ? '' : '  — ' + detail}`);
+  if (!cond) bad++;
+};
+
+/* The invariant that ties the two halves of this tool together: the
+   composite must not touch anything the lighting pass above just measured
+   and approved. Brighten the palette past the knee, or lower the knee, and
+   this fails - which is the failure that otherwise shows up as "the game
+   looks washed out" with no obvious cause. */
+check(`knee clears the brightest lit surface (${KNEE} vs ${worst.toFixed(3)}, margin ${(KNEE - worst).toFixed(3)})`,
+  KNEE > worst,
+  `${worstWhere} reaches ${worst.toFixed(3)} — lit surfaces are being compressed`);
+
+let maxIdentityErr = 0;
+for (let i = 0; i <= Math.floor(KNEE * 1000); i++) {
+  const x = i / 1000;
+  maxIdentityErr = Math.max(maxIdentityErr, Math.abs(rolloff(x) - x));
+}
+check('identity below the knee', maxIdentityErr < 1e-9,
+  `drifts by ${maxIdentityErr.toFixed(4)} — the lit range is being altered after the fact`);
+
+/* Some headroom above full scale has to be reserved for the bloom add, so
+   white cannot map to exactly white; it just has to stay white-looking. */
+check('full scale survives', rolloff(1) > 0.95,
+  `1.0 maps to ${rolloff(1).toFixed(3)} — white is no longer white`);
+
+let monotonic = true;
+for (let i = 0; i < 400; i++) if (rolloff((i + 1) / 200) < rolloff(i / 200)) monotonic = false;
+check('monotonic', monotonic, 'brighter input produces darker output');
+
+/* How much of the displayable range the curve alters at all. The ACES fit
+   this replaced scored 100%: every value in the image was moved. */
+let touched = 0;
+for (let i = 0; i <= 1000; i++) if (Math.abs(rolloff(i / 1000) - i / 1000) > 0.002) touched++;
+check('most of the range passes through', touched / 1001 < 0.1,
+  `${(touched / 10.01).toFixed(0)}% of the range is remapped — this is a tone curve, not a roll-off`);
+
+console.log(bad ? `\nFAIL — ${bad} composite check(s) failed` : '\nok — composite preserves the palette');
+process.exit(worst > 1 || bad ? 1 : 0);

@@ -86,7 +86,7 @@ void main() {
   gl_Position = clip;
 }`;
 
-const FS = (maxLights, detail) => `
+const FS = (maxLights, detail, shadows) => `
 precision highp float;
 varying vec3 vNormal;
 varying vec3 vColour;
@@ -103,6 +103,38 @@ uniform vec3 uFogColour;
 uniform vec2 uFogRange;
 uniform float uExposure;
 uniform float uSaturation;
+uniform vec3 uEye;
+uniform float uSpecular;
+uniform float uShininess;
+uniform float uRim;
+uniform float uFogHeight;
+#if ${shadows ? 1 : 0}
+uniform sampler2D uShadowMap;
+uniform mat4 uLightVP;
+uniform vec2 uShadowTexel;
+uniform float uShadowStrength;
+
+/* Nine taps around the projected point. Three-by-three is enough at this
+   resolution and it is what turns a hard stair-stepped edge into one that
+   reads as a shadow rather than as a bug. */
+float shadowAt(vec3 world, float ndl) {
+  vec4 lp = uLightVP * vec4(world, 1.0);
+  vec3 pc = lp.xyz / lp.w * 0.5 + 0.5;
+  if (pc.z > 1.0 || pc.x < 0.0 || pc.x > 1.0 || pc.y < 0.0 || pc.y > 1.0) return 1.0;
+  /* Slope-scaled: a surface almost edge-on to the sun spans many more
+     depth units per texel and needs proportionally more tolerance. */
+  float bias = max(0.0016 * (1.0 - ndl), 0.00035);
+  float lit = 0.0;
+  for (int y = -1; y <= 1; y++) {
+    for (int x = -1; x <= 1; x++) {
+      vec2 o = vec2(float(x), float(y)) * uShadowTexel;
+      float d = texture2D(uShadowMap, pc.xy + o).r;
+      lit += (pc.z - bias <= d) ? 1.0 : 0.0;
+    }
+  }
+  return lit / 9.0;
+}
+#endif
 #if ${maxLights} > 0
 uniform vec4 uLightPos[${Math.max(1, maxLights)}];   // xyz + radius
 uniform vec4 uLightCol[${Math.max(1, maxLights)}];   // rgb + intensity
@@ -111,10 +143,15 @@ uniform int uLightCount;
 
 void main() {
   vec3 n = normalize(vNormal);
+  vec3 V = normalize(uEye - vWorld);
   float ndl = max(dot(n, -uSunDir), 0.0);
   // A little wrap on the sun keeps unlit faces readable instead of black.
   float wrapped = max((dot(n, -uSunDir) + 0.35) / 1.35, 0.0);
-  vec3 light = uSunColour * (ndl * 0.72 + wrapped * 0.28);
+  float shade = 1.0;
+#if ${shadows ? 1 : 0}
+  shade = mix(1.0, shadowAt(vWorld, ndl), uShadowStrength);
+#endif
+  vec3 light = uSunColour * (ndl * 0.72 + wrapped * 0.28) * shade;
   light += mix(uAmbientGround, uAmbientSky, n.y * 0.5 + 0.5);
 
 #if ${maxLights} > 0
@@ -150,6 +187,20 @@ ${detail ? `
 
   vec3 col = base * light * uExposure;
 
+  /* A broad specular lobe. Flat-shaded boxes have no surface variation at
+     all, so this is the only cue that tells you a face is angled toward
+     the light rather than simply painted brighter — it is what stops the
+     whole map reading as coloured paper. */
+  vec3 H = normalize(V - uSunDir);
+  float spec = pow(max(dot(n, H), 0.0), uShininess) * uSpecular * ndl * shade;
+  col += uSunColour * spec;
+
+  /* Rim light from the sky. Cheap, and it does the job an outline pass
+     would: it separates a silhouette from whatever is behind it, which
+     matters most for a player model against a bright wall. */
+  float rim = pow(1.0 - max(dot(n, V), 0.0), 3.0) * uRim;
+  col += uAmbientSky * rim;
+
   /* Flat-lit low-poly loses chroma the moment several light terms are
      summed, and the result is a bright picture made of greys. Pushing
      saturation back up after lighting is what keeps the palette reading
@@ -161,6 +212,9 @@ ${detail ? `
 
   float fog = clamp((vDepth - uFogRange.x) / max(uFogRange.y - uFogRange.x, 0.001), 0.0, 1.0);
   fog *= fog * (3.0 - 2.0 * fog);
+  /* Fog thins with height, so a catwalk stands clear of the haze the floor
+     of the same room sits in. It is the cheapest depth cue there is. */
+  fog *= mix(1.0, 0.45, clamp((vWorld.y - uFogHeight) / 14.0, 0.0, 1.0));
   col = mix(col, uFogColour, fog * (1.0 - vParams.x * 0.85));
 
   gl_FragColor = vec4(col, vParams.y);
@@ -171,7 +225,8 @@ export class BoxRenderer {
     this.gl = gl;
     this.maxLights = opts.maxLights === undefined ? 8 : opts.maxLights;
     this.detail = opts.detail !== false;
-    this.program = compile(gl, VS, FS(this.maxLights, this.detail), 'boxes');
+    this.shadows = !!opts.shadows;
+    this.program = compile(gl, VS, FS(this.maxLights, this.detail, this.shadows), 'boxes');
 
     this.vboPos = buffer(gl, gl.ARRAY_BUFFER, new Float32Array(CUBE_POS));
     this.vboNrm = buffer(gl, gl.ARRAY_BUFFER, new Float32Array(CUBE_NRM));
@@ -182,12 +237,13 @@ export class BoxRenderer {
 
   /* Rebuild the shader when the quality preset changes the light budget
      or turns surface detail off. */
-  reconfigure(maxLights, detail) {
-    if (maxLights === this.maxLights && detail === this.detail) return;
+  reconfigure(maxLights, detail, shadows) {
+    if (maxLights === this.maxLights && detail === this.detail && shadows === this.shadows) return;
     this.maxLights = maxLights;
     this.detail = detail;
+    this.shadows = !!shadows;
     this.gl.deleteProgram(this.program);
-    this.program = compile(this.gl, VS, FS(maxLights, detail), 'boxes');
+    this.program = compile(this.gl, VS, FS(maxLights, detail, this.shadows), 'boxes');
   }
 
   setScene(scene) {
@@ -203,6 +259,20 @@ export class BoxRenderer {
     gl.uniform2fv(p.u.uFogRange, scene.fogRange);
     gl.uniform1f(p.u.uExposure, scene.exposure);
     gl.uniform1f(p.u.uSaturation, scene.saturation === undefined ? 1 : scene.saturation);
+    gl.uniform1f(p.u.uSpecular, scene.specular === undefined ? 0.35 : scene.specular);
+    gl.uniform1f(p.u.uShininess, scene.shininess === undefined ? 24 : scene.shininess);
+    gl.uniform1f(p.u.uRim, scene.rim === undefined ? 0.22 : scene.rim);
+    gl.uniform1f(p.u.uFogHeight, scene.fogHeight === undefined ? 0 : scene.fogHeight);
+    if (this.shadows && scene.shadow && scene.shadow.ready) {
+      gl.activeTexture(gl.TEXTURE3);
+      gl.bindTexture(gl.TEXTURE_2D, scene.shadow.tex);
+      gl.uniform1i(p.u.uShadowMap, 3);
+      gl.uniformMatrix4fv(p.u.uLightVP, false, scene.shadow.matrix);
+      const t = 1 / scene.shadow.size;
+      gl.uniform2f(p.u.uShadowTexel, t, t);
+      gl.uniform1f(p.u.uShadowStrength, scene.shadowStrength === undefined ? 0.78 : scene.shadowStrength);
+      gl.activeTexture(gl.TEXTURE0);
+    }
     if (this.maxLights > 0) {
       const n = Math.min(this.maxLights, scene.lightCount | 0);
       gl.uniform1i(p.u.uLightCount, n);
@@ -242,6 +312,24 @@ export class BoxRenderer {
     }
   }
 }
+
+/* Draws a batch into the shadow map. Same instance data, different
+   program: only position matters when all you are writing is depth. */
+BoxRenderer.prototype.drawDepth = function (program, batch) {
+  const gl = this.gl;
+  if (!batch.count) return;
+  bindVec3(gl, program.a.aPos, this.vboPos);
+  gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
+  const S = FLOATS_PER_INSTANCE * 4;
+  attrib(gl, program.a.iCentre, 3, S, 0, 1);
+  attrib(gl, program.a.iHalf, 3, S, 12, 1);
+  attrib(gl, program.a.iRot, 2, S, 24, 1);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibo);
+  gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, batch.count);
+  for (const a of [program.a.iCentre, program.a.iHalf, program.a.iRot]) {
+    if (a >= 0) gl.vertexAttribDivisor(a, 0);
+  }
+};
 
 function bindVec3(gl, loc, vbo) {
   if (loc < 0) return;

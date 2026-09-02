@@ -170,7 +170,8 @@ export class TouchControls {
         this.look.moved += Math.abs(dx) + Math.abs(dy);
         const s = this.settings;
         const base = s.touchSensitivity * (this.adsHeld ? s.adsSensitivity : 1);
-        this.state.lookDX += dx * RAD_PER_PX * base * s.sensitivityX * (s.invertX ? -1 : 1);
+        // Negated: dragging right is a yaw decrease. See InputState.lookDX.
+        this.state.lookDX += -dx * RAD_PER_PX * base * s.sensitivityX * (s.invertX ? -1 : 1);
         this.state.lookDY += -dy * RAD_PER_PX * base * s.sensitivityY * (s.invertY ? -1 : 1);
       }
       e.preventDefault();
@@ -364,7 +365,7 @@ export class Gyro {
     this.last = cur;
     const k = (this.settings.gyroStrength ?? 1) * 0.017;
     if (Math.abs(dYaw) < 25 && Math.abs(dPitch) < 25) {
-      this.state.lookDX += dYaw * k * (this.settings.gyroInvertX ? -1 : 1);
+      this.state.lookDX += -dYaw * k * (this.settings.gyroInvertX ? -1 : 1);
       this.state.lookDY += dPitch * k * (this.settings.gyroInvertY ? 1 : -1);
     }
   }

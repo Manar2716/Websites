@@ -37,7 +37,14 @@ export class InputState {
     this.buttons = 0;
     this.yaw = 0;
     this.pitch = 0;
-    this.lookDX = 0;      // radians accumulated since the last consume
+    /* Radians to ADD to yaw and pitch on the next consume.
+     *
+     * Sign convention, and it is not the obvious one: forward is
+     * (-sin yaw, -cos yaw), so increasing yaw rotates the view to the
+     * LEFT. Every input source therefore contributes the negation of its
+     * rightward delta. Getting this backwards mirrors the whole game and
+     * is completely invisible in a screenshot. */
+    this.lookDX = 0;
     this.lookDY = 0;
     this.scoreboard = false;
     this.wheel = 0;

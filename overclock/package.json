@@ -10,6 +10,7 @@
     "test": "node tools/check-lighting.mjs && node tools/test-sim.js && node tools/test-server.js",
     "test:browser": "node tools/test-browser.mjs",
     "bundle": "node tools/bundle.mjs overclock-standalone.html",
+    "test:controls": "node tools/test-controls.mjs",
     "test:bundle": "node tools/bundle.mjs /tmp/overclock-bundle-test.html && node tools/test-bundle.mjs /tmp/overclock-bundle-test.html"
   }
 }

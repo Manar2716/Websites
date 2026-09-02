@@ -14,12 +14,21 @@
 import { createContext, compile, buffer, ResolutionController, parseColour } from './gl.js';
 import { BoxRenderer, Batch } from './boxes.js';
 import { SpriteRenderer, SpriteBatch } from './sprites.js';
+import { PostFX } from './post.js';
+import { ShadowMap } from './shadow.js';
 import * as m4 from './mat4.js';
 
 export const PRESETS = {
-  low: { detail: false, lights: 0, particles: 220, distance: 75, shadows: false, minScale: 0.45, maxScale: 0.85 },
-  medium: { detail: true, lights: 4, particles: 550, distance: 120, shadows: true, minScale: 0.6, maxScale: 1.0 },
-  high: { detail: true, lights: 8, particles: 1100, distance: 240, shadows: true, minScale: 0.75, maxScale: 1.0 },
+  /* fxaa is on even at low: it costs one fullscreen pass and it is the
+     single most visible improvement available to geometry made entirely of
+     long straight edges. Bloom is the one that scales with fill rate, so
+     that is what the presets actually gate. */
+  low: { detail: false, lights: 0, particles: 220, distance: 75, shadows: false, blobs: true,
+    fxaa: false, bloom: false, specular: 0.18, rim: 0.12, minScale: 0.45, maxScale: 0.85 },
+  medium: { detail: true, lights: 4, particles: 550, distance: 130, shadows: false, blobs: true,
+    fxaa: true, bloom: false, specular: 0.32, rim: 0.20, minScale: 0.6, maxScale: 1.0 },
+  high: { detail: true, lights: 8, particles: 1100, distance: 240, shadows: true, blobs: true,
+    fxaa: true, bloom: true, specular: 0.40, rim: 0.26, minScale: 0.75, maxScale: 1.0 },
 };
 
 /* The ray is built straight from the camera basis and the field of view
@@ -77,6 +86,14 @@ export class Renderer {
 
     this.boxes = new BoxRenderer(gl, { maxLights: this.preset.lights, detail: this.preset.detail });
     this.sprites = new SpriteRenderer(gl);
+    this.post = new PostFX(gl);
+    this.post.configure({ fxaa: this.preset.fxaa, bloom: this.preset.bloom });
+    /* 1024, not 2048. A map is at most eighty units across, so this is
+       still about twelve texels per unit — more than chunky low-poly
+       geometry can show — and it is a quarter of the fill cost, which is
+       the whole difference on a phone. */
+    this.shadow = new ShadowMap(gl, 1024);
+    this.boxes.reconfigure(this.preset.lights, this.preset.detail, this.preset.shadows && this.shadow.available);
     this.sky = compile(gl, SKY_VS, SKY_FS, 'sky');
     this.skyQuad = buffer(gl, gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]));
 
@@ -100,6 +117,8 @@ export class Renderer {
       ambientSky: new Float32Array(3), ambientGround: new Float32Array(3),
       fogColour: new Float32Array(3), fogRange: new Float32Array(2),
       exposure: 1, saturation: 1.15,
+      specular: 0.4, shininess: 24, rim: 0.26, fogHeight: 0,
+      shadow: null, shadowStrength: 0.78,
       lightPos: this.lightPos, lightCol: this.lightCol, lightCount: 0,
     };
     this.stats = { brushes: 0, instances: 0, sprites: 0, calls: 0, viewmodel: 0 };
@@ -116,7 +135,9 @@ export class Renderer {
   setQuality(name, opts = {}) {
     const p = PRESETS[name] || PRESETS.medium;
     this.preset = p;
-    this.boxes.reconfigure(p.lights, p.detail);
+    this.boxes.reconfigure(p.lights, p.detail, p.shadows && this.shadow.available);
+    this.post.configure({ fxaa: p.fxaa, bloom: p.bloom });
+    this.post.dispose();
     this.res.min = p.minScale;
     this.res.max = p.maxScale;
     this.res.scale = Math.min(Math.max(opts.resolutionScale || p.maxScale, p.minScale), p.maxScale);
@@ -143,6 +164,12 @@ export class Renderer {
     this.brushColours = world.brushes.map((b) => parseColour(b.color));
     this.topColours = world.brushes.map((b) => (b.top ? parseColour(b.top) : null));
     this.visibleBrushes = world.brushes.map((b, i) => i).filter((i) => world.brushes[i].visible);
+
+    /* The sun does not move and neither does the map, so the light camera
+       is framed once here rather than every frame. */
+    const sun = this.theme.sun;
+    const sl = Math.hypot(sun[0], sun[1], sun[2]) || 1;
+    this.shadow.fit(world.bounds, [sun[0] / sl, sun[1] / sl, sun[2] / sl]);
   }
 
   /* frame: { camera, players, effects, viewmodel, showViewmodel } */
@@ -179,6 +206,9 @@ export class Renderer {
     s.ambientSky.set(th.ambient.map((v) => v * 0.42));
     s.ambientGround.set(th.ambientGround.map((v) => v * 0.30));
     s.saturation = th.saturation === undefined ? 1.15 : th.saturation;
+    s.specular = this.preset.specular;
+    s.rim = this.preset.rim;
+    s.fogHeight = this.world ? this.world.bounds.minY + 2 : 0;
     s.fogColour.set(th.fog);
     s.fogRange[0] = Math.min(th.fogNear, this.renderDistance * 0.55);
     s.fogRange[1] = Math.min(th.fogFar, this.renderDistance);
@@ -186,15 +216,29 @@ export class Renderer {
 
     this.collectLights(cam);
 
+    /* Geometry first, because the shadow pass draws the same instance
+       buffers the lit pass will, and building them twice would be silly. */
+    this.buildWorld(cam, frame);
+
+    const useShadows = this.preset.shadows && this.shadow.available && this.shadow.ready;
+    s.shadow = useShadows ? this.shadow : null;
+    if (useShadows && this.shadow.begin()) {
+      this.boxes.drawDepth(this.shadow.program, this.opaque);
+      this.shadow.end();
+      this.stats.calls++;
+    }
+
+    const offscreen = this.post.begin(w, h);
+    gl.viewport(0, 0, w, h);
     gl.clearColor(th.fog[0], th.fog[1], th.fog[2], 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     this.drawSky(cam);
-    this.buildWorld(cam, frame);
     this.drawOpaque();
     this.drawEffects(frame);
     this.drawGlass();
     if (frame.showViewmodel !== false && frame.viewmodel) this.drawViewmodel(frame, aspect);
+    if (offscreen) this.stats.calls += this.post.end(w, h);
   }
 
   collectLights(cam) {
@@ -281,13 +325,14 @@ export class Renderer {
 
     if (frame.buildEntities) frame.buildEntities(opaque, glass);
     this.stats.instances = opaque.count + glass.count;
+    // Uploaded here so the shadow pass and the lit pass share one upload.
+    opaque.upload();
   }
 
   drawOpaque() {
     const gl = this.gl;
     gl.disable(gl.BLEND);
     this.boxes.setScene(this.scene);
-    this.opaque.upload();
     this.boxes.draw(this.opaque);
     this.stats.calls++;
   }

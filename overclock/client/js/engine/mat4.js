@@ -47,6 +47,36 @@ export function fpsView(o, x, y, z, yaw, pitch, roll = 0) {
   return o;
 }
 
+/* Orthographic projection, for the sun's view of the world. */
+export function ortho(o, l, r, b, t, near, far) {
+  const lr = 1 / (l - r), bt = 1 / (b - t), nf = 1 / (near - far);
+  o[0] = -2 * lr; o[1] = 0; o[2] = 0; o[3] = 0;
+  o[4] = 0; o[5] = -2 * bt; o[6] = 0; o[7] = 0;
+  o[8] = 0; o[9] = 0; o[10] = 2 * nf; o[11] = 0;
+  o[12] = (l + r) * lr; o[13] = (t + b) * bt; o[14] = (far + near) * nf; o[15] = 1;
+  return o;
+}
+
+/* A view matrix looking from `eye` along `dir`. Used for the shadow
+   camera, where there is a direction but no target. */
+export function lookAlong(o, ex, ey, ez, dx, dy, dz) {
+  let fx = dx, fy = dy, fz = dz;
+  const fl = Math.hypot(fx, fy, fz) || 1;
+  fx /= fl; fy /= fl; fz /= fl;
+  // Any up vector not parallel to the direction will do.
+  let ux = 0, uy = 1, uz = 0;
+  if (Math.abs(fy) > 0.99) { ux = 1; uy = 0; uz = 0; }
+  let rx = fy * uz - fz * uy, ry = fz * ux - fx * uz, rz = fx * uy - fy * ux;
+  const rl = Math.hypot(rx, ry, rz) || 1;
+  rx /= rl; ry /= rl; rz /= rl;
+  const vx = ry * fz - rz * fy, vy = rz * fx - rx * fz, vz = rx * fy - ry * fx;
+  o[0] = rx; o[4] = ry; o[8] = rz; o[12] = -(rx * ex + ry * ey + rz * ez);
+  o[1] = vx; o[5] = vy; o[9] = vz; o[13] = -(vx * ex + vy * ey + vz * ez);
+  o[2] = -fx; o[6] = -fy; o[10] = -fz; o[14] = (fx * ex + fy * ey + fz * ez);
+  o[3] = 0; o[7] = 0; o[11] = 0; o[15] = 1;
+  return o;
+}
+
 export function multiply(o, a, b) {
   for (let c = 0; c < 4; c++) {
     const b0 = b[c * 4], b1 = b[c * 4 + 1], b2 = b[c * 4 + 2], b3 = b[c * 4 + 3];

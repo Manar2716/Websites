@@ -622,7 +622,9 @@ export class Game {
         height: o.height, team: o.team, skin: o.skin, bot: o.bot,
       }, anim, { colours, alpha });
 
-      if (this.renderer.preset.shadows) {
+      /* Only when there is no real shadow map. A blob under a player who
+         already casts a proper shadow is two shadows from one person. */
+      if (this.renderer.preset.blobs && !this.renderer.preset.shadows) {
         const ground = floorUnder(this.world, o.x, o.y + 0.3, o.z, 6);
         if (ground !== null) {
           const fall = clamp(1 - (o.y - ground) / 4, 0.15, 1);

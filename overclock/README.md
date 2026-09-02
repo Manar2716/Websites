@@ -146,10 +146,35 @@ frame. Adding detail to a map costs an array entry, not a draw call.
 There are no textures and no image files. Surfaces get their detail from
 panel lines and low-frequency mottling derived from world position in the
 fragment shader, which is lighter than a texture and never has to be
-downloaded. There is no shadow map either: contact darkening on the
-underside of every box plus a blob under each player does the job a shadow
-actually does at this scale — telling you whether somebody is on your floor
-or the balcony above it.
+downloaded.
+
+On the high preset the sun casts a real shadow map, and it is cheap for a
+reason particular to this geometry: the sun does not move and neither does
+the map, so the orthographic frustum is fitted to the world bounds once at
+load and the depth pass never has to be re-framed. The pass renders back
+faces (`gl.cullFace(gl.FRONT)`), which on closed boxes is a depth offset
+that costs nothing and removes most of the acne a bias would otherwise have
+to hide; what remains is handled by a slope-scaled bias and a 3x3 PCF tap.
+Below that preset, contact darkening on the underside of every box plus a
+blob under each player does the job a shadow actually does at this scale —
+telling you whether somebody is on your floor or the balcony above it.
+
+The frame then goes through a post chain (`client/js/engine/post.js`):
+FXAA, because low-poly geometry is nothing but long shallow edges and that
+is the worst case for aliasing; and a bright-pass plus two separable blurs
+at quarter resolution, added back, which is what makes strip lights and
+muzzle flashes read as light rather than as pale paint. Both are off on the
+low preset — a phone that is struggling wants its fill rate spent on the
+scene.
+
+One trap worth naming, because it cost a repaint: the scene renders into an
+8-bit target, so by the time the composite reads it the colour is already
+exposed and clamped. Running a filmic tone curve there is tone-mapping the
+same image twice. An ACES fit maps 1.0 to 0.80 and squeezes 0.70-1.00 into
+the 0.72-0.80 band while lifting shadows — on a high-key palette that turns
+the whole game grey, and it looks like a lighting bug rather than a
+composite one. The curve now applies above a knee only, where the sole
+thing that can exceed the ceiling is the bloom that was just added.
 
 The look is high-key on purpose: saturated flat colour, long sightlines,
 and nothing lost in shadow. That is harder to light than a dark game, in a
@@ -248,6 +273,7 @@ tools/test-*.js             simulation, server and browser checks
 npm test                    # simulation and a real server over a real socket
 npm run test:browser        # Chromium, three viewport sizes, two clients in one room
 npm run test:bundle         # the single-file build, loaded from file://
+npm run test:controls       # every desktop control, read off the simulation
 ```
 
 `test-sim.js` runs the real match loop rather than a mock: map reachability,
@@ -262,6 +288,12 @@ then puts two browsers in one room. `test-bundle.mjs` opens the single-file
 build straight off the filesystem and plays it, including with pointer lock
 refused — the case an embedded copy hits, and one that would otherwise leave
 a desktop player unable to look around.
+
+`test-controls.mjs` presses every desktop key and mouse button in turn and
+reads the result off the predicted player state rather than off the screen,
+which is the whole point of it: a mirrored look axis, a dropped jump and a
+key that cycles the loadout while held all look completely correct in a
+screenshot, and all three were real.
 
 ## Deploying
 

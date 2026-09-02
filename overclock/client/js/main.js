@@ -632,4 +632,23 @@ window.__ocDebug = () => {
 };
 window.__ocPeers = () => (game && game.remotes ? game.remotes.tracks.size : -1);
 
+/* The predicted local player, for the controls test: every assertion there
+   is "press this, get that", and reading it off the simulation is the only
+   way to tell an input bug from a rendering one. */
+window.__ocState = () => {
+  const g = game && game.prediction;
+  if (!g) return null;
+  const p = g.player, a = g.ammo;
+  return {
+    x: p.ph.pos.x, y: p.ph.pos.y, z: p.ph.pos.z,
+    yaw: input.yaw, pitch: input.pitch,
+    height: p.ph.height, onGround: p.ph.onGround,
+    speed: Math.hypot(p.ph.vel.x, p.ph.vel.z),
+    slot: p.slot, weapon: p.weapons[p.slot],
+    mag: a ? a.mag : 0, reserve: a ? a.reserve : 0,
+    ads: p.ads, reloading: p.reloadUntil > (game.remotes.serverClock || 0),
+    health: p.health,
+  };
+};
+
 boot();
