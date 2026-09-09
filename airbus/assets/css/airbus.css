@@ -653,7 +653,7 @@
 
   .hangar-hint, .radar-hint {
     position: absolute; left: 50%; transform: translateX(-50%);
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 6.4rem);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 7.4rem);
     font: 600 0.56rem/1 var(--mono); letter-spacing: 0.22em;
     color: var(--text-faint);
     transition: opacity 0.5s;

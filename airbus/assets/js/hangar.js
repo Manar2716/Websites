@@ -329,6 +329,10 @@ export class HangarStage extends Stage {
     };
 
     this.panel = new ComponentPanel(COMPONENTS);
+    /* The component panel and the specification panel both live on
+       the right-hand side, so they take turns rather than stack. */
+    bus.on('panel:open', () => { if (this.active) $('#spec-panel').hidden = true; });
+    bus.on('panel:close', () => { if (this.active && this.mode === 'orbit' && this.selected) $('#spec-panel').hidden = false; });
     this._buildRail();
     this._bindUI();
     this.select('a350', { instant: true });
@@ -562,6 +566,7 @@ export class HangarStage extends Stage {
     $('#prompt').hidden = true;
     if (this.dims) this.dims.visible = true;
     this.panel.close();
+    if (this.selected) $('#spec-panel').hidden = false;
     this.grade.dof = 0.30; this.grade.focus = 120; this.grade.range = 220;
     audio.room()?.set(0.2);
   }
