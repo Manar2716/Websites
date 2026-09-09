@@ -64,9 +64,12 @@ export class FlightModel {
     this.emptyMass = s.mtow * 0.55;
     /* Wing area is not published in fleet.js, so it is estimated
        from span and mean chord — which the geometry does define.
-       For the A320 that lands within a few per cent of 122 m². */
+       The 0.56 is the factor that puts the A320 on its published
+       122.6 m²; the rest of the fleet then lands within a few per
+       cent of theirs, which is close enough for speeds that are
+       shown to two significant figures. */
     const meanChord = (type.geo.rootChord * 0.72 + type.geo.tipChord) * s.length;
-    this.S = s.span * meanChord * 0.78;
+    this.S = s.span * meanChord * 0.56;
     this.engines = type.geo.engines;
     const lbf = parseFloat(String(s.thrust).replace(/[^\d]/g, '')) || 27000;
     this.maxThrust = lbf * 4.44822 * this.engines;   /* lbf → N, all engines */
@@ -74,13 +77,15 @@ export class FlightModel {
   }
 
   reset(opts = {}) {
-    /* Parked on the runway threshold, facing 270°, cold. */
-    this.x = opts.x ?? 240;
+    /* Lined up on runway 09, a couple of hundred metres past the
+       threshold, cold and dark. psi is measured so that 0 points
+       along +X, which is runway heading 090. */
+    this.x = opts.x ?? 200;
     this.z = opts.z ?? 0;
     this.alt = opts.alt ?? 0;                        /* metres AMSL */
     this.V = opts.V ?? 0;                            /* TAS, m/s */
     this.gamma = 0;
-    this.psi = opts.psi ?? Math.PI / 2;              /* heading, rad; +X is 090 */
+    this.psi = opts.psi ?? 0;
     this.theta = 0;                                  /* pitch */
     this.phi = 0;                                    /* roll */
     this.p = 0; this.q = 0; this.r = 0;              /* body rates */
@@ -140,6 +145,14 @@ export class FlightModel {
   get v1Kt() { return this.vRefKt * 1.06; }
   get vrKt() { return this.vRefKt * 1.10; }
   get v2Kt() { return this.vRefKt * 1.16; }
+
+  /* Stall speed as a true airspeed, at the current weight,
+     configuration and density. The envelope protections below
+     are all expressed against it. */
+  get vStall() {
+    const clMax = 1.35 + DETENTS[this.detent].dCL;
+    return Math.sqrt((2 * this.mass * G) / (this.atm.rho * this.S * clMax));
+  }
 
   get running() { return this.systems.eng1 && this.systems.eng2; }
   get powered() { return this.systems.battery && (this.systems.apu || this.systems.extPower || this.running); }
@@ -223,23 +236,47 @@ export class FlightModel {
 
     /* ── attitude: rate commands, with envelope limits ──── */
     const authority = clamp(this.V / 80, 0.15, 1);
-    const pitchRate = this.stick.pitch * 0.55 * authority;
+    let pitchRate = this.stick.pitch * 0.55 * authority;
     const rollRate = this.stick.roll * 1.35 * authority;
+
+    /* Envelope protection, in the spirit of the real thing: the
+       aircraft will not let itself be pulled into a stall. Nose-up
+       authority is faded out as the speed approaches 1.13 Vs, and
+       angle of attack is hard-limited. This is the one behaviour
+       from the A320 that most defines how it feels to fly, so it
+       is here even in a simplified model. */
+    const vs = this.vStall;
+    if (!this.onGround && pitchRate > 0) {
+      const margin = clamp((this.V / (vs * 1.13) - 0.97) / 0.10, 0, 1);
+      pitchRate *= margin;
+      if (margin < 0.35 && !this._alphaWarned) {
+        this._alphaWarned = true;
+        this.note('ALPHA PROT');
+      } else if (margin > 0.8) this._alphaWarned = false;
+    }
+    const alphaMax = 16 * deg;
 
     if (this.onGround && this.V < this.vrKt * KT * 0.92) {
       /* the nose stays down until the wing will hold it up */
       this.theta = damp(this.theta, 0, 6, dt);
       this.phi = damp(this.phi, 0, 6, dt);
     } else {
-      this.theta = clamp(this.theta + pitchRate * dt, -18 * deg, 30 * deg);
+      this.theta = clamp(this.theta + pitchRate * dt, -18 * deg,
+                         Math.min(30 * deg, this.gamma + alphaMax));
       this.phi = clamp(this.phi + rollRate * dt, -67 * deg, 67 * deg);
       /* hands off, an Airbus holds the attitude it was given */
       if (Math.abs(this.stick.roll) < 0.02 && !this.ap.on) {
         if (Math.abs(this.phi) < 33 * deg) this.phi = damp(this.phi, 0, 0.55, dt);
       }
-      if (Math.abs(this.stick.pitch) < 0.02 && !this.ap.on && !this.onGround) {
-        /* pitch is held, not returned to zero */
-      }
+      /* Alpha floor: below 1.05 Vs the aircraft stops taking the
+         instruction and puts its own nose down until the speed is
+         back. This is the protection doing something visible
+         rather than only refusing an input, and it is why you
+         cannot stall this aircraft by holding the stick back. */
+      if (this.V < vs * 1.05) {
+        this.theta = damp(this.theta, this.gamma - 2 * deg, 1.6, dt);
+        if (!this._floorWarned) { this._floorWarned = true; this.note('ALPHA FLOOR'); }
+      } else if (this.V > vs * 1.20) this._floorWarned = false;
     }
 
     /* ── forces ───────────────────────────────────────── */
@@ -258,10 +295,14 @@ export class FlightModel {
     else this._air(dt, T, D, L, alpha);
 
     /* ── ground contact ───────────────────────────────── */
+    this.airborne = this.onGround ? 0 : (this.airborne || 0) + dt;
+
     const gAlt = this.groundAlt;
     const wheelH = this.type.spec.height * 0.30 * this.gear;
     const floor = gAlt + wheelH;
-    if (!this.onGround && this.alt <= floor) {
+    /* A touchdown needs half a second in the air first, so a
+       rotation is never mistaken for one. */
+    if (!this.onGround && this.airborne > 0.5 && this.alt <= floor) {
       this.touchdownVS = this.vsFpm;
       this.alt = floor;
       this.onGround = true;
@@ -270,11 +311,14 @@ export class FlightModel {
       this.note(this.gear > 0.5
         ? `TOUCHDOWN ${Math.abs(Math.round(this.touchdownVS))} FT/MIN`
         : 'GEAR UP LANDING');
-      this.spoilerTarget = 1;
+      /* Ground spoilers, but only for an arrival — a firm bounce
+         during a touch-and-go should not dump the lift. */
+      if (this.V < this.vRefKt * KT * 1.35) this.spoilerTarget = 1;
       this.phase = 9;
       this.onTouchdown?.(this.touchdownVS);
     } else if (this.onGround && this.alt > floor + 0.4) {
       this.onGround = false;
+      if (this.phase === 9) this.phase = 4;
     }
     if (this.onGround) this.alt = floor;
     this.compression = damp(this.compression, this.onGround ? 0.25 : 0, 3, dt);
@@ -308,14 +352,26 @@ export class FlightModel {
     const steer = this.stick.yaw * (this.V < 30 ? 0.45 : 0.12) * clamp(this.V / 6, 0, 1);
     this.psi += steer * dt;
 
-    /* rotation: the wing takes the weight and the aircraft flies */
-    if (this.V > this.vrKt * KT * 0.92 && this.stick.pitch > 0.05) {
-      this.theta = clamp(this.theta + this.stick.pitch * 0.35 * dt, 0, 15 * deg);
+    /* Rotation. The attitude block above has already moved the
+       pitch; all this does is ask whether the wing is now
+       carrying the weight. The nose is held down until the
+       aircraft is near VR, and never rotates past the tailstrike
+       angle. */
+    if (this.V > this.vrKt * KT * 0.92) {
+      this.theta = clamp(this.theta, 0, 13.5 * deg);
       const lift = 0.5 * this.atm.rho * this.V * this.V * this.S *
                    (0.22 + 5.1 * this.theta + this.detents[this.detent].dCL);
       if (lift > this.mass * G) {
         this.onGround = false;
-        this.gamma = 0.02;
+        this.gamma = 0.025;
+        /* Off the ground by a hand's width, so that the contact
+           test later in this same frame does not immediately
+           declare a landing. Without it the aircraft rotates,
+           lifts, touches down and deploys its ground spoilers in
+           one sixtieth of a second, then slides up the next
+           hillside with the altimeter winding up behind it. */
+        this.alt += 0.25;
+        this.airborne = 0;
         this.note('AIRBORNE');
         this.phase = 4;
       }

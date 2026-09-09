@@ -283,7 +283,7 @@ class Post {
     }
 
     this.uBright = {
-      tIn: { value: null }, uThreshold: { value: 1.05 }, uKnee: { value: 0.35 },
+      tIn: { value: null }, uThreshold: { value: 1.30 }, uKnee: { value: 0.30 },
       uTexel: { value: new THREE.Vector2() }
     };
     this.mBright = fullscreen(`

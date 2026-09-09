@@ -373,7 +373,7 @@ export class HangarStage extends Stage {
     dom.addEventListener('wheel', (e) => {
       if (this.mode !== 'orbit' || !this.active) return;
       e.preventDefault();
-      this.orbit.tDist = clamp(this.orbit.tDist * (1 + Math.sign(e.deltaY) * 0.12), 22, 620);
+      this.orbit.tDist = clamp(this.orbit.tDist * (1 + Math.sign(e.deltaY) * 0.12), 22, 900);
     }, { passive: false });
 
     window.addEventListener('keydown', (e) => {
@@ -417,11 +417,13 @@ export class HangarStage extends Stage {
 
     /* fly to it rather than cut */
     const L = a.spec.length;
-    this.orbit.tTarget.set(slot.x, L * 0.11, slot.z);
-    this.orbit.tDist = L * 1.55;
+    const fit = this._fit();
+    this.orbit.tTarget.set(slot.x, L * fit.up, slot.z);
+    this.orbit.tDist = L * fit.dist;
     this.orbit.tYaw = slot.z > 0 ? Math.PI * 0.30 : -Math.PI * 0.70;
-    this.orbit.tPitch = 0.16;
-    this.orbit.tFov = 40;
+    this.orbit.tPitch = fit.pitch;
+    this.orbit.tFov = fit.fov;
+    this._tilt = fit.tilt;
     if (instant) {
       this.orbit.target.copy(this.orbit.tTarget);
       this.orbit.dist = this.orbit.tDist;
@@ -708,9 +710,35 @@ export class HangarStage extends Stage {
     audio.room()?.set(0);
   }
 
+  /* A portrait phone sees a much narrower slice of the world
+     than a laptop does at the same vertical field of view, so an
+     aircraft framed for one is off both edges of the other.
+
+     Backing the camera off is the obvious fix and the wrong one:
+     an A350 needs nearly three hundred metres of standoff to fit
+     a portrait frame, which puts the camera outside the back
+     wall of the hangar looking at brickwork. Opening the field of
+     view instead keeps it in the room. */
+  _fit() {
+    const aspect = this.camera.aspect || 1.78;
+    const tight = clamp(1.62 / aspect, 1, 3.4);
+    return tight > 1.6
+      ? { dist: 1.22, fov: 58, up: 0.10, pitch: 0.13, tilt: 0.26 }
+      : { dist: 1.55 * tight, fov: 40 + (tight - 1) * 18, up: 0.11, pitch: 0.16, tilt: 0 };
+  }
+
   resize(w, h) {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    if (this.selected) {
+      const L = this.selected.type.spec.length;
+      const fit = this._fit();
+      this.orbit.tDist = L * fit.dist;
+      this.orbit.tTarget.y = L * fit.up;
+      this.orbit.tPitch = fit.pitch;
+      this.orbit.tFov = fit.fov;
+    }
+    this._tilt = this._fit().tilt;
   }
 
   update(dt, time) {
@@ -752,12 +780,17 @@ export class HangarStage extends Stage {
     const pitch = clamp(o.pitch - pointer.sy * 0.05, -0.05, 0.85);
 
     const cp = Math.cos(pitch);
+    const b = this.hangar.bounds;
     this.camera.position.set(
-      o.target.x + Math.sin(yaw) * cp * o.dist,
-      o.target.y + Math.sin(pitch) * o.dist + 2,
-      o.target.z + Math.cos(yaw) * cp * o.dist
+      clamp(o.target.x + Math.sin(yaw) * cp * o.dist, b.minX + 6, b.maxX - 6),
+      clamp(o.target.y + Math.sin(pitch) * o.dist + 2, 2, this.hangar.H - 6),
+      clamp(o.target.z + Math.cos(yaw) * cp * o.dist, b.minZ + 6, b.maxZ - 6)
     );
     this.camera.lookAt(o.target);
+    /* On a portrait screen the lower half of the frame belongs to
+       the specification panel, so the camera is tilted down and
+       the aircraft rides in the top half where it can be seen. */
+    if (this._tilt) this.camera.rotateX(-this._tilt);
     this.camera.fov = o.fov;
     this.camera.updateProjectionMatrix();
     this.grade.focus = o.dist;

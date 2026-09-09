@@ -251,17 +251,22 @@ export function makeOcean({ extent = 200000 } = {}) {
         return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+vec2(1,1)), f.x), f.y); }
       void main(){
         vec3 v = normalize(cameraPosition - vW);
-        /* a wobble in the normal, enough to break the specular
-           into a glitter path rather than a single hot spot */
+        /* A wobble in the normal, enough to break the specular
+           into a glitter path rather than one hot spot. The
+           amplitude falls away with distance: at eight thousand
+           feet the individual ripples are far below a pixel, and
+           leaving them in makes the sea boil. */
+        float d0 = length(vW - cameraPosition);
+        float detail = 1.0 - smoothstep(600.0, 9000.0, d0);
         vec2 q = vW.xz * 0.0035 + uTime * 0.03;
         float w1 = n(q) - 0.5, w2 = n(q * 2.7 - uTime * 0.02) - 0.5;
-        vec3 nrm = normalize(vec3(w1 * 0.22, 1.0, w2 * 0.22));
+        vec3 nrm = normalize(vec3(w1 * 0.22 * detail, 1.0, w2 * 0.22 * detail));
         float fres = pow(1.0 - max(dot(v, nrm), 0.0), 4.0);
         vec3 col = mix(uDeep, uShallow, fres * 1.4);
         vec3 hv = normalize(normalize(uSun) + v);
-        col += uSunColor * pow(max(dot(nrm, hv), 0.0), 260.0) * 2.6;
+        col += uSunColor * pow(max(dot(nrm, hv), 0.0), 260.0) * 2.6 * (0.25 + detail * 0.75);
         col += uFog * fres * 0.55;
-        float dist = length(vW - cameraPosition);
+        float dist = d0;
         float f = clamp(1.0 - exp(-dist * uFogDensity), 0.0, 1.0);
         gl_FragColor = vec4(mix(col, uFog, f * f), 1.0);
       }`

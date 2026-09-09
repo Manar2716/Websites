@@ -54,7 +54,17 @@
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 
-  html { -webkit-text-size-adjust: 100%; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+    /* A fixed element that extends past the viewport still widens
+       the initial containing block, which on a 390 px phone put
+       the navigation's right-hand tools off the edge of the
+       screen. Clipping here, not just on the body, is what keeps
+       the layout the width of the device. */
+    overflow-x: clip;
+  }
 
   body {
     margin: 0;
@@ -86,7 +96,7 @@
      moves with the frame; this one does not, and the two
      together read as film rather than as noise. */
   #grain {
-    position: fixed; inset: -50%;
+    position: fixed; inset: 0;
     z-index: 2; pointer-events: none;
     opacity: 0.035;
     background-image: repeating-conic-gradient(#fff 0% 25%, #000 0% 50%);
@@ -332,7 +342,9 @@
   .toast {
     position: fixed; left: 50%; bottom: 8vh; z-index: 70;
     transform: translate(-50%, 14px);
+    max-width: min(90vw, 46ch); text-align: center;
     padding: 0.75rem 1.2rem;
+    line-height: 1.7;
     font: 600 0.68rem/1 var(--mono); letter-spacing: 0.14em;
     color: var(--text);
     background: rgba(10,14,22,0.94);
@@ -437,6 +449,14 @@
     display: grid;
     align-content: end;
     padding-bottom: clamp(3rem, 9vh, 7rem);
+  }
+  /* The title sits over whatever the sky happens to be doing.
+     A pool of shade under it is the difference between type on
+     an image and type lost in one. */
+  .hero::after {
+    content: ''; position: absolute; inset: auto 0 0 0; height: 62%;
+    z-index: -1; pointer-events: none;
+    background: linear-gradient(180deg, rgba(5,7,12,0) 0%, rgba(5,7,12,0.34) 46%, rgba(5,7,12,0.72) 100%);
   }
   .hero-type { pointer-events: none; }
   .mega {
@@ -946,10 +966,15 @@
       margin: 0; padding: 1rem var(--gut) 1.6rem;
       background: rgba(5,7,12,0.97);
       border-bottom: 1px solid var(--line);
-      transform: translateY(-102%);
+      /* clear of the bar as well as of itself, or the last link
+         sits visible above the fold while the menu is shut */
+      transform: translateY(calc(-100% - var(--nav-h)));
       transition: transform 0.5s var(--ease);
     }
     .nav.open .nav-links { transform: none; }
+    /* the links are out of flow on small screens, so nothing is
+       left to push the tools to the right edge */
+    .nav-tools { margin-left: auto; }
     .nav-links button { padding: 0.85rem 0; font-size: 0.78rem; text-align: left; }
     .nav-links button i { left: 0; right: 100%; bottom: 2px; }
     .nav-links button:hover i, .nav-links button.on i { left: 0; right: 60%; }
@@ -961,9 +986,13 @@
 
     .spec-panel {
       right: var(--gut); left: var(--gut); width: auto;
-      top: auto; bottom: 8.5rem;
-      max-height: 44svh;
+      top: auto; bottom: 8.2rem;
+      max-height: 38svh;
+      padding: 1rem 1.1rem 1.1rem;
     }
+    .sp-head b { font-size: 1.1rem; }
+    .sp-grid { gap: 0.35rem 0.8rem; }
+    .sp-grid dd { font-size: 0.72rem; }
     .hangar-head { max-width: none; right: var(--gut); }
     .hangar-head p { display: none; }
     .hangar-hint { display: none; }
@@ -985,8 +1014,22 @@
       display: flex; gap: 0.3rem; overflow-x: auto; scrollbar-width: none;
     }
     .deck-views::-webkit-scrollbar { display: none; }
-    .deck-controls { left: var(--gut); right: var(--gut); width: auto; bottom: 4.4rem; }
-    .slider { width: 40vw; }
+    .deck-controls {
+      left: var(--gut); right: var(--gut); width: auto;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 3.6rem);
+      gap: 0.4rem;
+    }
+    .dc-row { gap: 0.3rem; }
+    .pill { padding: 0.48rem 0.6rem; font-size: 0.58rem; }
+    .slider { width: 34vw; }
+    .dt-readout div { min-width: 50px; padding: 0.34rem 0.5rem; }
+    .dt-readout b { font-size: 0.82rem; }
+    .stick-pad {
+      right: 2vw; bottom: calc(env(safe-area-inset-bottom, 0px) + 11.5rem);
+      width: 96px; height: 96px; opacity: 0.75;
+    }
+    .stick-pad i { width: 38px; height: 38px; }
+    .deck-views button { padding: 0.5rem 0.7rem; font-size: 0.55rem; }
     .exit-btn { bottom: auto; top: calc(var(--nav-h) + 0.6rem); left: auto; right: var(--gut); }
 
     .radar-panel {
@@ -999,6 +1042,8 @@
     .walk-hud { flex-direction: column; }
     .wh-keys { display: none; }
     .foot { flex-direction: column; gap: 0.4rem; }
+    .toast { bottom: auto; top: calc(var(--nav-h) + 4.5rem); }
+    .hero-sub { letter-spacing: 0.30em; text-indent: 0.30em; }
   }
 
   @media (max-width: 520px) {

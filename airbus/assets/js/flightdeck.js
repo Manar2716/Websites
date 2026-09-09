@@ -309,10 +309,8 @@ export class FlightStage extends Stage {
     this.pending = null;
 
     if (mode === 'fly') {
+      this.fm.reset();
       this.fm.quickStart();
-      this.fm.x = 180;
-      this.fm.psi = Math.PI / 2 * 0 + Math.PI / 2;   /* lined up on 09 */
-      this.fm.psi = 0;                                /* heading 090, down the runway */
       toast('LINED UP ON RUNWAY 09 — PUSH THE THROTTLE FORWARD', 5200);
     } else {
       toast('CLICK ANYTHING IN THE FLIGHT DECK · QUICK START GETS YOU MOVING', 5200);
@@ -493,6 +491,11 @@ export class FlightStage extends Stage {
     const eye = new THREE.Vector3(...cfg.pos);
     const look = new THREE.Vector3(...cfg.look);
 
+    /* On a narrow screen the captain's seat puts most of the
+       panel off the right-hand edge, so the seat slides toward
+       the centreline. On a desktop it stays where it belongs. */
+    if (v === 'pilot' && env.mobile) { eye.x *= 0.35; look.x *= 0.35; }
+
     /* the pilot's head moves a little with the pointer, which is
        what makes a fixed seat feel like a seat */
     if (!env.reduced && v === 'pilot') {
@@ -521,7 +524,11 @@ export class FlightStage extends Stage {
       this._look.lerp(look, 1 - Math.exp(-k * dt));
     }
     this.camera.lookAt(this._look);
-    this.camera.fov = damp(this.camera.fov, cfg.fov, 5, dt);
+    /* A phone is held much closer than its field of view
+       suggests; widening it is what stops the instrument panel
+       filling the whole screen. */
+    const fov = cfg.fov + (env.mobile ? 16 : env.tablet ? 8 : 0);
+    this.camera.fov = damp(this.camera.fov, fov, 5, dt);
     this.camera.updateProjectionMatrix();
 
     this.grade.dof = v === 'pilot' ? 0 : 0.35;
