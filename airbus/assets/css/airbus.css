@@ -500,7 +500,12 @@
   .chapter {
     min-height: 108svh;
     display: grid; align-content: center;
-    max-width: 40ch;
+    /* Wide enough for the display type, which is set in viewport
+       units and does not care what 40ch happens to be: the
+       longest title, ENGINEERING, is eleven characters at 7.2vw,
+       which needs a bit over half the viewport. The prose is
+       narrowed again below, where a reading measure matters. */
+    max-width: 62vw;
     padding-block: 14vh;
   }
   .chapter:nth-child(even) { margin-left: auto; text-align: right; }
@@ -515,10 +520,20 @@
   }
   .ch-title {
     margin: 0.7rem 0 1.2rem;
-    font: 800 clamp(2.4rem, 8.2vw, 6.4rem)/0.92 var(--sans);
+    font: 800 clamp(2.1rem, 5.8vw, 5.2rem)/0.96 var(--sans);
     letter-spacing: -0.03em;
+    text-wrap: balance;
+    /* A single unbreakable word sets a grid track's minimum, so
+       without this ENGINEERING pushes the whole chapter past the
+       right-hand edge of a 1280 px window. */
+    overflow-wrap: anywhere;
   }
-  .ch-body { margin: 0; color: var(--text-dim); font-size: clamp(0.98rem, 1.25vw, 1.12rem); }
+  .ch-body {
+    margin: 0; max-width: 42ch;
+    color: var(--text-dim);
+    font-size: clamp(0.98rem, 1.25vw, 1.12rem);
+  }
+  .chapter:nth-child(even) .ch-body { margin-left: auto; }
   .ch-stats { display: flex; gap: 2.4rem; margin-top: 2rem; flex-wrap: wrap; }
   .chapter:nth-child(even) .ch-stats { justify-content: flex-end; }
   .ch-stats b {
@@ -951,6 +966,28 @@
 
 /* ══ responsive ════════════════════════════════════════════ */
 @layer responsive {
+  /* Seven items, a wordmark and two tools do not fit a laptop
+     window either — the horizontal bar gives up well before the
+     phone breakpoint. */
+  @media (max-width: 1060px) {
+    :root { --nav-h: 60px; }
+    .nav-links {
+      position: fixed; inset: var(--nav-h) 0 auto 0;
+      flex-direction: column; gap: 0;
+      margin: 0; padding: 1rem var(--gut) 1.6rem;
+      background: rgba(5,7,12,0.97);
+      border-bottom: 1px solid var(--line);
+      transform: translateY(calc(-100% - var(--nav-h)));
+      transition: transform 0.5s var(--ease);
+    }
+    .nav.open .nav-links { transform: none; }
+    .nav-links button { padding: 0.85rem 0; font-size: 0.78rem; text-align: left; }
+    .nav-links button i { left: 0; right: 100%; bottom: 2px; }
+    .nav-links button:hover i, .nav-links button.on i { left: 0; right: 60%; }
+    .tool-menu { display: flex; }
+    .nav-tools { margin-left: auto; }
+  }
+
   @media (max-width: 1180px) {
     .spec-panel { width: min(40vw, 340px); }
     .deck-help { display: none; }
@@ -959,26 +996,6 @@
 
   @media (max-width: 860px) {
     :root { --nav-h: 58px; }
-
-    .nav-links {
-      position: fixed; inset: var(--nav-h) 0 auto 0;
-      flex-direction: column; gap: 0;
-      margin: 0; padding: 1rem var(--gut) 1.6rem;
-      background: rgba(5,7,12,0.97);
-      border-bottom: 1px solid var(--line);
-      /* clear of the bar as well as of itself, or the last link
-         sits visible above the fold while the menu is shut */
-      transform: translateY(calc(-100% - var(--nav-h)));
-      transition: transform 0.5s var(--ease);
-    }
-    .nav.open .nav-links { transform: none; }
-    /* the links are out of flow on small screens, so nothing is
-       left to push the tools to the right edge */
-    .nav-tools { margin-left: auto; }
-    .nav-links button { padding: 0.85rem 0; font-size: 0.78rem; text-align: left; }
-    .nav-links button i { left: 0; right: 100%; bottom: 2px; }
-    .nav-links button:hover i, .nav-links button.on i { left: 0; right: 60%; }
-    .tool-menu { display: flex; }
 
     .hero-meta { display: none; }
     .chapter, .chapter:nth-child(even) { max-width: none; margin: 0; text-align: left; }

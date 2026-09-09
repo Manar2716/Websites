@@ -168,6 +168,85 @@ function buildHangar(W, D, H) {
   return { group: g, W, D, H, bounds: { minX: -half.x + 3, maxX: half.x - 3, minZ: -half.z + 3, maxZ: half.z + 140 } };
 }
 
+/* ── dimension callouts ──────────────────────────────────── */
+
+/* Length, span and height drawn as survey lines around the
+   selected aircraft, with the published figure on each. They are
+   the specification panel, but in the room with the object — an
+   A380's 79.75 m of wing means more as a line you can see the
+   ends of than as a number in a list. */
+function measureLabel(text, sub) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 160;
+  const x = c.getContext('2d');
+  x.fillStyle = 'rgba(5,9,16,0.86)';
+  x.beginPath(); x.roundRect(6, 30, 500, 100, 8); x.fill();
+  x.strokeStyle = 'rgba(43,140,255,0.85)'; x.lineWidth = 3;
+  x.beginPath(); x.roundRect(6, 30, 500, 100, 8); x.stroke();
+  x.fillStyle = '#eaf1fa';
+  x.font = '700 58px ui-monospace, monospace';
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText(text, 256, 74);
+  x.fillStyle = '#7fb4ff';
+  x.font = '600 26px ui-monospace, monospace';
+  x.letterSpacing = '5px';
+  x.fillText(sub, 256, 112);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false }));
+  sp.renderOrder = 900;
+  return sp;
+}
+
+function buildDimensions(ac) {
+  const g = new THREE.Group();
+  const { spec } = ac;
+  const L = spec.length, semi = ac.semi, H = spec.height;
+  const belly = -ac.geo.fuseH / 2;
+  const mat = new THREE.LineDashedMaterial({
+    color: 0x2b8cff, dashSize: 1.4, gapSize: 0.9, transparent: true, opacity: 0.9, depthTest: false
+  });
+
+  /* A survey line: the run, plus a tick at each end. */
+  const run = (a, b, tick) => {
+    const dir = b.clone().sub(a).normalize();
+    const up = Math.abs(dir.y) > 0.9 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
+    const t = new THREE.Vector3().crossVectors(dir, up).normalize().multiplyScalar(tick);
+    const pts = [a, b,
+      a.clone().sub(t), a.clone().add(t),
+      b.clone().sub(t), b.clone().add(t)];
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const line = new THREE.LineSegments(geo, mat);
+    line.computeLineDistances();
+    line.renderOrder = 899;
+    g.add(line);
+  };
+
+  const nose = -L / 2, tail = L / 2;
+  const yLen = belly - Math.max(2.5, L * 0.06);
+  run(new THREE.Vector3(0, yLen, nose), new THREE.Vector3(0, yLen, tail), Math.max(1.2, L * 0.02));
+  const lenLabel = measureLabel(`${spec.length.toFixed(2)} m`, 'LENGTH');
+  lenLabel.position.set(0, yLen - L * 0.035, 0);
+  g.add(lenLabel);
+
+  const zSpan = tail + Math.max(4, L * 0.10);
+  run(new THREE.Vector3(-semi, belly, zSpan), new THREE.Vector3(semi, belly, zSpan), Math.max(1.2, L * 0.02));
+  const spanLabel = measureLabel(`${spec.span.toFixed(2)} m`, 'WINGSPAN');
+  spanLabel.position.set(0, belly - L * 0.035, zSpan);
+  g.add(spanLabel);
+
+  const xHt = semi + Math.max(4, L * 0.10);
+  run(new THREE.Vector3(xHt, -ac.groundY, nose + L * 0.22), new THREE.Vector3(xHt, -ac.groundY + H, nose + L * 0.22), Math.max(1.2, L * 0.02));
+  const htLabel = measureLabel(`${spec.height.toFixed(2)} m`, 'HEIGHT');
+  htLabel.position.set(xHt + L * 0.05, -ac.groundY + H * 0.55, nose + L * 0.22);
+  g.add(htLabel);
+
+  for (const o of g.children) {
+    if (o.isSprite) o.scale.set(L * 0.215, L * 0.067, 1);
+  }
+  return g;
+}
+
 /* ── stage ───────────────────────────────────────────────── */
 
 export class HangarStage extends Stage {
@@ -389,6 +468,14 @@ export class HangarStage extends Stage {
     this.selected = slot;
     this._promote(slot);
 
+    /* survey lines around the aircraft, rebuilt per selection */
+    if (this.dims) { this.scene.remove(this.dims); this.dims.traverse((o) => o.geometry?.dispose?.()); }
+    this.dims = buildDimensions(slot.ac);
+    this.dims.position.copy(slot.ac.group.position);
+    this.dims.rotation.y = slot.rot;
+    this.dims.visible = this.mode === 'orbit';
+    this.scene.add(this.dims);
+
     const a = slot.type;
     $('#hangar-name').textContent = a.name;
     $('#hangar-tag').textContent = a.tag;
@@ -448,6 +535,7 @@ export class HangarStage extends Stage {
     $('#touch-move').hidden = !env.touch;
     $('#touch-run').hidden = !env.touch;
     $('#touch-act').hidden = !env.touch;
+    if (this.dims) this.dims.visible = false;
     this._buildColliders(slot);
 
     /* start off the left wingtip, facing the aircraft */
@@ -472,6 +560,7 @@ export class HangarStage extends Stage {
     $('#walk-ui').hidden = true;
     $('#hangar-ui').hidden = false;
     $('#prompt').hidden = true;
+    if (this.dims) this.dims.visible = true;
     this.panel.close();
     this.grade.dof = 0.30; this.grade.focus = 120; this.grade.range = 220;
     audio.room()?.set(0.2);
@@ -529,6 +618,7 @@ export class HangarStage extends Stage {
     $('#touch-move').hidden = !env.touch;
     $('#touch-run').hidden = !env.touch;
     $('#touch-act').hidden = !env.touch;
+    if (this.dims) this.dims.visible = false;
 
     /* cabin space is local to the aircraft; the walker works in
        world space, so the colliders are transformed once here */

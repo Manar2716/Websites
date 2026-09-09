@@ -1,3 +1,29 @@
+# Websites
+
+Three self-contained design studies. Each is a folder, each opens by double-
+clicking its `index.html`, and none has a build step, a package manifest, or a
+network call.
+
+```bash
+python3 -m http.server 8000
+#   /          UNDERSTORY CANOPY 01 — a 3D printer, scroll-driven
+#   /peets/    a coffee menu rendered in 3D
+#   /airbus/   eight Airbus aircraft you can walk around and fly
+```
+
+They have one thing in common: **no image assets**. Not one photograph, texture
+file or 3-D model between them. Every surface in all three is generated in the
+browser from numbers — gradients, canvas paths, CSS 3-D transforms, shaders —
+which is why they stay sharp on a 4K panel, weigh almost nothing, and can be
+animated without touching layout. The single exception is the globe in
+[`/airbus/`](airbus/), which carries Natural Earth coastline data, because that
+is the one place where inventing the geometry would have been a lie.
+
+Each folder has its own README. The rest of this one is about the site at the
+repository root.
+
+---
+
 # UNDERSTORY — CANOPY 01
 
 A single-page site for a fictional 3D printer, built around scroll-driven 3D.
