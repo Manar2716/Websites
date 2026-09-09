@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en" class="no-js" data-stage="boot">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>AIRBUS — THE FUTURE OF FLIGHT</title>
+<meta name="description" content="An interactive Airbus aviation experience: walk around eight aircraft, board them, fly the flight deck, and track Airbus traffic on a live global radar.">
+<meta name="theme-color" content="#05070c">
+<link rel="stylesheet" href="assets/css/airbus.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2305070c'/%3E%3Cpath d='M4 20h24l-9-4-3-9-3 9z' fill='%231f7ae0'/%3E%3C/svg%3E">
+<script>document.documentElement.className = 'js';</script>
+</head>
+<body>
+
+<!-- ═══ the one canvas everything is drawn on ═══════════════ -->
+<canvas id="gl" aria-hidden="true"></canvas>
+<div id="grain" aria-hidden="true"></div>
+
+<!-- ═══ boot ════════════════════════════════════════════════ -->
+<div id="boot" role="status" aria-live="polite">
+  <div class="boot-frame">
+    <div class="boot-mark" aria-hidden="true">
+      <svg viewBox="0 0 120 60" width="120" height="60">
+        <path class="bm-wing" d="M6 44 L58 44 L74 16 L84 16 L78 44 L114 44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+        <circle class="bm-dot" cx="60" cy="52" r="2.6" fill="currentColor"/>
+      </svg>
+    </div>
+    <h1 class="boot-title"><span>A</span><span>I</span><span>R</span><span>B</span><span>U</span><span>S</span></h1>
+    <p class="boot-sub">THE FUTURE OF FLIGHT</p>
+    <div class="boot-bar"><i></i></div>
+    <p class="boot-status"><span id="boot-task">INITIALISING</span> <span id="boot-pct">0</span>%</p>
+  </div>
+  <button id="boot-enter" class="boot-enter" hidden>
+    <span class="be-ring" aria-hidden="true"></span>
+    <span class="be-label">ENTER</span>
+  </button>
+</div>
+
+<!-- ═══ navigation ══════════════════════════════════════════ -->
+<header id="nav" class="nav" hidden>
+  <a class="nav-brand" href="#top" data-nav="hero" data-magnet>
+    <svg viewBox="0 0 120 60" width="42" height="21" aria-hidden="true">
+      <path d="M6 44 L58 44 L74 16 L84 16 L78 44 L114 44" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linejoin="round"/>
+    </svg>
+    <b>AIRBUS</b>
+  </a>
+  <nav class="nav-links" aria-label="Primary">
+    <button data-nav="hero"       data-magnet><i></i>AIRBUS</button>
+    <button data-nav="hangar"     data-magnet><i></i>AIRCRAFT</button>
+    <button data-nav="cockpit"    data-magnet><i></i>COCKPIT</button>
+    <button data-nav="flight"     data-magnet><i></i>FLIGHT</button>
+    <button data-nav="radar"      data-magnet><i></i>RADAR</button>
+    <button data-nav="innovation" data-magnet><i></i>INNOVATION</button>
+    <button data-nav="about"      data-magnet><i></i>ABOUT</button>
+  </nav>
+  <div class="nav-tools">
+    <button id="mute" class="tool" data-magnet aria-pressed="true" title="Sound off">
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path class="spk" d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><g class="wave"><path d="M16 9.2a4 4 0 010 5.6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/><path d="M18.4 6.6a7.6 7.6 0 010 10.8" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/></g><g class="cross"><path d="M16.5 9.5l5 5m0-5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g></svg>
+      <span class="sr">Toggle sound</span>
+    </button>
+    <button id="menu" class="tool tool-menu" data-magnet aria-expanded="false"><i></i><i></i><span class="sr">Menu</span></button>
+  </div>
+</header>
+
+<div id="cursor" aria-hidden="true"><b></b><i></i><em></em></div>
+
+<!-- ═══ scroll story (hero stage) ═══════════════════════════ -->
+<main id="story" hidden>
+  <section class="hero" id="top">
+    <div class="hero-type">
+      <h2 class="mega" data-split>AIRBUS</h2>
+      <p class="hero-sub">THE FUTURE OF FLIGHT</p>
+    </div>
+    <div class="hero-meta">
+      <div class="hm-line"><span>LIVE MODEL</span><b id="hero-type">A350-1000</b></div>
+      <div class="hm-line"><span>ALTITUDE</span><b id="hero-alt">FL410</b></div>
+      <div class="hm-line"><span>MACH</span><b id="hero-mach">0.85</b></div>
+    </div>
+    <div class="scroll-hint"><i></i><span>SCROLL</span></div>
+  </section>
+
+  <section class="chapter" data-chapter="1" data-cam="engineering">
+    <span class="ch-num">01</span>
+    <h3 class="ch-title" data-split>ENGINEERING</h3>
+    <p class="ch-body">A wing is a compromise written in aluminium and carbon. Sweep it and it flies faster but stalls sooner; thicken it and it carries more fuel but more drag. Every curve on this aircraft is one of those arguments, settled.</p>
+    <div class="ch-stats">
+      <div><b data-count="53">0</b><span>% composite structure</span></div>
+      <div><b data-count="31.9">0</b><span>° quarter-chord sweep</span></div>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="2" data-cam="efficiency">
+    <span class="ch-num">02</span>
+    <h3 class="ch-title" data-split>EFFICIENCY</h3>
+    <p class="ch-body">A modern turbofan is mostly a ducted propeller. Nine parts in ten of its thrust never touch the hot core — the core is there only to turn the fan, and the bigger that fan gets, the less fuel the same thrust costs.</p>
+    <div class="ch-stats">
+      <div><b data-count="25">0</b><span>% less fuel per seat</span></div>
+      <div><b data-count="11">0</b><span>: 1 bypass ratio</span></div>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="3" id="innovation" data-cam="innovation">
+    <span class="ch-num">03</span>
+    <h3 class="ch-title" data-split>INNOVATION</h3>
+    <p class="ch-body">In 1988 the A320 replaced the control column with a sidestick and put a computer between the pilot and the flight controls. The aircraft will not stall, will not overspeed and will not roll past 67°. Everything you can press in the flight deck on this site descends from that decision.</p>
+    <div class="ch-stats">
+      <div><b data-count="1988">0</b><span>first fly-by-wire airliner</span></div>
+      <div><b data-count="67">0</b><span>° bank angle protection</span></div>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="4" data-cam="flight">
+    <span class="ch-num">04</span>
+    <h3 class="ch-title" data-split>FLIGHT</h3>
+    <p class="ch-body">Eleven kilometres up, the air is a quarter as dense and sixty degrees colder. The wing that lifts you off a runway at 150 knots is the same wing holding you at 480 — and the difference between the two is entirely in what its edges are doing.</p>
+    <div class="ch-stats">
+      <div><b data-count="41000">0</b><span>ft service ceiling</span></div>
+      <div><b data-count="−56">0</b><span>°C at cruise</span></div>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="5" data-cam="experience">
+    <span class="ch-num">05</span>
+    <h3 class="ch-title" data-split>EXPERIENCE</h3>
+    <p class="ch-body">The curve of the sidewall beside your shoulder is a consequence of a fuselage cross-section chosen decades before you sat down. So is the bin above your head, the width of the aisle, and how far your seat reclines.</p>
+    <div class="ch-stats">
+      <div><b data-count="6000">0</b><span>ft cabin altitude</span></div>
+      <div><b data-count="90">0</b><span>s full evacuation</span></div>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="6" id="about" data-cam="future">
+    <span class="ch-num">06</span>
+    <h3 class="ch-title" data-split>THE FUTURE</h3>
+    <p class="ch-body">Everything here — every aircraft, every marking, every cloud, the terrain under the wing and the paint on the tail — is generated in your browser from numbers, at the moment you look at it. There are no photographs and no downloaded models in this project.</p>
+    <div class="ch-stats">
+      <div><b data-count="8">0</b><span>aircraft, built from specifications</span></div>
+      <div><b data-count="0">0</b><span>image assets</span></div>
+    </div>
+  </section>
+
+  <section class="figures">
+    <h3 class="fig-title">IN SERVICE</h3>
+    <div class="fig-grid">
+      <div class="fig"><b data-count="250" data-suffix="+">0</b><span>AIRPORTS SERVED</span></div>
+      <div class="fig"><b data-count="80" data-suffix="+">0</b><span>COUNTRIES</span></div>
+      <div class="fig"><b data-count="12000" data-suffix="+">0</b><span>AIRCRAFT DELIVERED</span></div>
+      <div class="fig"><b data-count="4" data-suffix="M">0</b><span>PASSENGERS DAILY</span></div>
+    </div>
+    <p class="fig-note">Figures are illustrative, rounded to the order of magnitude a reader would recognise. This is a design study and is not affiliated with Airbus SE.</p>
+  </section>
+
+  <section class="outro">
+    <h3 class="outro-title" data-split>STEP INSIDE</h3>
+    <p class="outro-body">Eight aircraft are parked in the hangar. Walk around them, go underneath, open a door, find the flight deck, and take off.</p>
+    <div class="outro-actions">
+      <button class="cta" data-nav="hangar" data-magnet><span>ENTER THE HANGAR</span><i></i></button>
+      <button class="cta cta-ghost" data-nav="radar" data-magnet><span>OPEN GLOBAL RADAR</span><i></i></button>
+    </div>
+    <footer class="foot">
+      <span>A DESIGN STUDY · BUILT WITH WEBGL, NO IMAGE ASSETS</span>
+      <span id="perf" class="perf">—</span>
+    </footer>
+  </section>
+</main>
+
+<!-- ═══ hangar ══════════════════════════════════════════════ -->
+<div id="hangar-ui" class="ui-layer" hidden>
+  <div class="hangar-head">
+    <span class="eyebrow">HANGAR 01 · TOULOUSE</span>
+    <h2 id="hangar-name">SELECT AN AIRCRAFT</h2>
+    <p id="hangar-tag">Eight airframes. Choose one to walk around.</p>
+  </div>
+  <div class="fleet-rail" id="fleet-rail" role="tablist" aria-label="Fleet"></div>
+  <div class="spec-panel" id="spec-panel" hidden>
+    <div class="sp-head"><b id="sp-name">—</b><span id="sp-family">—</span></div>
+    <dl class="sp-grid" id="sp-grid"></dl>
+    <p class="sp-story" id="sp-story"></p>
+    <div class="sp-actions">
+      <button class="cta cta-sm" id="walk-btn" data-magnet><span>WALK AROUND</span><i></i></button>
+      <button class="cta cta-sm cta-ghost" id="board-btn" data-magnet><span>BOARD</span><i></i></button>
+    </div>
+  </div>
+  <div class="hangar-hint" id="hangar-hint">DRAG TO ORBIT · SCROLL TO ZOOM · CLICK AN AIRCRAFT</div>
+</div>
+
+<!-- ═══ walk mode ═══════════════════════════════════════════ -->
+<div id="walk-ui" class="ui-layer" hidden>
+  <div class="walk-hud">
+    <div class="wh-keys" id="wh-keys">
+      <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> MOVE</span>
+      <span><kbd>MOUSE</kbd> LOOK</span>
+      <span><kbd>SHIFT</kbd> RUN</span>
+      <span><kbd>E</kbd> INTERACT</span>
+      <span><kbd>ESC</kbd> RELEASE</span>
+    </div>
+    <div class="wh-pos"><span id="wh-loc">EXTERIOR</span><b id="wh-dist">—</b></div>
+  </div>
+  <div class="reticle" id="reticle"><i></i></div>
+  <div class="prompt" id="prompt" hidden><kbd>E</kbd><span id="prompt-text">INSPECT</span></div>
+  <button class="exit-btn" id="walk-exit" data-magnet>EXIT WALKAROUND</button>
+  <div class="touch-pad" id="touch-move" hidden><i></i></div>
+  <button class="touch-run" id="touch-run" hidden>RUN</button>
+  <button class="touch-act" id="touch-act" hidden>E</button>
+</div>
+
+<!-- ═══ component panel ═════════════════════════════════════ -->
+<aside id="component" class="component" hidden aria-live="polite">
+  <button class="cmp-close" id="cmp-close" aria-label="Close">✕</button>
+  <span class="cmp-sub" id="cmp-sub">SYSTEM</span>
+  <h3 class="cmp-name" id="cmp-name">COMPONENT</h3>
+  <p class="cmp-body" id="cmp-body"></p>
+  <dl class="cmp-facts" id="cmp-facts"></dl>
+  <button class="cta cta-sm" id="cmp-action" data-magnet><span>DEMONSTRATE</span><i></i></button>
+</aside>
+
+<!-- ═══ flight deck ═════════════════════════════════════════ -->
+<div id="deck-ui" class="ui-layer" hidden>
+  <div class="deck-top">
+    <div class="dt-left">
+      <span class="eyebrow" id="deck-type">A320neo</span>
+      <span class="phase" id="deck-phase">COLD &amp; DARK</span>
+    </div>
+    <div class="dt-readout">
+      <div><span>IAS</span><b id="r-ias">0</b></div>
+      <div><span>ALT</span><b id="r-alt">0</b></div>
+      <div><span>HDG</span><b id="r-hdg">000</b></div>
+      <div><span>V/S</span><b id="r-vs">0</b></div>
+      <div><span>N1</span><b id="r-n1">0</b></div>
+      <div><span>FLAP</span><b id="r-flap">0</b></div>
+      <div><span>GEAR</span><b id="r-gear">DN</b></div>
+    </div>
+  </div>
+
+  <div class="deck-views" id="deck-views">
+    <button data-view="pilot" class="on" data-magnet>PILOT</button>
+    <button data-view="mcdu" data-magnet>MCDU</button>
+    <button data-view="overhead" data-magnet>OVERHEAD</button>
+    <button data-view="pedestal" data-magnet>PEDESTAL</button>
+    <button data-view="chase" data-magnet>EXTERIOR</button>
+    <button data-view="wing" data-magnet>WING</button>
+  </div>
+
+  <div class="deck-controls">
+    <div class="dc-group">
+      <span class="dc-label">THROTTLE</span>
+      <input id="c-throttle" class="slider" type="range" min="0" max="100" value="0" aria-label="Throttle">
+      <output id="c-throttle-o">IDLE</output>
+    </div>
+    <div class="dc-row">
+      <button id="c-gear" class="pill" data-magnet>GEAR <b>DOWN</b></button>
+      <button id="c-flap-dn" class="pill" data-magnet>FLAP −</button>
+      <button id="c-flap-up" class="pill" data-magnet>FLAP +</button>
+      <button id="c-brake" class="pill" data-magnet>PARK BRK <b>ON</b></button>
+      <button id="c-ap" class="pill" data-magnet>AUTOPILOT <b>OFF</b></button>
+    </div>
+    <div class="dc-row dc-fcu">
+      <label>SPD <input id="c-spd" type="number" min="100" max="350" value="250" step="5"></label>
+      <label>HDG <input id="c-hdg" type="number" min="0" max="359" value="270" step="1"></label>
+      <label>ALT <input id="c-altsel" type="number" min="0" max="41000" value="10000" step="500"></label>
+      <button id="c-quick" class="pill pill-go" data-magnet>QUICK START</button>
+    </div>
+  </div>
+
+  <div class="deck-help" id="deck-help">
+    <b>FLYING:</b> <kbd>W</kbd><kbd>S</kbd> pitch · <kbd>A</kbd><kbd>D</kbd> roll · <kbd>Q</kbd><kbd>E</kbd> yaw ·
+    <kbd>↑</kbd><kbd>↓</kbd> thrust · <kbd>G</kbd> gear · <kbd>F</kbd>/<kbd>V</kbd> flaps · <kbd>B</kbd> brake ·
+    <kbd>SPACE</kbd> spoilers · click anything in the flight deck.
+  </div>
+  <button class="exit-btn" id="deck-exit" data-magnet>LEAVE FLIGHT DECK</button>
+  <div class="stick-pad" id="stick-pad" hidden><i></i></div>
+</div>
+
+<!-- ═══ radar ═══════════════════════════════════════════════ -->
+<div id="radar-ui" class="ui-layer" hidden>
+  <div class="radar-head">
+    <span class="eyebrow">GLOBAL TRAFFIC</span>
+    <h2>AIRBUS RADAR</h2>
+    <div class="src" id="radar-src"><i></i><span>CONNECTING…</span></div>
+  </div>
+
+  <div class="radar-panel">
+    <label class="search"><input id="radar-search" type="search" placeholder="CALLSIGN OR ICAO24" autocomplete="off" aria-label="Search flights"></label>
+    <div class="filters" id="radar-filters" role="group" aria-label="Filters">
+      <button class="fchip on" data-filter="airbus" data-magnet>AIRBUS ONLY</button>
+      <button class="fchip" data-filter="A220" data-magnet>A220</button>
+      <button class="fchip" data-filter="A320 FAMILY" data-magnet>A320 FAMILY</button>
+      <button class="fchip" data-filter="A330" data-magnet>A330</button>
+      <button class="fchip" data-filter="A340" data-magnet>A340</button>
+      <button class="fchip" data-filter="A350" data-magnet>A350</button>
+      <button class="fchip" data-filter="A380" data-magnet>A380</button>
+    </div>
+    <div class="radar-count"><b id="radar-shown">0</b><span>SHOWN / <i id="radar-total">0</i> TRACKED</span></div>
+    <ul class="radar-list" id="radar-list"></ul>
+  </div>
+
+  <aside class="flight-card" id="flight-card" hidden>
+    <button class="fc-close" id="fc-close" aria-label="Close">✕</button>
+    <span class="fc-type" id="fc-type">—</span>
+    <h3 class="fc-call" id="fc-call">—</h3>
+    <div class="fc-route"><b id="fc-from">—</b><i></i><b id="fc-to">—</b></div>
+    <dl class="fc-grid" id="fc-grid"></dl>
+    <button class="cta cta-sm" id="fc-follow" data-magnet><span>FOLLOW</span><i></i></button>
+  </aside>
+
+  <div class="radar-hint">DRAG TO SPIN · SCROLL TO ZOOM · CLICK A TRACK</div>
+</div>
+
+<!-- ═══ shared ══════════════════════════════════════════════ -->
+<div id="toast" class="toast" hidden></div>
+<noscript><div class="noscript">This experience is drawn in real time with WebGL and needs JavaScript. Everything on the page — the aircraft, the terrain, the flight deck — is generated in the browser, so there is no static version to fall back to.</div></noscript>
+
+<!-- GSAP drives the scroll-scrubbed camera; it is vendored, not fetched -->
+<script src="vendor/gsap.min.js" defer></script>
+<script src="vendor/ScrollTrigger.min.js" defer></script>
+<script type="module" src="assets/js/main.js"></script>
+</body>
+</html>
