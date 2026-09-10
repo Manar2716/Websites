@@ -24,10 +24,10 @@ import { quality, clamp, lerp } from './core.js';
 const BLUE = '#00205b';
 const BLUE_MID = '#0b3f8f';
 const BLUE_LIGHT = '#1f7ae0';
-const WHITE = '#f7f9fb';
-const GREY = '#c7ced6';
+const PAINT_WHITE = '#f7f9fb';
+const PAINT_GREY = '#c7ced6';
 
-function canvas(w, h) {
+function makeCanvas(w, h) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   return { c, x: c.getContext('2d') };
@@ -92,7 +92,7 @@ function hullCanvas(type, emissive) {
   const { geo, spec } = type;
   const W = quality.tier === 2 ? 4096 : 2048;
   const H = W / 4;
-  const { c, x } = canvas(W, H);
+  const { c, x } = makeCanvas(W, H);
   const U = (f) => f * W;                       /* fraction of length → px */
   const V = (a) => a * H;                       /* fraction of section → px */
 
@@ -102,9 +102,9 @@ function hullCanvas(type, emissive) {
        so the paint still reads as curved under flat light */
     const grad = x.createLinearGradient(0, 0, 0, H);
     grad.addColorStop(0.00, '#ffffff');
-    grad.addColorStop(0.25, WHITE);
+    grad.addColorStop(0.25, PAINT_WHITE);
     grad.addColorStop(0.50, '#dfe5ec');
-    grad.addColorStop(0.75, WHITE);
+    grad.addColorStop(0.75, PAINT_WHITE);
     grad.addColorStop(1.00, '#ffffff');
     x.fillStyle = grad;
     x.fillRect(0, 0, W, H);
@@ -126,10 +126,10 @@ function hullCanvas(type, emissive) {
 
     /* belly — grey, because that is where the runway grit goes */
     const belly = x.createLinearGradient(0, V(0.40), 0, V(0.50));
-    belly.addColorStop(0, 'rgba(199,206,214,0)'); belly.addColorStop(1, GREY);
+    belly.addColorStop(0, 'rgba(199,206,214,0)'); belly.addColorStop(1, PAINT_GREY);
     x.fillStyle = belly; x.fillRect(0, V(0.40), W, V(0.10));
     const belly2 = x.createLinearGradient(0, V(0.60), 0, V(0.50));
-    belly2.addColorStop(0, 'rgba(199,206,214,0)'); belly2.addColorStop(1, GREY);
+    belly2.addColorStop(0, 'rgba(199,206,214,0)'); belly2.addColorStop(1, PAINT_GREY);
     x.fillStyle = belly2; x.fillRect(0, V(0.50), W, V(0.10));
 
     /* the sweep: a blue wave that lifts off the belly and runs
@@ -267,7 +267,7 @@ function hullCanvas(type, emissive) {
 
 function wingCanvas(emissive) {
   const W = 1024, H = 512;
-  const { c, x } = canvas(W, H);
+  const { c, x } = makeCanvas(W, H);
   if (emissive) { x.fillStyle = '#000'; x.fillRect(0, 0, W, H); return c; }
 
   const g = x.createLinearGradient(0, 0, W, 0);
@@ -301,7 +301,7 @@ function wingCanvas(emissive) {
 
 function finCanvas(type, emissive) {
   const W = 1024, H = 1024;
-  const { c, x } = canvas(W, H);
+  const { c, x } = makeCanvas(W, H);
   if (emissive) { x.fillStyle = '#000'; x.fillRect(0, 0, W, H); return c; }
 
   /* uv on the fin is (chord, height); a gradient across chord
@@ -346,7 +346,7 @@ function finCanvas(type, emissive) {
 
 function nacelleCanvas(emissive) {
   const W = 512, H = 512;
-  const { c, x } = canvas(W, H);
+  const { c, x } = makeCanvas(W, H);
   if (emissive) { x.fillStyle = '#000'; x.fillRect(0, 0, W, H); return c; }
   const g = x.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0.00, '#c9d0d8');       /* inlet lip: bare metal */

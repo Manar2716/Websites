@@ -27,7 +27,7 @@ import {
   loop, bus, clamp, lerp, damp, dampAngle, pointer, env, quality, deg, fmt, easeInOutCubic
 } from './core.js';
 
-const ROWS = [
+const PARK_ROWS = [
   { z: -95, ids: ['a220', 'a319', 'a320', 'a321'] },
   { z: 95, ids: ['a330', 'a340', 'a350', 'a380'] }
 ];
@@ -360,7 +360,7 @@ export class HangarStage extends Stage {
      clearance, which is how a real apron is marked out and why
      the A380 gets so much more room than the A220. */
   _layout() {
-    for (const row of ROWS) {
+    for (const row of PARK_ROWS) {
       const spans = row.ids.map((id) => byId(id).spec.span);
       const total = spans.reduce((a, b) => a + b, 0) + (row.ids.length - 1) * 22;
       let x = -total / 2;

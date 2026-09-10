@@ -16,6 +16,11 @@
 
 @layer tokens {
   :root {
+    /* This design commits to one visual world — a dark aviation
+       operations interface — so it declares that rather than
+       offering a light variant that would fight the 3-D. */
+    color-scheme: dark;
+
     /* ground */
     --void:        #05070c;
     --ink:         #080b12;
