@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flight Envelope — an independent Airbus design study</title>
+<meta name="description" content="A design study of four Airbus airframes — A220-300, A321neo, A350-1000 and A380-800 — drawn to scale from published dimensions, entirely in vectors. Interactive fleet morph, payload-range envelope and a great-circle route network.">
+<meta name="theme-color" content="#04070F">
+<meta name="color-scheme" content="dark">
+<link rel="preload" href="assets/css/airbus.css" as="style">
+<link rel="stylesheet" href="assets/css/airbus.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2304070F'/%3E%3Cpath d='M4 17.5 L28 14 L28 17 L18 20 L14 27 L11.5 27 L13 19.5 L7 20.5 L5 23 L3.5 23 Z' fill='%23FF7A2E'/%3E%3C/svg%3E">
+<script>
+  /* Runs before first paint. Everything that would strand the page if
+     the scripts never arrived is gated on these classes, so with JS
+     off you get a static, readable version rather than a blank hold. */
+  document.documentElement.classList.add('js', 'is-booting');
+</script>
+<noscript><style>
+  html.is-booting body { overflow: auto; }
+  .boot { display: none !important; }
+  [data-reveal], [data-reveal] [data-stagger] { opacity: 1 !important; transform: none !important; }
+  .w > i { transform: none !important; }
+  .anatomy__track { height: auto !important; }
+  .anatomy__sticky { position: static !important; height: auto !important; padding-block: 60px; }
+  .callout { position: static !important; width: auto !important; opacity: 1 !important; margin-block: 24px; }
+  .callout__line { transform: none !important; }
+</style></noscript>
+</head>
+<body>
+
+<a class="skip" href="#fleet">Skip to content</a>
+
+<div class="texture" aria-hidden="true"></div>
+
+<!-- ══════════════════ PRE-FLIGHT ══════════════════ -->
+<div class="boot" id="boot" aria-hidden="true">
+  <div class="boot__in">
+    <div class="boot__mark">
+      <svg viewBox="0 0 24 24"><path d="M12 2v20M12 7l6 4M12 13l-6 4"/></svg>
+    </div>
+    <p class="boot__label mono" id="bootLabel">FLIGHT CONTROLS</p>
+    <div class="boot__bar"><i id="bootBar"></i></div>
+    <p class="boot__hint mono">CLICK OR PRESS ESC TO SKIP</p>
+  </div>
+</div>
+
+<!-- ══════════════════ NAV ══════════════════ -->
+<header class="nav" id="nav">
+  <a class="nav__brand" href="#top" aria-label="Flight Envelope — home">
+    <svg class="nav__mark" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M3 19 L29 14.5 L29 18 L18.5 21 L14 28 L11 28 L12.8 20.2 L6.5 21.3 L4.4 24 L2.6 24 Z"/>
+    </svg>
+    <span class="nav__wordmark">Airbus<small>Flight envelope · design study</small></span>
+  </a>
+
+  <nav class="nav__links" id="navLinks" aria-label="Sections">
+    <a href="#fleet">Fleet</a>
+    <a href="#anatomy">Anatomy</a>
+    <a href="#specs">Performance</a>
+    <a href="#network">Network</a>
+    <a href="#cabin">Cabin</a>
+  </nav>
+
+  <a class="nav__cta" href="#colophon">How it's built</a>
+
+  <button class="nav__toggle" id="navToggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
+    <i></i><i></i>
+  </button>
+  <span class="nav__prog" id="navProg" aria-hidden="true"></span>
+</header>
+
+<!-- ══════════════════ HUD ══════════════════ -->
+<aside class="hud" aria-hidden="true">
+  <div class="hud__tape"><i id="hudTape"></i></div>
+  <div class="hud__col">
+    <span class="hud__phase" id="hudPhase">TAXI</span>
+    <div class="hud__row"><span class="hud__k">ALT</span><span class="hud__v" id="hudAlt">0</span><span class="hud__k">FT</span></div>
+    <div class="hud__row"><span class="hud__k">MACH</span><span class="hud__v" id="hudMach">0.00</span></div>
+  </div>
+</aside>
+
+<main>
+
+<!-- ══════════════════ 00 · HERO ══════════════════ -->
+<section class="hero" id="top">
+  <div class="hero__sky" aria-hidden="true"></div>
+  <canvas class="hero__canvas" id="skyCanvas" aria-hidden="true"></canvas>
+  <svg class="hero__plane" id="heroPlane" aria-hidden="true" focusable="false"></svg>
+  <div class="hero__vig" aria-hidden="true"></div>
+
+  <div class="hero__body wrap">
+    <p class="eyebrow" style="margin-bottom:18px">Flight envelope · a design study</p>
+    <h1 class="h-display hero__title" id="heroTitle">Nothing up here<br>is decorative</h1>
+
+    <div class="hero__grid">
+      <dl class="hero__meta">
+        <div><dt>Types</dt><dd>04</dd></div>
+        <div><dt>Span</dt><dd>35.10–79.75 m</dd></div>
+        <div><dt>Range</dt><dd>16 100 km</dd></div>
+        <div><dt>Cruise</dt><dd>M0.78–0.85</dd></div>
+      </dl>
+      <p class="lede">
+        Four airframes, drawn to scale from published dimensions and rendered
+        entirely in vectors — no photographs anywhere in this project. Each one
+        is a different answer to the only question that matters at altitude:
+        how much, and how far.
+      </p>
+    </div>
+  </div>
+
+  <div class="cue" id="scrollCue" aria-hidden="true"><i></i><span>Scroll to climb</span></div>
+</section>
+
+<!-- ══════════════════ 01 · FLEET ══════════════════ -->
+<section class="band" id="fleet">
+  <div class="wrap">
+    <header class="sec-head" data-reveal>
+      <div>
+        <p class="eyebrow" data-stagger>01 — The fleet</p>
+        <h2 class="h-section" data-stagger style="margin-top:18px">Four answers<br>to one question</h2>
+      </div>
+      <p class="lede" data-stagger>
+        Pick a type. The drawing does not cross-fade — the geometry is generated
+        from a parameter set, so one airframe genuinely deforms into the next
+        through shapes that are themselves plausible aircraft. The numbers
+        travel with it.
+      </p>
+    </header>
+
+    <div class="fleet__tabs" role="tablist" aria-label="Aircraft type" data-reveal>
+      <button class="tab is-active" role="tab" type="button" data-type="a220" style="--c:#3494DC" aria-selected="false">A220-300</button>
+      <button class="tab" role="tab" type="button" data-type="a321" style="--c:#C87524" aria-selected="false">A321neo</button>
+      <button class="tab" role="tab" type="button" data-type="a350" style="--c:#17AD7E" aria-selected="true">A350-1000</button>
+      <button class="tab" role="tab" type="button" data-type="a380" style="--c:#9A6BE0" aria-selected="false">A380-800</button>
+    </div>
+
+    <div class="fleet__grid">
+      <div class="plan-stage" id="planStage">
+        <svg id="planSvg" aria-label="Plan view of the selected aircraft" role="img"></svg>
+        <div class="plan-stage__scale" aria-hidden="true"><i></i><span>Plan view · to scale</span></div>
+      </div>
+
+      <div>
+        <h3 class="h-sub fleet__name" id="fleetName">A350-1000</h3>
+        <span class="mono fleet__role" id="fleetRole">Widebody / long-haul</span>
+        <p class="fleet__tagline" id="fleetTagline">Composite airframe, continental range.</p>
+        <p class="fleet__blurb" id="fleetBlurb">
+          A carbon-fibre fuselage and a wing whose trailing edge changes shape in
+          flight, adapting its camber to weight and speed as fuel burns off.
+        </p>
+
+        <div class="stats">
+          <div class="stat">
+            <span class="stat__k">Range</span>
+            <div class="stat__v"><span data-stat="range_km">16 100</span><span class="stat__u">km</span></div>
+            <div class="stat__bar"><i data-bar="range_km"></i></div>
+          </div>
+          <div class="stat">
+            <span class="stat__k">Seats</span>
+            <div class="stat__v"><span data-stat="seats">370</span></div>
+            <div class="stat__bar"><i data-bar="seats"></i></div>
+          </div>
+          <div class="stat">
+            <span class="stat__k">MTOW</span>
+            <div class="stat__v"><span data-stat="mtow">319 000</span><span class="stat__u">kg</span></div>
+            <div class="stat__bar"><i data-bar="mtow"></i></div>
+          </div>
+          <div class="stat">
+            <span class="stat__k">Span</span>
+            <div class="stat__v"><span data-stat="span" data-dp="2">64.75</span><span class="stat__u">m</span></div>
+            <div class="stat__bar"><i data-bar="span"></i></div>
+          </div>
+          <div class="stat">
+            <span class="stat__k">Length</span>
+            <div class="stat__v"><span data-stat="length" data-dp="2">73.79</span><span class="stat__u">m</span></div>
+            <div class="stat__bar"><i data-bar="length"></i></div>
+          </div>
+          <div class="stat">
+            <span class="stat__k">Ceiling</span>
+            <div class="stat__v"><span data-stat="ceiling">43 100</span><span class="stat__u">ft</span></div>
+            <div class="stat__bar"><i data-bar="ceiling"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="span" data-reveal>
+      <p class="eyebrow" style="margin-bottom:16px">Wingspan, to one scale</p>
+      <div id="spanStrip"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 02 · ANATOMY ══════════════════ -->
+<section class="anatomy" id="anatomy">
+  <div class="wrap band--tight band" style="padding-bottom:0">
+    <header class="sec-head" data-reveal>
+      <div>
+        <p class="eyebrow" data-stagger>02 — Anatomy</p>
+        <h2 class="h-section" data-stagger style="margin-top:18px">Read it<br>like a drawing</h2>
+      </div>
+      <p class="lede" data-stagger>
+        The outline below draws itself as you scroll, stroke by stroke, in
+        proportion to each path's real length. Then five things worth knowing
+        arrive in the order an engineer would introduce them.
+      </p>
+    </header>
+  </div>
+
+  <div class="anatomy__track" id="anatomyTrack">
+    <div class="anatomy__sticky">
+      <div class="anatomy__stage">
+        <svg id="anatomySvg" aria-label="Side profile schematic of a widebody airliner" role="img"></svg>
+
+        <div class="callout c1">
+          <div class="callout__line"></div>
+          <span class="callout__k">01 · Flight deck</span>
+          <h3 class="callout__t">No cables to anything</h3>
+          <p class="callout__d">Sidestick inputs are requests, not commands. Flight-control computers decide what the surfaces actually do, and refuse anything outside the envelope.</p>
+        </div>
+
+        <div class="callout c2">
+          <div class="callout__line"></div>
+          <span class="callout__k">02 · Fuselage</span>
+          <h3 class="callout__t">A pressure vessel first</h3>
+          <p class="callout__d">Everything else is negotiable; the circular section is not. Composite skins let the cabin hold a lower altitude and more humidity without paying for it in fatigue.</p>
+        </div>
+
+        <div class="callout c3">
+          <div class="callout__line"></div>
+          <span class="callout__k">03 · Wing</span>
+          <h3 class="callout__t">It changes shape in flight</h3>
+          <p class="callout__d">An adaptive trailing edge trims camber continuously as fuel burns off, so the wing keeps flying its best shape at a weight that drops by a third over a long sector.</p>
+        </div>
+
+        <div class="callout c4">
+          <div class="callout__line"></div>
+          <span class="callout__k">04 · Engines</span>
+          <h3 class="callout__t">Mostly bypass</h3>
+          <p class="callout__d">The great majority of the thrust never touches the combustor. A high bypass ratio moves more air more slowly — quieter, and far cheaper per kilometre.</p>
+        </div>
+
+        <div class="callout c5">
+          <div class="callout__line"></div>
+          <span class="callout__k">05 · Empennage</span>
+          <h3 class="callout__t">Trim is fuel</h3>
+          <p class="callout__d">Moving fuel aft into the tail shifts the centre of gravity rearward, unloading the tailplane. Less download to carry means less induced drag for the whole cruise.</p>
+        </div>
+
+      </div>
+      <p class="anatomy__hint" aria-hidden="true">Keep scrolling</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 03 · PERFORMANCE ══════════════════ -->
+<section class="band" id="specs">
+  <div class="wrap">
+    <header class="sec-head" data-reveal>
+      <div>
+        <p class="eyebrow" data-stagger>03 — Performance</p>
+        <h2 class="h-section" data-stagger style="margin-top:18px">Payload is a loan<br>against fuel</h2>
+      </div>
+      <p class="lede" data-stagger>
+        An aircraft has one maximum take-off weight and two ways to spend it.
+        The curve below is where that argument is settled: flat while structure
+        limits you, sloping the moment fuel starts buying range at payload's
+        expense.
+      </p>
+    </header>
+
+    <div class="perf__grid">
+      <div class="chart ticked" id="perfChart">
+        <div class="chart__head">
+          <h3 class="chart__title">Payload–range envelope · <b id="perfTitle">A350-1000</b></h3>
+          <span class="chart__axis">Payload (t) × range (km)</span>
+        </div>
+        <canvas class="chart__canvas" id="perfCanvas"></canvas>
+        <div class="chart__readout" id="perfReadout" hidden></div>
+        <p class="chart__note">
+          Hover the curve to read any point. The two corners are the limits that
+          actually bind: maximum structural payload, then maximum usable fuel.
+          Curve shape is modelled from each type's published range and weights
+          and is illustrative, not a loading manual.
+        </p>
+      </div>
+
+      <div>
+        <div class="envelope" data-reveal>
+          <div class="env__row" data-stagger>
+            <div class="env__top"><span class="env__k">Design range</span><span class="env__v"><span data-stat="range_km">16 100</span><small>km</small></span></div>
+            <div class="env__bar"><i data-bar="range_km"></i></div>
+          </div>
+          <div class="env__row" data-stagger>
+            <div class="env__top"><span class="env__k">Service ceiling</span><span class="env__v"><span data-stat="ceiling">43 100</span><small>ft</small></span></div>
+            <div class="env__bar"><i data-bar="ceiling"></i></div>
+          </div>
+          <div class="env__row" data-stagger>
+            <div class="env__top"><span class="env__k">Max take-off weight</span><span class="env__v"><span data-stat="mtow">319 000</span><small>kg</small></span></div>
+            <div class="env__bar"><i data-bar="mtow"></i></div>
+          </div>
+          <div class="env__row" data-stagger>
+            <div class="env__top"><span class="env__k">Typical seats</span><span class="env__v"><span data-stat="seats">370</span></span></div>
+            <div class="env__bar"><i data-bar="seats"></i></div>
+          </div>
+        </div>
+
+        <details class="table">
+          <summary>Full figures, all four types</summary>
+          <div class="table__scroll">
+            <table>
+              <caption class="mono" style="caption-side:bottom;padding:10px 14px;text-align:left;color:rgba(206,224,252,.44);letter-spacing:.1em">Published manufacturer figures, rounded</caption>
+              <thead>
+                <tr><th scope="col">Type</th><th scope="col">Length m</th><th scope="col">Span m</th><th scope="col">MTOW kg</th><th scope="col">Range km</th><th scope="col">Seats</th><th scope="col">Cruise</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row"><span class="swatch" style="background:#3494DC"></span>A220-300</th><td>38.71</td><td>35.10</td><td>70 900</td><td>6 390</td><td>145</td><td>M0.78</td></tr>
+                <tr><th scope="row"><span class="swatch" style="background:#C87524"></span>A321neo</th><td>44.51</td><td>35.80</td><td>97 000</td><td>7 400</td><td>200</td><td>M0.78</td></tr>
+                <tr><th scope="row"><span class="swatch" style="background:#17AD7E"></span>A350-1000</th><td>73.79</td><td>64.75</td><td>319 000</td><td>16 100</td><td>370</td><td>M0.85</td></tr>
+                <tr><th scope="row"><span class="swatch" style="background:#9A6BE0"></span>A380-800</th><td>72.72</td><td>79.75</td><td>575 000</td><td>14 800</td><td>525</td><td>M0.85</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 04 · NETWORK ══════════════════ -->
+<section class="band network" id="network">
+  <div class="wrap">
+    <header class="sec-head" data-reveal>
+      <div>
+        <p class="eyebrow" data-stagger>04 — Network</p>
+        <h2 class="h-section" data-stagger style="margin-top:18px">Range is a shape,<br>not a number</h2>
+      </div>
+      <p class="lede" data-stagger>
+        On a sphere, "8 700 nautical miles" is a region, and the shortest track
+        between two cities is almost never the one a flat map draws. Every arc
+        below is slerped between real coordinates; every distance is computed,
+        not typed. Drag the globe.
+      </p>
+    </header>
+
+    <div class="net__grid">
+      <div class="globe-wrap ticked">
+        <canvas id="globeCanvas" aria-label="Rotatable globe showing great-circle routes" role="img"></canvas>
+        <span class="globe-wrap__hint">Drag to rotate · select a sector</span>
+      </div>
+
+      <div>
+        <p class="eyebrow" style="margin-bottom:14px">Reachable by <span id="netType" style="color:var(--fleet-hue)">A350-1000</span></p>
+        <div class="routes" id="routeList"></div>
+        <div class="net__legend">
+          <span><i></i> Within range</span>
+          <span><i class="out"></i> Beyond range</span>
+        </div>
+        <p class="chart__note" style="margin-top:16px">
+          Sectors are gated against the selected type's published range — change
+          the aircraft in the fleet section and the network genuinely shrinks.
+          Block times assume cruise Mach at FL350 plus a fixed 25-minute
+          ground-and-terminal allowance.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 05 · CABIN ══════════════════ -->
+<section class="band" id="cabin">
+  <div class="wrap">
+    <header class="sec-head" data-reveal>
+      <div>
+        <p class="eyebrow" data-stagger>05 — Cabin</p>
+        <h2 class="h-section" data-stagger style="margin-top:18px">Light is the only<br>thing that moves</h2>
+      </div>
+      <p class="lede" data-stagger>
+        Nothing in a cabin can change on a long sector except the air and the
+        light. A lighting programme walks the cabin through a day it is not
+        actually having — which is the point, when you have crossed eight time
+        zones sitting still.
+      </p>
+    </header>
+
+    <div class="cabin__stage ticked" id="cabinStage" data-reveal>
+      <div class="cabin__glow" aria-hidden="true"></div>
+      <svg class="cabin__section" viewBox="0 0 560 300" aria-label="Cabin cross-section schematic" role="img">
+        <!-- hull -->
+        <ellipse class="cs__hull" cx="280" cy="150" rx="176" ry="132"/>
+        <ellipse class="cs__hull" cx="280" cy="150" rx="166" ry="123" style="stroke-opacity:.45"/>
+        <!-- LED coves -->
+        <path class="cs__led" d="M150 62 Q280 18 410 62"/>
+        <path class="cs__led" d="M126 120 Q160 100 196 96" style="stroke-width:1.8"/>
+        <path class="cs__led" d="M434 120 Q400 100 364 96" style="stroke-width:1.8"/>
+        <!-- overhead bins -->
+        <path class="cs__bin" d="M150 96 L236 96 Q244 96 244 106 L244 126 Q244 134 234 134 L166 134 Q150 134 146 118 Z"/>
+        <path class="cs__bin" d="M410 96 L324 96 Q316 96 316 106 L316 126 Q316 134 326 134 L394 134 Q410 134 414 118 Z"/>
+        <!-- floor -->
+        <line class="cs__floor" x1="118" y1="196" x2="442" y2="196"/>
+        <!-- seats: 3-3-3 -->
+        <g class="cs__seat">
+          <path d="M132 196 L132 168 Q132 160 140 160 L186 160 Q194 160 194 168 L194 196 Z"/>
+          <path d="M236 196 L236 168 Q236 160 244 160 L316 160 Q324 160 324 168 L324 196 Z"/>
+          <path d="M366 196 L366 168 Q366 160 374 160 L420 160 Q428 160 428 168 L428 196 Z"/>
+        </g>
+        <g class="cs__seat" style="fill:rgba(14,26,46,.5)">
+          <path d="M134 160 L134 142 L192 142 L192 160 Z"/>
+          <path d="M238 160 L238 142 L322 142 L322 160 Z"/>
+          <path d="M368 160 L368 142 L426 142 L426 160 Z"/>
+        </g>
+        <!-- windows -->
+        <ellipse class="cs__win" cx="110" cy="150" rx="7" ry="11"/>
+        <ellipse class="cs__win" cx="450" cy="150" rx="7" ry="11"/>
+        <!-- hold -->
+        <path class="cs__bin" d="M156 200 L404 200 L392 246 Q388 254 378 254 L182 254 Q172 254 168 246 Z" style="fill:rgba(8,16,32,.6)"/>
+        <text x="280" y="232" text-anchor="middle" fill="rgba(190,216,252,.32)" style="font:500 11px ui-monospace,monospace;letter-spacing:.22em">CARGO</text>
+      </svg>
+    </div>
+
+    <div class="lites" role="group" aria-label="Cabin lighting scene">
+      <button class="lite is-on" type="button">Boarding</button>
+      <button class="lite" type="button">Climb</button>
+      <button class="lite" type="button">Night</button>
+      <button class="lite" type="button">Sunrise</button>
+      <button class="lite" type="button">Arrival</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FOOTER ══════════════════ -->
+<footer class="foot" id="colophon">
+  <div class="wrap foot__cta">
+    <div class="foot__grid">
+      <div data-reveal>
+        <p class="eyebrow" data-stagger>Colophon</p>
+        <h2 class="h-section" data-stagger style="margin-top:18px;margin-bottom:20px">Built out of<br>maths, not media</h2>
+        <p class="lede" data-stagger>
+          No image files, no fonts fetched, no libraries, no network calls.
+          Every aircraft is generated from a parameter set, the sky is a few
+          hundred pre-rendered gradients blitted twice a frame, and the globe is
+          orthographic projection with spherical interpolation. One
+          <code style="font:500 13px var(--mono);color:var(--ice)">requestAnimationFrame</code>
+          loop drives all of it.
+        </p>
+        <p style="margin-top:26px" data-stagger>
+          <a class="btn" href="README.md">Read the build notes
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12M9 3l5 5-5 5"/></svg>
+          </a>
+        </p>
+      </div>
+      <div data-reveal>
+        <dl class="hero__meta" style="flex-direction:column;gap:18px">
+          <div data-stagger><dt>Weight</dt><dd>40 KB gzipped</dd></div>
+          <div data-stagger><dt>Dependencies</dt><dd>None</dd></div>
+          <div data-stagger><dt>Requests</dt><dd>7</dd></div>
+          <div data-stagger><dt>Images</dt><dd>0</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap foot__bar">
+    <span>Flight Envelope · <span id="year">2026</span></span>
+    <p class="foot__note">
+      An independent design study. Not affiliated with, endorsed by, or produced
+      by Airbus SE. Aircraft type designations are used descriptively to
+      identify the airframes studied; all artwork, copy, geometry and code here
+      are original to this project. Dimensions and weights are published figures,
+      rounded; derived curves and block times are illustrative models, not
+      operational data.
+    </p>
+  </div>
+</footer>
+
+</main>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/aircraft.js"></script>
+<script src="assets/js/sky.js"></script>
+<script src="assets/js/globe.js"></script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>
