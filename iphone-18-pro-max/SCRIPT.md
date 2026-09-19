@@ -1,7 +1,7 @@
 # iPhone 18 Pro Max — speaker script
 
-**Running time:** 6 min 30 s at an unhurried pace. It will stretch to 8 if you
-let the two reveals breathe, and it should not be delivered in under 5.
+**Running time:** about 6 min 45 s at an unhurried pace. It stretches to 8 if you
+let the two reveals breathe. It should not be delivered in under 5.
 
 **Markers**
 
@@ -9,56 +9,62 @@ let the two reveals breathe, and it should not be delivered in under 5.
 |---|---|
 | `[CLICK]` | Press → once. Every click below is one press, in order. |
 | `[PAUSE]` | Stop talking. One to two seconds. |
-| `[WAIT]` | A longer hold — three to four seconds. Let the animation finish. |
 | `[REVEAL]` | The moment the audience is meant to *see* something. Say nothing over it. |
+| `[WAIT]` | A longer hold — three to four seconds. Let the movement finish. |
 
-**Before you start.** Full screen (`F`). Lights down if you can — the deck is
-almost entirely black and a bright room flattens it. The first slide is
-deliberately an empty black screen; that is not a fault, and you should stand in
-it for a moment before you say anything.
+**Before you start.** Full screen (`F`). Lights down if you can; the deck is
+almost entirely black and a bright room flattens it. The opening slide is a
+black screen on purpose — stand in it for a moment before you say anything.
 
-There are **61 clicks** in total. `I` opens the sources panel at any point, if
-someone asks where a number came from.
+The deck is **66 beats**: the opening black screen, then **65 presses**. Scene
+counts are in each heading below. `I` opens the sources panel at any point.
+`0`–`9` and `Shift`+`0`–`2` jump to a scene.
 
 ---
 
 ## 0 · Cold open — 6 clicks
 
-> *Black screen. Say nothing for three seconds.*
+> *Black. Say nothing for three seconds.*
 
 [WAIT]
 
-Every year, this gets a little harder to do.
+Every year this gets harder to do. Not the phone — the part where somebody
+stands up and tells you a rectangle of glass is interesting.
 
 [PAUSE]
 
-Not the phone. The part where someone stands up and tells you that a rectangle
-of glass is interesting.
+So I won't. I'm going to show you two things, and you can decide whether they
+matter to you.
 
-[CLICK] → *a light appears*
+[CLICK] → *a light*
 
 [PAUSE]
 
-So I'm not going to do that. I'm going to show you two things, and then you can
-decide whether they matter to you.
-
-[CLICK] → *the silhouette emerges*
+[CLICK] → *the shape of it*
 
 [WAIT]
 
-[CLICK] → *the device turns to the front*
+[CLICK] → *forward, and lit*
 
 [REVEAL] — *say nothing. Three seconds.*
 
-[CLICK] → *it turns to the back*
+Six point nine inches. Aluminium unibody. Two hundred and forty-nine grams —
+and I'll say that plainly: this is a heavy phone. The heaviest iPhone that
+folds out of nothing.
+
+[CLICK] → *the side*
 
 [PAUSE]
 
-[CLICK] → *push in to the cameras*
+[CLICK] → *the back*
+
+[PAUSE]
+
+[CLICK] → *in to the cameras*
 
 [WAIT]
 
-That's where we'll start. But not yet.
+That's where we'll end up. Not yet.
 
 ---
 
@@ -70,30 +76,28 @@ iPhone 18 Pro Max.
 
 [PAUSE]
 
-[CLICK] → *the device arrives, price line*
+[CLICK] → *the device arrives*
 
-It went on sale this week. Four finishes. In the UAE it starts at
-five thousand four hundred and ninety-nine dirhams for the 256-gigabyte model.
+Black, Silver, Glacier, Burgundy.
 
-> *Say the price plainly and move on. Do not apologise for it and do not sell
-> past it.*
+> *Move on. Don't linger on the colour names.*
 
 ---
 
-## 2 · The question — 3 clicks
+## 2 · Two priorities — 3 clicks
 
 [CLICK]
 
-Here is the honest version of a phone launch.
+Here's the honest version of a phone launch.
 
 [PAUSE]
 
-Most of what changes in a year, you will never notice. A benchmark moves. A
-radio gets more efficient. Good work — invisible work.
+Most of what changes in a year you'll never notice. A benchmark moves. A radio
+gets more efficient. Good work — invisible work.
 
 [PAUSE]
 
-Two things you *do* notice. Every single day.
+Two things you *do* notice. Every day.
 
 [CLICK] → *"Battery."*
 
@@ -103,7 +107,7 @@ Two things you *do* notice. Every single day.
 
 [WAIT]
 
-That's the whole talk. Battery, and camera.
+That's the whole talk.
 
 ---
 
@@ -115,27 +119,26 @@ Forty-five hours of video playback.
 
 [PAUSE]
 
-That's Apple's number, from Apple's own test, and I want to be precise about
-what it means, because a number like that is easy to wave around.
+That's Apple's figure, from Apple's own test, and I want to be precise about
+what it means — because a number like that is easy to wave around.
 
-It does not mean forty-five hours of *use*. It means that if you did nothing but
-play video, on a full charge, it would run for forty-five hours. It's a
-yardstick — a controlled test, run the same way every year, so that one
-generation can be compared with the last.
+It does **not** mean forty-five hours of use. It means that if the phone did
+nothing but play video, on a full charge, it would run for forty-five hours.
+It's a yardstick. A controlled test, run the same way every year, so one
+generation can be measured against the last.
 
 [PAUSE]
 
-What it's genuinely useful for is exactly that comparison. And we'll get to it.
+Useful for exactly that. Not a promise about your Tuesday.
 
 [CLICK] → *a low battery*
 
-But this is the number you actually care about. Not forty-five. This one.
+This is the number you actually care about. Not forty-five. This one.
 
 [PAUSE]
 
-Everyone in this room knows this feeling. It's four in the afternoon and you
-start rationing. You stop taking photos. You put the screen brightness down. You
-begin the negotiation.
+Everyone here knows the feeling. Four in the afternoon and you start rationing.
+You stop taking photographs. You drop the brightness. You begin negotiating.
 
 [CLICK] → *it fills*
 
@@ -143,33 +146,32 @@ begin the negotiation.
 
 [CLICK] → *the battery becomes a day*
 
-So let's spend the charge instead of measuring it.
+So let's spend it instead of measuring it.
 
 [CLICK] → *morning*
 
-Morning. Off the charger around seven. Messages, mail, something to listen to on
-the way in.
+Morning. Off the charger around seven. Messages, mail, something playing on the
+way in.
 
 [CLICK] → *afternoon*
 
-Afternoon is where a phone usually starts to lose. Photos. Video. Maps, running
+Afternoon is where a phone usually starts to lose. Photos. Video. Maps running
 with the screen on. An hour of browsing that turns into two.
 
 [CLICK] → *evening*
 
-Evening — and this is the part that used to be a problem. Dinner somewhere dark,
-so the camera is working hard. A long call. Half an hour of a game that makes
-the phone warm.
+Evening. Video, a long call, half an hour of a game that makes the phone warm.
 
 [CLICK] → *night*
 
 [PAUSE]
 
-And here's the point.
+And here's the point. Not that the number is big — that the charger becomes a
+*choice* rather than a rescue. You plug in at night because it's night. Not
+because you're at nine percent in a taxi with the screen dimmed to nothing.
 
-Not that the number is big. That the charger becomes a *choice* instead of a
-rescue. You plug in at night because it's night — not because you're at nine
-percent in a taxi with your screen dimmed to nothing.
+> *Those percentages are an illustration of a day's shape. They are not an
+> Apple measurement. If anyone asks, say so — it's in the sources panel.*
 
 [WAIT]
 
@@ -177,7 +179,7 @@ percent in a taxi with your screen dimmed to nothing.
 
 ## 4 · Camera — 6 clicks
 
-[CLICK] → *the back of the device*
+[CLICK] → *the back*
 
 Three cameras. All three of them forty-eight megapixels.
 
@@ -189,221 +191,211 @@ Three cameras. All three of them forty-eight megapixels.
 
 [CLICK] → *the main camera*
 
-This one does something no iPhone camera has done before.
+This is the one you shoot with almost all the time.
+
+[CLICK] → *the ultra wide*
+
+This one steps back without you stepping back. The whole room. The whole
+building. The photograph you can't take because there's a wall behind you.
+
+[CLICK] → *the telephoto*
+
+And this one reaches — with glass, rather than by enlarging the middle of the
+picture and hoping.
+
+[CLICK] → *the aperture*
+
+Now. The part that's actually new.
 
 [PAUSE]
 
-The opening behind the lens — the aperture — physically changes size. Six metal
-blades, moving. Watch it.
+The aperture is the opening behind the lens that light passes through. On every
+iPhone before this one it was a fixed size. On this one it moves — from ƒ/1.48
+wide open, down to ƒ/4.
 
-[PAUSE]
-
-Here's what that's for, in plain terms. A wide opening lets in a lot of light,
-which is what you want in a dark room. A narrow opening lets in less, but keeps
-more of the picture sharp front to back, which is what you want in hard sunlight.
-
-Every iPhone before this one had to pick a single opening and live with it. This
-one moves between ƒ/1.48 — wide open — and ƒ/4.
-
-[PAUSE]
-
-Wide open, it takes in roughly one and a half times the light of the camera
-before it. That's not a slogan; it's just the arithmetic of the two openings.
-
-[CLICK] → *ultra wide*
-
-The Ultra Wide. Thirteen millimetres, a hundred and twenty degrees. This is the
-one that gets the whole building in, or the whole table, without you walking
-backwards into traffic.
-
-[CLICK] → *telephoto*
-
-And the Telephoto. Four times closer optically — meaning with glass, not by
-enlarging the middle of the picture and hoping. Eight times at twelve
-megapixels.
-
-[CLICK] → *into the photography*
-
-But specifications are a poor way to talk about a camera.
+Here's what that's for, in plain terms. **Wide open** lets in as much light as
+possible, which is what you want in a dark room. **Closed down** lets in less
+and holds more of the picture sharp front to back, which is what you want in
+hard sunlight. Before, the camera picked one and lived with it. Now it doesn't
+have to.
 
 ---
 
 ## 5 · In real life — 6 clicks
 
-> **Say this. It matters.** These scenes are drawn in code — they're
-> illustrations of the *light* in each situation, not photographs taken on the
-> phone. The deck says so in the corner. Never let anyone leave thinking they
-> were shown camera samples.
+> **Say this. It matters.** What's on screen is not a photograph. These are
+> abstract studies of the *light* in each situation, because no real sample
+> images were available. The frame says so in the corner. Never let anyone
+> leave thinking you showed them camera samples.
 
-Six situations. These are illustrations, not sample shots — but the light in
-each one is the real problem the camera has to solve.
+Six situations. What you're looking at isn't photography — it's the light in
+each one, which is the actual problem the camera has to solve.
 
-[CLICK] → *bright sun*
+[CLICK] → *bright*
 
-Direct sun. The hardest light there is. Something is always about to blow out to
-white. Closing down to ƒ/4 is how you hold on to the bright side.
+Direct sun. The hardest light there is; something is always about to wash out
+to white. Closing down to ƒ/4 is how you hold on to the bright side.
 
 [CLICK] → *indoors*
 
 Indoors, one window. Far less light than your eyes are telling you. This is
 where the wide opening earns its keep.
 
-[CLICK] → *night*
+[CLICK] → *after dark*
 
-After dark. And here's the thing people miss about low light: the problem isn't
-darkness, it's *time*. A camera short of light has to hold the shutter open
-longer, and in that time your hands move, and the picture softens. More light
-means less time. Less time means a sharper photograph.
+And here's what people miss about low light: the problem isn't darkness, it's
+*time*. A camera short of light holds the shutter open longer — and in that
+time your hands move, and the picture softens. More light means less time. Less
+time means a sharper photograph.
 
 [CLICK] → *distance*
 
-Distance. Four times, optically. Eight if you need it.
+Distance. A telephoto camera at the full forty-eight megapixels, so reaching
+across a room still leaves something worth keeping.
 
 [CLICK] → *a person*
 
-A person. Wide open, the background genuinely falls away — that's the physics of
-a wide aperture, not an effect painted on afterwards. Portrait mode can take it
-further if you want it.
+A person. Wide open, the background falls away and the face stays held. That
+separation is what a wide aperture is *for* — it's the difference between a
+snapshot of someone and a photograph of them.
 
-[CLICK] → *movement*
+[CLICK] → *moving*
 
-And movement. This one records the front and the back camera at the same time —
-what you're looking at, and your face while you look at it. One take.
+And video. Same three cameras, same control over light.
 
 [PAUSE]
 
 ---
 
-## 6 · Camera, compared — 5 clicks
+## 6 · Camera detail — 4 clicks
 
-[CLICK] → *last year's device*
+[CLICK] → *"48 MP"*
 
-Last year's Pro Max.
+Forty-eight megapixels.
 
-[CLICK] → *this year's*
+[CLICK] → *"More detail."*
 
-This year's.
+Which in practice means: enough resolution that cropping into a picture still
+leaves you a picture.
 
-[PAUSE]
-
-I want to do this fairly, so I'm going to show you three things, and the third
-one is the one that keeps me honest.
-
-[CLICK] → *aperture*
-
-One. The aperture. Fixed at ƒ/1.78, versus an opening that moves between ƒ/1.48
-and ƒ/4. That is a genuine, physical difference, and it is the headline.
-
-[CLICK] → *control*
-
-Two. You can now set aperture, shutter speed and white balance by hand, with a
-live histogram. If you've never wanted that, this changes nothing for you. If
-you have, you've been waiting years.
-
-[CLICK] → *what has not changed*
-
-Three.
+[CLICK] → *"Variable aperture"*
 
 [PAUSE]
 
-The sensors are the same. Three forty-eight megapixel cameras, same as last
-year. Nobody replaced the glass or the silicon behind it.
+[CLICK] → *"More control over light."*
 
-[PAUSE]
-
-Which means: if your photographs are already good, this will not transform them.
-What changed is one moving part, in front of one of the three. I'd rather you
-heard that from me than found it out later.
+ƒ/1.48 to ƒ/4.0. Open for the dark, closed for the bright. One moving part, and
+it's the most interesting thing on the phone.
 
 ---
 
-## 7 · Battery, compared — 3 clicks
+## 7 · Display — 3 clicks
 
-[CLICK] → *39*
+[CLICK] → *6.9 inches*
 
-Now the comparison that does hold up.
+Six point nine inches. OLED Super Retina XDR. A large screen — and the reason
+any of the photography is worth looking at on the thing that took it.
 
-Last year: thirty-nine hours, on that same video-playback test.
+[CLICK] → *120 Hz*
 
-[CLICK] → *45*
+A hundred and twenty hertz. The screen can redraw itself up to a hundred and
+twenty times a second, so scrolling and movement look continuous rather than
+stepped. You won't notice it. You'd notice losing it.
 
-This year: forty-five.
+[CLICK] → *3000 nits*
 
-[PAUSE]
-
-Both bars start at zero, by the way. I didn't crop the bottom off the chart to
-make the gap look more dramatic than it is.
-
-[CLICK] → *six more hours*
-
-Six hours. About fifteen percent.
-
-[PAUSE]
-
-Fifteen percent sounds modest. Here's what it actually buys you: it's the
-difference between a phone that ends the day empty and a phone that ends the day
-with an evening still in it. The last ten percent of a battery is worth far more
-than the first ten, because that's the part you spend being careful.
+Three thousand nits at peak, outdoors. That's a number you will only ever
+appreciate in July, at noon, trying to read something in direct sun.
 
 ---
 
-## 8 · Everything else — 6 clicks
+## 8 · Performance — 5 clicks
 
-Quickly, the rest — and then I'll stop.
+[CLICK] → *"A20 Pro"*
 
-[CLICK] The chip. Apple's first two-nanometre iPhone processor.
-
-[CLICK] The display. Three thousand nits at peak, outdoors. That's a number
-you'll only ever appreciate in July, at noon.
-
-[CLICK] Charging. Fifty percent in about fifteen minutes, with a sufficiently
-capable adapter. It was twenty minutes last year.
-
-[CLICK] The Dynamic Island is smaller, because the Face ID illuminator moved
-underneath the display. It holds three live activities now.
-
-[CLICK] Manual camera controls, as we said.
-
-[CLICK] And Dual Capture — both cameras, one recording.
+The chip. A20 Pro.
 
 [PAUSE]
 
-None of those would make anyone stand up. Together, they're a year of work.
+I'm not going to tell you it's faster, because "faster" tells you nothing.
+Here's what it actually does.
+
+[CLICK] It runs everything. Apps open and stay open — they aren't quietly
+thrown out of memory while you're in something else. Games hold their frame
+rate instead of sagging after ten minutes.
+
+[CLICK] It develops every photograph. Every time you press the shutter, the
+chip merges several exposures into one image — before you've lifted your thumb.
+That's not storage. That's arithmetic, and it's happening constantly.
+
+[CLICK] It does the heavy work. Editing video, large files, anything that used
+to mean waiting and watching a bar.
+
+[CLICK] And it runs Apple Intelligence on the device itself, rather than by
+sending everything away first.
 
 ---
 
-## 9 · A day — 7 clicks
+## 9 · Everything else — 7 clicks
 
-[CLICK] → *the timeline appears*
+Quickly, the rest.
 
-One more time, and then I'm done. One day. One charge.
+[CLICK] USB-C. One cable, the same as everything else you own.
+
+[CLICK] Wi-Fi 7 — steadier on a crowded network, which is the only time you
+ever think about Wi-Fi.
+
+[CLICK] Bluetooth 6, for everything you already wear.
+
+[CLICK] 5G, for everywhere that isn't the network you trust.
+
+[CLICK] IP68. Rain, a pool, a dropped glass.
+
+[CLICK] And storage from 256 gigabytes to two terabytes. Two terabytes is a
+*lot* of forty-eight-megapixel photographs.
+
+[CLICK] → *the finishes*
+
+Burgundy and Black. Also in Silver and Glacier.
+
+[PAUSE]
+
+None of those would make anyone stand up on their own. Together, they're a year
+of work.
+
+---
+
+## 10 · A day — 6 clicks
+
+[CLICK] → *the timeline*
+
+One more time. One day, one charge.
 
 [CLICK] Seven in the morning. Off the charger. Full.
 
-[CLICK] Half past twelve. A morning of messages, mail, maps, something playing
-in your ears. Around eighty percent.
+[CLICK] One o'clock. A morning of photographs, messages, browsing. Around
+seventy-eight percent.
 
-[CLICK] Four o'clock. Photographs — properly, not two of them. Around sixty.
+[CLICK] Seven in the evening. Video, and an hour of a game. Around fifty.
 
-[CLICK] Nine in the evening. Dinner, video, an hour of a game. Around
-thirty-five.
+[CLICK] Half past ten. The camera again — and this time in the dark, which is
+the expensive way to use it.
 
-[CLICK] Twenty to midnight.
+[CLICK] Ten past midnight.
 
 [PAUSE]
 
 Still going.
 
-[CLICK] → *the honesty line*
+> *Say the honesty line. Don't skip it.*
 
-And that day is an illustration — I made those percentages up to show a shape,
-they are not a measurement. Your real day depends on signal, on brightness, on
-heat, on what you actually run. But the shape is right, and the shape is the
-point.
+That day is an illustration. I made those percentages up to show a shape — they
+are not a measurement, and yours will depend on signal, brightness, heat, and
+what you actually run. But the shape is right, and the shape is the point.
 
 ---
 
-## 10 · The big picture — 4 clicks
+## 11 · The big picture — 4 clicks
 
 [CLICK]
 
@@ -413,7 +405,7 @@ More battery.
 
 [CLICK]
 
-Better cameras.
+More camera capability.
 
 [PAUSE]
 
@@ -429,7 +421,7 @@ More possibilities.
 
 ---
 
-## 11 · The last frame — 5 clicks
+## 12 · The last frame — 5 clicks
 
 [CLICK] → *to black*
 
@@ -470,28 +462,26 @@ Thank you.
 ## Delivery notes
 
 **Pace.** The instinct under pressure is to speed up, and this deck punishes
-that — the animations are timed to be slower than feels comfortable. When you
-click, stop talking and let the movement finish. The silences are written in on
-purpose; they are the most expensive thing in the presentation and the easiest
-to throw away.
+that — the movement is timed to be slower than feels comfortable. When you
+click, stop talking and let it finish. The silences are written in on purpose;
+they're the most expensive thing here and the easiest to throw away.
 
-**Tone.** Low and level. Nothing here needs selling and the deck is already
-dramatic — if you match its drama with your voice you'll tip the whole thing
-into parody. Underplay it. The two moments to let yourself lift slightly are the
-cold open reveal and the last frame.
+**Tone.** Low and level. The deck is already dramatic — if you match its drama
+with your voice the whole thing tips into parody. Underplay it. The two places
+to let yourself lift slightly are the cold open and the last frame.
 
-**The honesty beats are not throwaways.** Slide 6 beat three (the sensors are
-unchanged), slide 7 (the bars start at zero), slide 5 (these are illustrations)
-and slide 9 (that day is invented) are the reason the rest of the numbers are
-believable. Deliver them at full weight, not as an aside. An audience that
-catches you overstating one thing will discount everything else you said.
+**The honesty beats are not throwaways.** Scene 3 (the 45 hours is a
+video-playback test, not a promise), scene 5 (these are light studies, not
+photographs), scene 10 (that day is invented) and the weight in the cold open
+are the reason everything else you say is believable. Deliver them at full
+weight, not as an aside. An audience that catches you overstating one thing
+will quietly discount the rest.
 
-**If someone challenges a number.** Press `I`. Every figure on the deck is
-listed there with its provenance, including which ones are Apple's, which are
-arithmetic done here, and which are illustrations. Note that the figures were
-compiled from reporting that quotes Apple's specification pages rather than from
-Apple's site directly — worth a check against Apple's own tech-spec page before
-you present.
+**If someone challenges a number.** Press `I`. Every figure is listed with its
+provenance — Apple's published specifications, and what was derived or
+illustrated here. Note that the figures were compiled from reporting that
+quotes Apple's specification pages, because Apple's own site was unreachable
+from the machine this was built on. Worth checking before you present.
 
-**If you have only five minutes.** Cut slide 8 entirely and cut slide 9 to three
-clicks. Never cut the pauses.
+**If you have only five minutes.** Cut scene 9 to three clicks and scene 8 to
+two. Never cut the pauses.

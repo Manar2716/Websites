@@ -36,7 +36,13 @@
     --warn:           #ff9f0a;
 
     /* type — system stack only; no font is fetched over the network */
-    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    /* SF Pro ships with macOS and iOS, so on an Apple machine these
+       resolve to the real thing; everywhere else the stack falls to the
+       nearest grotesque with the same proportions. Nothing is fetched
+       over the network and no font is redistributed with the project. */
+    --sans-display: "SF Pro Display", -apple-system, BlinkMacSystemFont,
+                    "Helvetica Neue", Inter, system-ui, sans-serif;
+    --sans: "SF Pro Text", -apple-system, BlinkMacSystemFont,
             "Helvetica Neue", Inter, system-ui, sans-serif;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
 
@@ -84,6 +90,10 @@
   /* Display type. Tight tracking and a low line-height are most of
      what separates "huge white text" from "huge white text that looks
      like a keynote". */
+  .d1, .d2, .d3, .num, .vs__val, .feat__k {
+    font-family: var(--sans-display);
+  }
+
   .d1, .d2, .d3 {
     font-weight: 600;
     letter-spacing: -.035em;
@@ -196,255 +206,89 @@
   }
 }
 
-/* ───────────────────────────── PHONE ────────────────────────────── */
+/* ──────────────────────────── PRODUCT ───────────────────────────── */
 @layer phone {
-  /* ONE phone exists for the entire deck. It never unmounts. Slides
-     declare where they want it (x/y/scale/rotation) and the rAF loop
-     damps it there, so the device physically travels from the cold
-     open to the final frame. That continuity is the difference
-     between "a deck about a phone" and "one continuous story". */
-  .phoneStage {
+  /* One stack of photographs, centred on each other, for the whole deck.
+     Nothing in here is drawn: every view is a cut from the two source
+     images. Scenes request a view and a pose; the module crossfades and
+     the loop damps.
+
+     The fade lives on .rig and the transform lives on .shots, and they
+     are deliberately not on the same element — sharing them means every
+     scale is composited through a changing opacity, which on a large
+     image is the difference between a clean push-in and a stuttering
+     one. */
+  .stage {
     position: fixed; inset: 0;
     display: grid; place-items: center;
     pointer-events: none;
     z-index: 12;
-    transform-style: preserve-3d;
   }
 
-  /* The rig is split in two on purpose, and the split is load-bearing.
-     OPACITY AND ROTATION MUST NOT SHARE AN ELEMENT. Any element with
-     opacity < 1 is forced to transform-style: flat, which composites
-     its whole subtree into a single plane — the faces then stop
-     rotating relative to one another, backface-visibility is evaluated
-     as though the device were never turned, and the front of the phone
-     is the only side you can ever see. So:
-
-       .phoneRig   position + fade, flat, and the perspective source
-       .phone      rotation + scale, preserve-3d, never faded
-
-     JS writes the custom properties on the rig; they inherit down. */
-  .phoneRig {
-    transform: translate3d(var(--px, 0px), var(--py, 0px), var(--pz, 0px));
+  .rig {
     opacity: var(--po, 1);
-    perspective: 2200px;
-    will-change: transform, opacity;
+    will-change: opacity;
   }
 
-  .phone {
+  .shots {
     position: relative;
-    width: 286px; height: 604px;
-    transform-style: preserve-3d;
+    display: grid; place-items: center;
     transform:
-      rotateX(var(--rx, 0deg))
-      rotateY(var(--ry, 0deg))
-      rotateZ(var(--rz, 0deg))
+      translate3d(var(--px, 0px), var(--py, 0px), 0)
+      rotate(var(--pr, 0deg))
       scale(var(--ps, 1));
     will-change: transform;
   }
 
-  /* ── the body: an extrusion built from stacked rounded slices ──
-     CSS cannot round an edge in 3D, so the body is 19 copies of the
-     same rounded silhouette spread across the device's thickness.
-     From any orbit angle the outline stays correct, and the two
-     outermost slices are inset to read as the chamfer. JS positions
-     each slice on Z. */
-  .phone__slab { position: absolute; inset: 0; transform-style: preserve-3d; }
-  .phone__slice {
-    position: absolute; inset: 0;
-    border-radius: 46px;
-    background: linear-gradient(100deg,
-      var(--ti-dark) 0%, var(--ti-low) 16%, var(--ti-mid) 33%,
-      var(--ti-hi) 42%, var(--ti-mid) 52%, var(--ti-low) 70%,
-      var(--ti-dark) 86%, var(--ti-low) 100%);
-    backface-visibility: hidden;
+  /* every view occupies the same cell, so a crossfade keeps the device
+     centred rather than sliding between two positions */
+  .shot {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: scale(1.012);
+    transition: opacity 1500ms var(--ease-soft),
+                transform 2400ms var(--ease-reveal);
+    will-change: opacity, transform;
+  }
+  .shot.is-on { opacity: 1; transform: none; }
+
+  .shot img {
+    display: block;
+    height: 620px; width: auto;
+    /* the sources are small; never let the browser stretch one past the
+       cap product.js sets, and keep the resampling smooth rather than
+       crisp so an upscale reads as soft focus instead of pixel edges */
+    image-rendering: auto;
+    /* seats the device on the ground without a drawn shadow shape */
+    filter: drop-shadow(0 28px 44px rgba(0,0,0,.72));
   }
 
-  .phone__face {
-    position: absolute; inset: 0;
-    border-radius: 46px;
-    backface-visibility: hidden;
-    overflow: hidden;
-  }
-
-  /* ── front ── */
-  .phone__face--front {
-    background: #020203;
-    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.10);
-  }
-
-  .screen {
-    position: absolute; inset: 5px;
-    border-radius: 42px;
-    overflow: hidden;
-    background:
-      radial-gradient(150% 100% at 50% 0%, #17171c 0%, #0a0a0d 46%, #030304 100%);
-  }
-
-  /* The wallpaper is four soft gradient pools, not an image. */
-  .screen__paper {
-    position: absolute; inset: 0;
-    opacity: var(--wall, 0);
-    transition: opacity var(--t-slow) var(--ease-soft);
-    background:
-      radial-gradient(64% 46% at 26% 18%, rgba(120,140,190,.40), transparent 62%),
-      radial-gradient(56% 42% at 78% 34%, rgba(190,120,140,.30), transparent 60%),
-      radial-gradient(70% 50% at 52% 88%, rgba(70,90,150,.42), transparent 66%),
-      linear-gradient(170deg, #0e1018 0%, #05060a 100%);
-  }
-
-  /* Specular sheen. JS slides its position against rotateY so the
-     screen catches the key light as the device turns — the single
-     cheapest cue that this is a solid object and not a picture. */
-  .screen__glare {
-    position: absolute; inset: -30%;
-    background: linear-gradient(104deg,
-      transparent 32%, rgba(255,255,255,.055) 46%,
-      rgba(255,255,255,.12) 50%, rgba(255,255,255,.045) 55%, transparent 68%);
-    transform: translate3d(var(--glare, 0%), 0, 0);
-  }
-
-  /* Dynamic Island — smaller on this generation, which is a real
-     change and is why it gets its own named element. */
-  .island {
-    position: absolute; top: 13px; left: 50%;
-    width: 78px; height: 25px;
-    margin-left: -39px;
-    border-radius: 14px;
-    background: #000;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
-    transition: width var(--t-mid) var(--ease-move);
-  }
-  .island::after {
-    content: ''; position: absolute; right: 7px; top: 50%;
-    width: 8px; height: 8px; margin-top: -4px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 34% 30%, #1d2740 0%, #070a12 62%, #000 100%);
-  }
-
-  /* ── back ── */
-  .phone__face--back {
-    transform: rotateY(180deg);
-    background:
-      radial-gradient(120% 80% at 30% 12%, #2a2a2e 0%, #141417 40%, #0a0a0c 100%);
-    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.08);
-  }
-
-  /* the matte-glass window on the lower two-thirds of the back */
-  .phone__glassWin {
-    position: absolute; left: 0; right: 0; top: 33%; bottom: 0;
-    background: linear-gradient(190deg, rgba(255,255,255,.035), transparent 40%);
-  }
-
-  /* ── camera plateau ──
-     Full-width raised plateau with the three lenses at the left and
-     the flash / sensor cluster at the right. */
-  .plateau {
-    position: absolute; top: 15px; left: 13px; right: 13px;
-    height: 132px;
-    border-radius: 34px;
-    background: linear-gradient(165deg, #3a3a3f 0%, #1e1e22 44%, #131316 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.16),
-      inset 0 -1px 0 rgba(0,0,0,.6),
-      0 6px 18px rgba(0,0,0,.5);
-  }
-
-  .lens {
-    position: absolute;
-    width: 58px; height: 58px;
-    border-radius: 50%;
-    background: linear-gradient(150deg, #5a5a60 0%, #2a2a2e 48%, #17171a 100%);
-    box-shadow: 0 2px 8px rgba(0,0,0,.66), inset 0 1px 0 rgba(255,255,255,.2);
-    display: grid; place-items: center;
-  }
-  /* the triangular arrangement */
-  .lens--wide  { left: 16px;  top: 12px; }
-  .lens--ultra { left: 16px;  top: 66px; }
-  .lens--tele  { left: 70px;  top: 39px; }
-
-  .lens__glass {
-    width: 42px; height: 42px; border-radius: 50%;
-    background:
-      radial-gradient(circle at 36% 28%, #3c4a6b 0%, #131a2c 38%, #05070d 72%, #020306 100%);
-    box-shadow: inset 0 0 6px rgba(0,0,0,.9);
-    position: relative;
-    display: grid; place-items: center;
-  }
-  /* the iris: scaled by JS on the aperture beat, because the aperture
-     on the main camera physically moves on this generation */
-  .lens__iris {
-    width: 24px; height: 24px; border-radius: 50%;
-    background: radial-gradient(circle at 42% 34%, #0d1730 0%, #03050c 70%);
-    box-shadow: 0 0 0 1px rgba(150,190,255,.14);
-    transform: scale(var(--iris, 1));
-    transition: transform var(--t-mid) var(--ease-move);
-  }
-  /* specular pinpoint — the thing that makes glass read as glass */
-  .lens__glass::after {
-    content: ''; position: absolute;
-    left: 24%; top: 18%;
-    width: 30%; height: 22%;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(210,228,255,.78), transparent 70%);
-  }
-
-  .flash {
-    position: absolute; right: 22px; top: 26px;
-    width: 26px; height: 26px; border-radius: 50%;
-    background: radial-gradient(circle at 40% 36%, #4a4a50, #1b1b1f 70%);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
-  }
-  .flash::after {
-    content:''; position:absolute; inset: 6px; border-radius: 50%;
-    background: radial-gradient(circle, #f6e6c4 0%, #6b5f46 55%, #23201a 100%);
-    opacity: .5;
-  }
-  .lidar {
-    position: absolute; right: 26px; top: 72px;
-    width: 18px; height: 18px; border-radius: 50%;
-    background: radial-gradient(circle at 38% 34%, #2e2e34, #0c0c0f 72%);
-  }
-
-  /* Highlight ring used when a single lens is called out. Scale and
-     fade only — it never spins. */
-  .lens__ring {
-    position: absolute; inset: -13px;
-    border-radius: 50%;
-    border: 1.5px solid rgba(245,245,247,.82);
-    opacity: 0; transform: scale(.82);
-    transition: opacity var(--t-mid) var(--ease-reveal),
-                transform var(--t-mid) var(--ease-reveal);
-  }
-  .lens.is-called .lens__ring { opacity: 1; transform: scale(1); }
-  .lens { transition: filter var(--t-mid) var(--ease-soft); }
-  .plateau.is-isolating .lens:not(.is-called) { filter: brightness(.34); }
-
-  /* side hardware */
-  .btn {
-    position: absolute;
-    background: linear-gradient(180deg, var(--ti-mid), var(--ti-low));
-    border-radius: 2px;
-  }
-  .btn--vol1 { left: -2.5px; top: 132px; width: 3px; height: 34px; }
-  .btn--vol2 { left: -2.5px; top: 178px; width: 3px; height: 34px; }
-  .btn--act  { left: -2.5px; top: 96px;  width: 3px; height: 24px; }
-  .btn--pwr  { right: -2.5px; top: 150px; width: 3px; height: 58px; }
-  /* Camera Control, on the lower right edge */
-  .btn--cam  { right: -2.5px; top: 250px; width: 3px; height: 30px;
-               background: linear-gradient(180deg, var(--ti-hi), var(--ti-mid)); }
-
-  /* Contact shadow on the floor beneath the device. Sold separately
-     from the phone so it does not rotate with it. */
-  .phoneShadow {
+  /* pool of light beneath the device */
+  .productShadow {
     position: fixed; left: 50%; top: 50%;
-    width: 340px; height: 46px;
+    width: 420px; height: 52px;
     pointer-events: none; z-index: 11;
-    background: radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.72), transparent 72%);
-    opacity: var(--shadowO, 0);
+    background: radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.8), transparent 72%);
+    opacity: var(--so, 0);
     transform: translate3d(calc(-50% + var(--px,0px)), calc(-50% + var(--py,0px) + 330px), 0)
                scale(var(--ps, 1));
-    transition: opacity var(--t-slow) var(--ease-soft);
   }
+
+  /* The three finishes, shown together once. Held at a size the source
+     can carry — these are 204px tall natively and are not asked to do
+     more than they can. */
+  .finishes {
+    display: flex; align-items: flex-end;
+    gap: clamp(2rem, 7vw, 6rem);
+  }
+  .finishes img {
+    display: block; height: clamp(200px, 34vh, 330px); width: auto;
+    filter: drop-shadow(0 20px 34px rgba(0,0,0,.7));
+    opacity: 0; transform: translate3d(0, 22px, 0);
+    transition: opacity var(--t-slow) var(--ease-soft),
+                transform var(--t-cine) var(--ease-reveal);
+  }
+  .finishes img.is-in { opacity: 1; transform: none; }
 }
 
 /* ───────────────────────────── SLIDES ───────────────────────────── */
@@ -916,7 +760,7 @@
    centred both, and the title wrapped to four lines straight across
    the screen. */
 @layer slides {
-  #s11Body {
+  #s12Body {
     align-self: end;
     justify-self: center;
     text-align: center;
@@ -930,14 +774,37 @@
    device is the payoff, and the two of them centred at once put 9rem
    type straight across the screen. */
 @layer slides {
-  #s10Body {
+  #s11Body {
     transition: opacity var(--t-slow) var(--ease-soft),
                 transform var(--t-cine) var(--ease-reveal),
                 filter var(--t-slow) var(--ease-soft);
   }
-  #s10Body.is-cleared {
+  #s11Body.is-cleared {
     opacity: 0;
     transform: scale(.94);
     filter: blur(7px);
   }
+}
+
+/* ── lens call-outs on the camera close-up ───────────────────────── */
+/* Positioned as a percentage of the photograph so they stay registered
+   to the lenses whatever size the image is drawn at. Scale and fade
+   only — nothing here rotates or pulses. */
+@layer phone {
+  .ring {
+    position: absolute;
+    width: 26%; aspect-ratio: 1;
+    margin: -13% 0 0 -13%;
+    border-radius: 50%;
+    border: 1.5px solid rgba(245,245,247,.9);
+    box-shadow: 0 0 22px rgba(0,0,0,.6);
+    opacity: 0; transform: scale(.84);
+    transition: opacity var(--t-mid) var(--ease-reveal),
+                transform var(--t-slow) var(--ease-reveal);
+    pointer-events: none;
+  }
+  .ring.is-on { opacity: 1; transform: scale(1); }
+
+  .shot--plateau img { transition: filter var(--t-slow) var(--ease-soft); }
+  .shot--plateau.is-isolating img { filter: drop-shadow(0 28px 44px rgba(0,0,0,.72)) brightness(.62); }
 }

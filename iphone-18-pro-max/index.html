@@ -4,14 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>iPhone 18 Pro Max — More of what matters</title>
-<meta name="description" content="A product keynote for iPhone 18 Pro Max, built around battery and camera. Every figure on the deck is Apple's own published specification.">
+<meta name="description" content="A product keynote for iPhone 18 Pro Max, built around battery and camera.">
 <meta name="theme-color" content="#000000">
 <meta name="robots" content="noindex">
+<link rel="preload" as="image" href="assets/img/front.png">
 <link rel="stylesheet" href="assets/css/keynote.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Crect x='11' y='5' width='10' height='22' rx='3' fill='none' stroke='%23f5f5f7' stroke-width='1.6'/%3E%3C/svg%3E">
 <script>
-  /* Set before first paint: the film grain is a static SVG mask, and
-     inlining it here keeps it out of a second network round-trip. */
   document.documentElement.style.setProperty('--grain-src',
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E\")");
   document.documentElement.classList.add('js');
@@ -21,44 +20,35 @@
 
 <div class="deck" id="deck">
 
-  <!-- ══ lighting ══ -->
   <div class="key" id="key" aria-hidden="true"></div>
   <div class="bloom" id="bloom" aria-hidden="true"></div>
 
-  <!-- ══ photography plates (behind the phone, ahead of the ground) ══ -->
+  <!-- abstract light fields for the camera sequence -->
   <div class="plates" id="plates" aria-hidden="true"></div>
 
-  <!-- ══ the device — one instance, for the whole deck ══ -->
-  <div class="phoneShadow" id="phoneShadow" aria-hidden="true"></div>
-  <div class="phoneStage" aria-hidden="true">
-    <div class="phoneRig" id="phoneRig"></div>
-  </div>
-  <!-- the previous generation, mounted only for the two comparisons -->
-  <div class="phoneStage" aria-hidden="true">
-    <div class="phoneRig" id="altRig" style="--po:0"></div>
+  <!-- ══ the product: photography, one device, four views ══ -->
+  <div class="productShadow" id="productShadow" aria-hidden="true"></div>
+  <div class="stage" aria-hidden="true">
+    <div class="rig" id="rig"><div class="shots" id="shots"></div></div>
   </div>
 
 
-  <!-- ══════════════════ 0 · COLD OPEN ══════════════════ -->
-  <section class="slide slide--center slide--over" id="s0" aria-label="Opening">
-    <div class="slide__body">
-      <p class="eyebrow beat" data-b="5">The camera system</p>
-    </div>
-  </section>
+  <!-- ════════════ 0 · COLD OPEN ════════════ -->
+  <section class="slide slide--center slide--over" id="s0" aria-label="Opening"></section>
 
-  <!-- ══════════════════ 1 · THE PRODUCT ══════════════════ -->
+  <!-- ════════════ 1 · THE PRODUCT ════════════ -->
   <section class="slide slide--over" id="s1" aria-label="iPhone 18 Pro Max">
     <div class="slide__body">
       <p class="eyebrow beat" data-b="0" style="margin-bottom:1.6rem">iPhone</p>
       <h1 class="d1 beat" data-b="0">18&nbsp;Pro&nbsp;Max</h1>
       <div class="beat" data-b="1" style="margin-top:2.4rem;display:grid;gap:1.1rem">
         <div class="rule" style="width:clamp(120px,14vw,220px)"></div>
-        <p class="lede">Available now. Four finishes.<br>From AED&nbsp;5,499.</p>
+        <p class="lede">Aluminium unibody. 6.9&nbsp;inches.<br>Black, Silver, Glacier, Burgundy.</p>
       </div>
     </div>
   </section>
 
-  <!-- ══════════════════ 2 · THE QUESTION ══════════════════ -->
+  <!-- ════════════ 2 · TWO PRIORITIES ════════════ -->
   <section class="slide slide--center slide--over" id="s2" aria-label="Two things matter">
     <div class="slide__body">
       <div class="stack">
@@ -69,7 +59,7 @@
     </div>
   </section>
 
-  <!-- ══════════════════ 3 · BATTERY ══════════════════ -->
+  <!-- ════════════ 3 · BATTERY ════════════ -->
   <section class="slide slide--over" id="s3" aria-label="Battery">
     <div class="slide__body" style="justify-self:stretch;max-width:none;width:100%">
       <div style="display:grid;gap:clamp(2rem,7vh,5rem)">
@@ -84,11 +74,11 @@
 
         <div class="track" id="battTrack">
           <div class="batt" id="batt"><div class="batt__fill" id="battFill"></div></div>
-          <div class="ticks" id="battTicks">
+          <div class="ticks">
             <div class="tick beat" data-b="4">
               <span class="tick__t">Morning</span>
               <span class="tick__pc">100%</span>
-              <span class="tick__d">Off the charger. Messages, mail, a podcast on the way in.</span>
+              <span class="tick__d">Off the charger. Messages, mail, something playing on the way in.</span>
             </div>
             <div class="tick beat" data-b="5">
               <span class="tick__t">Afternoon</span>
@@ -98,7 +88,7 @@
             <div class="tick beat" data-b="6">
               <span class="tick__t">Evening</span>
               <span class="tick__pc">~52%</span>
-              <span class="tick__d">Dinner out, more photos, a long call, some gaming.</span>
+              <span class="tick__d">Video, a long call, half an hour of a game.</span>
             </div>
             <div class="tick beat" data-b="7">
               <span class="tick__t">Night</span>
@@ -112,114 +102,122 @@
     </div>
   </section>
 
-  <!-- ══════════════════ 4 · CAMERA ══════════════════ -->
+  <!-- ════════════ 4 · CAMERA ════════════ -->
   <section class="slide slide--over" id="s4" aria-label="Camera">
-    <!-- The opening statement. It leaves once we push in, because the
-         lens call-outs need the same corner of the frame. -->
     <div class="slide__body" id="s4Head">
       <div style="display:grid;gap:1.2rem">
         <h2 class="d2">Three cameras.<br>All 48 megapixels.</h2>
-        <p class="lede">Wide. Ultra&nbsp;Wide. Telephoto.</p>
+        <p class="lede">Main. Ultra&nbsp;Wide. Telephoto.</p>
       </div>
     </div>
 
-    <!-- One lens at a time, all three stacked in the same place. -->
     <div class="callouts" id="s4Calls">
       <div class="callout" data-c="0">
-        <span class="eyebrow">Main · 24 mm</span>
-        <span class="d3">Variable aperture</span>
-        <span class="lede">The opening behind the lens physically changes size — ƒ/1.48 wide open, ƒ/4 closed down. Wide open it gathers the most light; closed down it holds more of the scene sharp.</span>
+        <span class="eyebrow">Main</span>
+        <span class="d3">48 MP</span>
+        <span class="lede">The camera you shoot with almost all of the time.</span>
       </div>
       <div class="callout" data-c="1">
-        <span class="eyebrow">Ultra Wide · 13 mm</span>
-        <span class="d3">ƒ/2.2 · 120°</span>
+        <span class="eyebrow">Ultra Wide</span>
+        <span class="d3">48 MP</span>
         <span class="lede">Steps back without you stepping back. The whole room, the whole building.</span>
       </div>
       <div class="callout" data-c="2">
-        <span class="eyebrow">Telephoto · 100 mm</span>
-        <span class="d3">4× — and 8× at 12&nbsp;MP</span>
-        <span class="lede">Reach across a room or a street, with glass rather than by enlarging the middle of the picture.</span>
+        <span class="eyebrow">Telephoto</span>
+        <span class="d3">48 MP</span>
+        <span class="lede">Reaches across a room or a street, with glass rather than by enlarging the middle of the picture.</span>
+      </div>
+      <div class="callout" data-c="3">
+        <span class="eyebrow">Main camera aperture</span>
+        <span class="d3">ƒ/1.48 – ƒ/4.0</span>
+        <span class="lede">The opening behind the lens changes size. Wide open it lets in the most light; closed down it lets in less and holds more of the picture sharp.</span>
       </div>
     </div>
   </section>
 
-  <!-- ══════════════════ 5 · CAMERA IN REAL LIFE ══════════════════ -->
+  <!-- ════════════ 5 · CAMERA IN REAL LIFE ════════════ -->
   <section class="slide" id="s5" aria-label="The camera in real life"></section>
   <div class="plateScrim" id="plateScrim" aria-hidden="true"></div>
   <div class="plateCap" id="plateCap" aria-hidden="true">
     <span class="plateCap__h" id="plateCapH"></span>
     <span class="plateCap__p" id="plateCapP"></span>
   </div>
-  <div class="render-note" id="renderNote">Rendered illustration — not a camera sample</div>
+  <div class="render-note" id="renderNote">Abstract light study — not a camera sample</div>
 
-  <!-- ══════════════════ 6 · CAMERA COMPARISON ══════════════════ -->
-  <section class="slide slide--over" id="s6" aria-label="Camera compared with the previous generation">
-    <div class="slide__body" style="justify-self:stretch;max-width:none;width:100%;align-self:end">
-      <div class="vs" style="margin-bottom:clamp(1rem,4vh,3rem)">
-        <div class="vs__col beat" data-b="0">
-          <span class="vs__name">iPhone 17 Pro Max</span>
-        </div>
-        <div class="vs__col is-hero beat" data-b="1">
-          <span class="vs__name">iPhone 18 Pro Max</span>
-        </div>
-      </div>
-      <p class="eyebrow" id="camLabel" style="width:100%;max-width:1180px;margin:0 auto 1rem;opacity:0;transition:opacity 260ms var(--ease-soft)"></p>
-      <div class="vs" id="camDiffs">
-        <!-- one difference at a time; JS swaps which pair is live -->
-        <div class="vs__col"><span class="d3" id="camA"></span><span class="vs__note" id="camAN"></span></div>
-        <div class="vs__col is-hero"><span class="d3" id="camB"></span><span class="vs__note" id="camBN"></span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════════════ 7 · BATTERY COMPARISON ══════════════════ -->
-  <section class="slide slide--over" id="s7" aria-label="Battery compared with the previous generation">
-    <div class="slide__body" style="justify-self:stretch;max-width:none;width:100%">
-      <div class="vs">
-        <div class="vs__col beat" data-b="0">
-          <span class="vs__name">iPhone 17 Pro Max</span>
-          <span class="vs__val">39<span class="vs__unit">hrs</span></span>
-          <div class="bar" id="bar17" style="--w:86.7%"><div class="bar__f"></div></div>
-          <span class="vs__note">Video playback</span>
-        </div>
-        <div class="vs__col is-hero beat" data-b="1">
-          <span class="vs__name">iPhone 18 Pro Max</span>
-          <span class="vs__val">45<span class="vs__unit">hrs</span></span>
-          <div class="bar" id="bar18" style="--w:100%"><div class="bar__f"></div></div>
-          <span class="vs__note">Video playback</span>
-        </div>
-      </div>
-      <div class="delta beat" data-b="2">
-        <p class="d2">Six more hours.</p>
-        <p class="lede" style="max-width:44ch;margin:1.2rem auto 0">Roughly fifteen percent longer on the same test — about the difference between arriving home empty and arriving home with an evening still in it.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════════════ 8 · EVERYTHING ELSE ══════════════════ -->
-  <section class="slide" id="s8" aria-label="Everything else">
+  <!-- ════════════ 6 · CAMERA DETAIL ════════════ -->
+  <section class="slide" id="s6" aria-label="Camera detail">
     <div class="feat" data-f="0"><div class="feat__in">
-      <span class="eyebrow">Chip</span><span class="feat__k">A20 Pro</span>
-      <span class="feat__s">Apple’s first 2-nanometre iPhone chip.</span></div></div>
+      <span class="feat__k">48 MP</span></div></div>
     <div class="feat" data-f="1"><div class="feat__in">
-      <span class="eyebrow">Display</span><span class="feat__k">3000 nits</span>
-      <span class="feat__s">Peak outdoor brightness. Readable in direct sun.</span></div></div>
+      <span class="feat__k">More detail.</span>
+      <span class="feat__s">Enough resolution that cropping into a picture still leaves a picture.</span></div></div>
     <div class="feat" data-f="2"><div class="feat__in">
-      <span class="eyebrow">Charging</span><span class="feat__k">50% in 15 min</span>
-      <span class="feat__s">With a 60W-capable USB-C adapter. Twenty minutes on the generation before.</span></div></div>
+      <span class="feat__k">Variable aperture</span></div></div>
     <div class="feat" data-f="3"><div class="feat__in">
-      <span class="eyebrow">Design</span><span class="feat__k">A smaller island</span>
-      <span class="feat__s">The Face ID illuminator moved under the display, so the cutout shrank — and holds three Live Activities at once.</span></div></div>
-    <div class="feat" data-f="4"><div class="feat__in">
-      <span class="eyebrow">Control</span><span class="feat__k">Manual, at last</span>
-      <span class="feat__s">Aperture, shutter speed, white balance and a live histogram, in the camera app.</span></div></div>
-    <div class="feat" data-f="5"><div class="feat__in">
-      <span class="eyebrow">Video</span><span class="feat__k">Dual Capture</span>
-      <span class="feat__s">Front and back cameras recording at the same time.</span></div></div>
+      <span class="feat__k">More control over light.</span>
+      <span class="feat__s">ƒ/1.48 to ƒ/4.0. Open for the dark, closed for the bright.</span></div></div>
   </section>
 
-  <!-- ══════════════════ 9 · A DAY WITH THE PHONE ══════════════════ -->
-  <section class="slide slide--over" id="s9" aria-label="A day with the phone">
+  <!-- ════════════ 7 · DISPLAY ════════════ -->
+  <section class="slide" id="s7" aria-label="Display">
+    <div class="feat" data-f="0"><div class="feat__in">
+      <span class="eyebrow">Display</span>
+      <span class="feat__k">6.9&nbsp;inches</span>
+      <span class="feat__s">OLED Super Retina XDR. A large screen, and the reason video and photographs are worth looking at on it.</span></div></div>
+    <div class="feat" data-f="1"><div class="feat__in">
+      <span class="eyebrow">ProMotion</span>
+      <span class="feat__k">120 Hz</span>
+      <span class="feat__s">The screen can redraw itself up to 120 times a second, so scrolling and movement look smooth rather than stepped.</span></div></div>
+    <div class="feat" data-f="2"><div class="feat__in">
+      <span class="eyebrow">Outdoor brightness</span>
+      <span class="feat__k">3000 nits</span>
+      <span class="feat__s">Bright enough to stay readable in direct sun — which is the only place you ever notice it.</span></div></div>
+  </section>
+
+  <!-- ════════════ 8 · PERFORMANCE ════════════ -->
+  <section class="slide" id="s8" aria-label="Performance">
+    <div class="feat" data-f="0"><div class="feat__in">
+      <span class="eyebrow">Chip</span>
+      <span class="feat__k">A20 Pro</span></div></div>
+    <div class="feat" data-f="1"><div class="feat__in">
+      <span class="feat__k">It runs everything.</span>
+      <span class="feat__s">Apps open and stay open. Games hold their frame rate instead of sagging.</span></div></div>
+    <div class="feat" data-f="2"><div class="feat__in">
+      <span class="feat__k">It develops every photo.</span>
+      <span class="feat__s">Each time you press the shutter the chip merges several exposures into one picture — before you have lifted your thumb.</span></div></div>
+    <div class="feat" data-f="3"><div class="feat__in">
+      <span class="feat__k">It does the heavy work.</span>
+      <span class="feat__s">Editing video, large files, anything that used to mean waiting.</span></div></div>
+    <div class="feat" data-f="4"><div class="feat__in">
+      <span class="feat__k">And it runs Apple Intelligence.</span>
+      <span class="feat__s">On the device itself, rather than by sending everything away first.</span></div></div>
+  </section>
+
+  <!-- ════════════ 9 · EVERYTHING ELSE ════════════ -->
+  <section class="slide" id="s9" aria-label="Everything else">
+    <div class="feat" data-f="0"><div class="feat__in">
+      <span class="feat__k">USB‑C</span><span class="feat__s">One cable, the same as everything else.</span></div></div>
+    <div class="feat" data-f="1"><div class="feat__in">
+      <span class="feat__k">Wi‑Fi 7</span><span class="feat__s">Steadier on a crowded network.</span></div></div>
+    <div class="feat" data-f="2"><div class="feat__in">
+      <span class="feat__k">Bluetooth 6</span><span class="feat__s">For everything you already wear.</span></div></div>
+    <div class="feat" data-f="3"><div class="feat__in">
+      <span class="feat__k">5G</span><span class="feat__s">Away from the network you trust.</span></div></div>
+    <div class="feat" data-f="4"><div class="feat__in">
+      <span class="feat__k">IP68</span><span class="feat__s">Rain, a pool, a dropped glass. Rated for water and dust.</span></div></div>
+    <div class="feat" data-f="5"><div class="feat__in">
+      <span class="feat__k">256 GB – 2 TB</span><span class="feat__s">Four sizes. Two terabytes is a lot of 48‑megapixel photographs.</span></div></div>
+    <div class="feat" data-f="6"><div class="feat__in">
+      <span class="eyebrow">Burgundy and Black</span>
+      <div class="finishes" id="finishes">
+        <img src="assets/img/back-burgundy.png" alt="iPhone 18 Pro Max in Burgundy, rear view" loading="lazy" decoding="async">
+        <img src="assets/img/back-black.png" alt="iPhone 18 Pro Max in Black, rear view" loading="lazy" decoding="async">
+      </div>
+      <span class="feat__s" style="margin-top:1.4rem">Also in Silver and Glacier.</span></div></div>
+  </section>
+
+  <!-- ════════════ 10 · A DAY WITH THE PHONE ════════════ -->
+  <section class="slide slide--over" id="s10" aria-label="A day with the phone">
     <div class="slide__body" style="justify-self:stretch;max-width:none;width:100%">
       <p class="eyebrow beat" data-b="0" style="margin-bottom:clamp(2rem,8vh,5rem)">One day. One charge.</p>
       <div class="day">
@@ -232,45 +230,45 @@
             <span class="day__batt">100%</span>
           </div>
           <div class="day__m" data-d="1">
-            <span class="day__time">12:30</span>
-            <span class="day__act">Messages, mail, maps, a podcast.</span>
-            <span class="day__batt">~80%</span>
+            <span class="day__time">13:00</span>
+            <span class="day__act">Photos, messages, browsing.</span>
+            <span class="day__batt">~78%</span>
           </div>
           <div class="day__m" data-d="2">
-            <span class="day__time">16:00</span>
-            <span class="day__act">Photos. A lot of photos.</span>
-            <span class="day__batt">~60%</span>
+            <span class="day__time">19:00</span>
+            <span class="day__act">Video and a game.</span>
+            <span class="day__batt">~52%</span>
           </div>
           <div class="day__m" data-d="3">
-            <span class="day__time">21:00</span>
-            <span class="day__act">Dinner, video, an hour of a game.</span>
+            <span class="day__time">22:30</span>
+            <span class="day__act">The camera again, in the dark.</span>
             <span class="day__batt">~35%</span>
           </div>
           <div class="day__m" data-d="4">
-            <span class="day__time">23:40</span>
+            <span class="day__time">00:10</span>
             <span class="day__act">Still going.</span>
             <span class="day__batt">Charger optional</span>
           </div>
         </div>
       </div>
-      <p class="eyebrow beat" data-b="6" style="margin-top:clamp(2rem,6vh,4rem);color:rgba(245,245,247,.3)">Illustrative day · not an Apple measurement</p>
+      <p class="eyebrow beat" data-b="6" style="margin-top:clamp(2rem,6vh,4rem);color:rgba(245,245,247,.5)">Illustrative day · not an Apple measurement</p>
     </div>
   </section>
 
-  <!-- ══════════════════ 10 · THE BIG PICTURE ══════════════════ -->
-  <section class="slide slide--center slide--over" id="s10" aria-label="The big picture">
-    <div class="slide__body" id="s10Body">
+  <!-- ════════════ 11 · THE BIG PICTURE ════════════ -->
+  <section class="slide slide--center slide--over" id="s11" aria-label="The big picture">
+    <div class="slide__body" id="s11Body">
       <div class="stack">
         <h2 class="d1 beat" data-b="0">More battery.</h2>
-        <h2 class="d1 beat" data-b="1">Better cameras.</h2>
+        <h2 class="d1 beat" data-b="1">More camera capability.</h2>
         <h2 class="d1 beat" data-b="2">More possibilities.</h2>
       </div>
     </div>
   </section>
 
-  <!-- ══════════════════ 11 · FINAL REVEAL ══════════════════ -->
-  <section class="slide slide--over" id="s11" aria-label="iPhone 18 Pro Max">
-    <div class="slide__body" id="s11Body">
+  <!-- ════════════ 12 · FINAL REVEAL ════════════ -->
+  <section class="slide slide--over" id="s12" aria-label="iPhone 18 Pro Max">
+    <div class="slide__body" id="s12Body">
       <h2 class="d2 beat" data-b="3">iPhone 18 Pro Max</h2>
       <p class="d3 beat" data-b="4" style="margin-top:1.1rem;color:var(--white-dim);font-weight:400">More of what matters.</p>
     </div>
@@ -287,61 +285,45 @@
   <div class="tap tap--next" id="tapNext" aria-hidden="true"></div>
 </div>
 
-<!-- ══════════════ sources, on the I key ══════════════ -->
-<div class="info" id="info" role="dialog" aria-label="Sources and fact check" aria-modal="true">
+<div class="info" id="info" role="dialog" aria-label="Sources and notes" aria-modal="true">
   <div class="info__grid">
     <h2>Every number on this deck, and where it comes from</h2>
     <p>Press <code>I</code> again to close.</p>
 
     <h3>Apple’s published specifications</h3>
     <ul>
-      <li><b>45 hours</b> video playback, <b>40 hours</b> streamed video — iPhone 18 Pro Max. Apple describes it as the longest battery life in an iPhone.</li>
-      <li><b>39 hours</b> video playback, <b>35 hours</b> streamed — iPhone 17 Pro Max, the generation before.</li>
-      <li><b>Main camera</b> 48 MP Fusion, 24 mm, variable aperture ƒ/1.48 · ƒ/1.8 · ƒ/2.8 · ƒ/4, six blades, second-generation sensor-shift stabilisation.</li>
-      <li><b>Ultra Wide</b> 48 MP, 13 mm, ƒ/2.2, 120° field of view.</li>
-      <li><b>Telephoto</b> 48 MP, 100 mm (4×), ƒ/2.8, tetraprism, plus a 12 MP optical-quality 8× at 200 mm.</li>
-      <li><b>Front</b> 18 MP Centre Stage.</li>
-      <li><b>Display</b> 6.9″, 1000 nits typical, 1600 nits peak HDR, 3000 nits peak outdoor.</li>
-      <li><b>A20 Pro</b>, Apple’s first 2 nm chip.</li>
-      <li><b>Charging</b> to 50% in around 15 minutes with a 60W-capable USB-PD 3.1 adapter; the prior generation was around 20 minutes.</li>
-      <li><b>Manual controls</b> for aperture, shutter speed and white balance, with a histogram. <b>Dual Capture</b> records front and back at once.</li>
-      <li><b>Ceramic Shield 2</b>; smaller Dynamic Island holding up to three Live Activities.</li>
-    </ul>
-
-    <h3>Apple UAE pricing</h3>
-    <ul>
-      <li>256 GB — <b>AED 5,499</b> · 512 GB — <b>AED 6,349</b> · 1 TB — <b>AED 8,049</b> · 2 TB — <b>AED 10,599</b></li>
-      <li>Four finishes: black, silver, glacier, burgundy. Pre-orders 12 September 2026; on sale 18 September 2026.</li>
+      <li><b>Display</b> 6.9″ OLED Super Retina XDR · ProMotion to <b>120 Hz</b> · up to <b>3000 nits</b> outdoor brightness.</li>
+      <li><b>Chip</b> A20 Pro. <b>Software</b> iOS 27, with Apple Intelligence.</li>
+      <li><b>Cameras</b> 48 MP Main, 48 MP Ultra Wide, 48 MP Telephoto. Main aperture variable, <b>ƒ/1.48–ƒ/4.0</b>. Front camera <b>18 MP</b>.</li>
+      <li><b>Battery</b> up to <b>45 hours</b> video playback.</li>
+      <li><b>Storage</b> 256 GB · 512 GB · 1 TB · 2 TB.</li>
+      <li><b>Connectivity</b> USB‑C · Wi‑Fi 7 · Bluetooth 6 · 5G.</li>
+      <li><b>Build</b> aluminium unibody, <b>IP68</b>, approximately <b>249 g</b>.</li>
+      <li><b>Finishes</b> Black, Silver, Glacier, Burgundy.</li>
     </ul>
 
     <h3>Derived on this deck, not quoted from Apple</h3>
     <ul>
-      <li>“Six more hours” and “roughly fifteen percent” are arithmetic on Apple’s own 45 h and 39 h ratings (45 − 39 = 6; 6 ÷ 39 ≈ 15.4%).</li>
-      <li>Opening to ƒ/1.48 from ƒ/1.78 is about <b>1.45× the light</b> — the ratio of the apertures squared. Apple publishes the aperture values; the multiplier is ours.</li>
-      <li>Slide 9’s hour-by-hour percentages are an <b>illustration of a day</b>, not a measurement. Real battery life depends on signal, brightness, temperature and what you actually run.</li>
+      <li>The hour-by-hour percentages on the battery scene and the day scene are an <b>illustration of a day’s shape</b>, not a measurement. Real battery life depends on signal, brightness, temperature and what you actually run. The 45-hour figure is a video-playback rating and is described as one.</li>
+      <li>The camera scene’s six situations are <b>abstract light studies</b>, not photographs taken on this or any phone.</li>
     </ul>
 
-    <h3>What this deck deliberately does not claim</h3>
+    <h3>On the photography</h3>
     <ul>
-      <li><b>No battery capacity in mAh.</b> Apple does not publish it and third-party teardown figures disagree with each other, so only Apple’s hour ratings appear here.</li>
-      <li><b>No new camera sensors.</b> The three 48 MP sensors carry over; the change on the main camera is the physically moving aperture, not the sensor. Slide 6 says so on the slide.</li>
-      <li><b>Battery bars start at zero.</b> 39 h is drawn at 86.7% of 45 h. Cropping the axis would have made the gap look bigger than it is.</li>
-      <li>Independent reviewers measured <b>less improvement under sustained gaming</b> than the video-playback rating suggests. The rating is a video-playback rating and is described as one.</li>
-    </ul>
-
-    <h3>Imagery</h3>
-    <ul>
-      <li>There is <b>no photograph and no image file</b> in this project. The device, the lenses and all six photography scenes are drawn in code from gradients and canvas paths. The photography scenes illustrate a lighting situation; they are not camera samples, and the slide says so while they are on screen.</li>
+      <li>The device on screen is <b>real product photography</b>, cut from two supplied source images by <code>tools/build-assets.py</code>. Nothing is drawn and nothing is AI-generated.</li>
+      <li>The <b>front view</b> comes from one source; the <b>back, side profile and camera close-up</b> come from another, which carries the full-width camera plateau.</li>
+      <li>The first source’s <b>back</b> is deliberately unused: it shows a square camera island with the lenses in a triangle, which does not match this generation’s plateau. Putting it on screen in a deck about the camera would show the wrong camera system.</li>
+      <li>The sources are small — the back and side are 204 px tall natively — so each view is capped at the largest size it can be drawn without visibly softening, and anything needing more frame than that is built from type instead.</li>
     </ul>
 
     <h3>Sourcing note</h3>
-    <p>apple.com and support.apple.com were unreachable from the machine this was built on, so Apple’s figures above were taken from reporting that quotes Apple’s specification pages and newsroom release, cross-checked across several independent outlets. Confirm against Apple’s own tech-spec page before presenting.</p>
+    <p>apple.com, support.apple.com and every Apple CDN were unreachable from the machine this was built on, so the specifications above were cross-checked against reporting that quotes Apple’s specification pages, and official product imagery could not be fetched. Confirm the figures against Apple’s own tech-spec page before presenting.</p>
   </div>
 </div>
 
 <script src="assets/js/core.js"></script>
-<script src="assets/js/phone.js"></script>
-<script src="assets/js/plates.js"></script>
+<script src="assets/js/product.js"></script>
+<script src="assets/js/fields.js"></script>
 <script src="assets/js/deck.js"></script>
 </body>
 </html>
