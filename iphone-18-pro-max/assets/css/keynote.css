@@ -808,3 +808,17 @@
   .shot--plateau img { transition: filter var(--t-slow) var(--ease-soft); }
   .shot--plateau.is-isolating img { filter: drop-shadow(0 28px 44px rgba(0,0,0,.72)) brightness(.62); }
 }
+
+/* ── disclosure ──────────────────────────────────────────────────── */
+/* First thing in the sources panel, and set apart from the rest of it:
+   the deck borrows a real product's name and specifications, so the
+   panel opens by saying whose they are and that this is not theirs. */
+@layer chrome {
+  .info__disclaim {
+    border-left: 2px solid var(--white-faint);
+    padding: .2rem 0 .2rem 1.1rem;
+    margin-bottom: .6rem;
+    max-width: 70ch;
+  }
+  .info__disclaim { color: var(--white) !important; font-size: .95rem; }
+}
