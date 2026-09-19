@@ -26,12 +26,15 @@
 
   var U = global.KN.U;
 
-  /* view → [file, natural aspect (w/h), max sensible on-screen height] */
+  /* view → [file, natural aspect (w/h), max sensible on-screen height]
+     Caps are set from each source's real pixel size. The camera macro is
+     749 px wide natively, so unlike the old cut it can carry a genuine
+     full-frame reveal instead of being nursed along at a quarter size. */
   var VIEWS = {
-    front:   ['front.png',          214 / 663, 700],
-    side:    ['side-burgundy.png',   21 / 205, 660],
-    back:    ['back-burgundy.png',   98 / 204, 580],
-    plateau: ['plateau.png',        294 / 232, 300]
+    front:    ['front.png',    229 / 498, 700],
+    back:     ['back.png',     180 / 472, 640],
+    camera:   ['camera.png',   749 / 494, 560],
+    finishes: ['finishes.png', 845 / 460, 470]
   };
 
   function build(host) {
@@ -47,6 +50,7 @@
       /* the first view is needed for the opening reveal, so it is not
          allowed to arrive late */
       img.loading = k === 'front' ? 'eager' : 'lazy';
+      img.alt = '';
       wrap.appendChild(img);
 
       /* Call-out rings for the camera close-up, positioned as a
@@ -55,9 +59,9 @@
          which physical lens is which follows Apple's conventional Pro
          layout, and the sources panel says so. */
       var rings = null;
-      if (k === 'plateau') {
+      if (k === 'camera') {
         rings = {};
-        [['main', 19, 25], ['ultra', 18, 55], ['tele', 40, 40]].forEach(function (r) {
+        [['main', 19, 40], ['ultra', 22, 70], ['tele', 45, 53]].forEach(function (r) {
           var d = document.createElement('div');
           d.className = 'ring ring--' + r[0];
           d.style.left = r[1] + '%';
@@ -101,7 +105,7 @@
 
     /* light one lens, dim the photograph behind it */
     function call(which) {
-      var p = shots.plateau;
+      var p = shots.camera;
       if (!p || !p.rings) return;
       p.node.classList.toggle('is-isolating', !!which);
       Object.keys(p.rings).forEach(function (k) {

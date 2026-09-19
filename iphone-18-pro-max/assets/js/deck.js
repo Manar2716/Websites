@@ -133,13 +133,13 @@
         /* barely there */
         if (n === 2) { views.show('front', 620); rig.set({ s: .82 }, 1.0); fade.set({ o: .22 }, 1.1); }
         /* forward, and fully lit */
-        if (n === 3) { show('front', 660, { s: 1, x: 0, y: 0 }, 1.0); }
-        /* around the side */
-        if (n === 4) { show('side', 640, { s: 1, x: 0, y: 0 }, 1.2); }
-        /* and to the back */
-        if (n === 5) { show('back', 560, { s: 1, x: 0, y: 0 }, 1.2); }
-        /* in to the camera system */
-        if (n === 6) { show('plateau', 300, { s: 1.5, x: 0, y: vh(.04) }, 1.4); }
+        if (n === 3) { show('front', 680, { s: 1, x: 0, y: 0 }, 1.0); }
+        /* around to the back */
+        if (n === 4) { show('back', 620, { s: 1, x: 0, y: 0 }, 1.2); }
+        /* the camera system arrives */
+        if (n === 5) { show('camera', 470, { s: 1, x: 0, y: 0 }, 1.2); }
+        /* and closer */
+        if (n === 6) { show('camera', 540, { s: 1.32, x: 0, y: vh(.03) }, 1.4); }
       } },
 
     /* ── 1 · THE PRODUCT ─────────────────────────────────────────── */
@@ -191,9 +191,9 @@
         q('#s4Head').classList.toggle('is-out', n >= 1);
         exclusive('#s4Calls .callout', 'c', n >= 2 ? n - 2 : -1);
 
-        if (n === 0) show('back', 540, { s: 1, x: vw(.26), y: 0 }, 1.5);
-        if (n === 1) show('plateau', 300, { s: 1.3, x: vw(.24), y: 0 }, 1.4);
-        if (n >= 2) show('plateau', 300, { s: 1.6, x: vw(.22), y: 0 }, 1.4);
+        if (n === 0) show('back', 560, { s: 1, x: vw(.27), y: 0 }, 1.5);
+        if (n === 1) show('camera', 430, { s: 1, x: vw(.20), y: 0 }, 1.4);
+        if (n >= 2) show('camera', 470, { s: 1.06, x: vw(.19), y: 0 }, 1.4);
 
         views.call(n === 2 ? 'main' : n === 3 ? 'ultra' : n === 4 ? 'tele' : null);
       } },
@@ -211,8 +211,8 @@
         lit(true, 50, 46);
         scene(-1);
         /* the camera stays on screen behind the words, well back */
-        views.show('plateau', 300);
-        rig.set({ s: 2.3, x: 0, y: 0 }, 1.2);
+        views.show('camera', 520);
+        rig.set({ s: 1.25, x: 0, y: 0 }, 1.2);
         fade.set({ o: .10 }, 1.4);
         views.call(null);
         feature(slides.s6, n);
@@ -236,14 +236,14 @@
 
     /* ── 9 · EVERYTHING ELSE ─────────────────────────────────────── */
     { id: 's9', beats: 7, apply: function (n) {
-        lit(true, 50, 46);
-        hideProduct(2.6);
         feature(slides.s9, n);
-        /* the finishes arrive one after the other on the last beat */
-        qa('#finishes img').forEach(function (im, i) {
-          im.classList.toggle('is-in', n === 6);
-          im.style.transitionDelay = (n === 6 ? i * 260 : 0) + 'ms';
-        });
+        if (n === 6) {
+          lit(true, 50, 46);
+          show('finishes', 440, { s: 1, x: 0, y: vh(.01) }, 1.4);
+        } else {
+          lit(true, 50, 46);
+          hideProduct(2.6);
+        }
       } },
 
     /* ── 10 · A DAY ──────────────────────────────────────────────── */

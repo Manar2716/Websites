@@ -19,65 +19,53 @@ end — the opening black screen, then 65 presses. The speaker script is
 
 ## The photography
 
-**The device on screen is photography. Nothing about it is drawn, and nothing
-is AI-generated.** Two source images were supplied; `tools/build-assets.py`
-cuts four views out of them, and the deck uses those four for the whole run —
-one device, one finish, so it reads as a continuous look at a single object
+**Every device on screen is photography. Nothing is drawn, and nothing is
+AI-generated.** `tools/build-assets.py` cuts four views out of three captures
+of Apple's iPhone 18 Pro pages, and the deck uses those four for the whole run
+— one device in one finish, so it reads as a continuous look at a single object
 rather than a slideshow of different ones.
 
 ```
-front      the front face          214 × 663 native
-side       the side profile         21 × 205 native
-back       the rear                 99 × 204 native
-plateau    the camera close-up      98 ×  77 native
+front       the device, three-quarter front     229 × 498 native
+back        the device, three-quarter rear      180 × 472 native
+camera      the camera system, macro            749 × 494 native
+finishes    all four finishes together          845 × 460 native
 ```
 
-The tool cuts all three finishes present in the second source; the deck shows
-**Burgundy** (as the hero device throughout) and **Black**. The third is left
-out of the deck on purpose — it cannot be confidently matched to one of Apple's
-four published finish names, and captioning it with a guess would be inventing
-a fact. The scene that shows the two is captioned for the two it shows.
+**Two earlier sources were dropped entirely.** They showed a square camera
+island with the three lenses in a triangle — iPhone 15/16 Pro geometry, not
+this generation's full-width plateau. One of them was kept for a while on the
+grounds that a *front* face carries no camera module and so could not be wrong;
+that was too generous. It was a render of a different design throughout, and
+with genuine 18 Pro photography available there is no reason to keep any part
+of it. Nothing from either survives.
 
-Two decisions in that pipeline are worth stating plainly, because they shaped
-the design more than anything else.
+The consequence is visible in the deck: the camera macro is 749 px wide
+natively where the old cut was 98, so the camera reveal is a real full-frame
+push rather than something nursed along at a quarter size. `product.js` still
+caps each view at the largest height it can honestly carry, but the caps are no
+longer the binding constraint on the layout.
 
-**The first source's back is deliberately unused.** It shows a square camera
-island with the three lenses in a triangle — iPhone 15/16 Pro geometry — not
-the full-width plateau this generation has, which the second source does show.
-Putting it on screen in a deck about the camera would have meant showing the
-wrong camera system. Only its front face is used, which carries no camera
-module and is therefore design-accurate, and is also the sharpest asset
-available.
+### Cutting the backdrop off a photograph, three times, three thresholds
 
-**The sources are small, and the layout is built around that rather than
-against it.** `product.js` gives every view a maximum on-screen height and
-scenes get `min(asked, cap)`; the camera push-in stops at roughly four times
-the plateau's native width, which is where an upscale stops reading as shallow
-focus. Anything that wanted more frame than the photography can honestly cover
-is built from type instead. The full-bleed camera sequence is typographic for
-exactly this reason.
+All four crops sit on black, so all four are keyed on their own brightness:
+dark pixels become transparent, lit ones stay, and the near-black pixels it
+softens are sitting on a near-black deck anyway. What changes per asset is the
+threshold.
 
-### Cutting the backdrop off a photograph, twice, two different ways
+The burgundy views take a knee of 20–26: their bodies are bright enough that
+nothing of the device is at risk.
 
-Both source images needed their background removed and neither could use the
-other's method.
-
-The **panel shots** sit on flat coloured cards, and each phone's body is nearly
-the same hue as the card behind it, so keying on a reference colour either
-leaves the backdrop's gradient behind or eats into the device. The fix is to
-flood inward from the frame edge comparing each pixel to *the neighbour it was
-reached from* rather than to one fixed colour: a smooth gradient stays under
-the per-step threshold all the way across, and the phone's edge is a hard jump
-that stops the fill.
-
-The **front shot** is the opposite problem. It is already on pure black, and so
-is the phone's bezel — so a flood fill has no edge to stop at and walks straight
-through the frame into the wallpaper, leaving an outline where the phone used to
-be. That one is keyed on brightness instead: dark pixels become transparent, lit
-ones stay. The pixels it makes partially transparent are the near-black ones,
-which sit on a near-black deck anyway. Left as an opaque rectangle it was darker
-than the lit ground behind it and read as a box around the product, with
-`drop-shadow` tracing the box rather than the phone.
+**The four-finish shot needed a knee of 11**, and finding that took a wrong
+turn worth recording. Measured across the whole source, the Black device's body
+sits near 31 luminance and the backdrop reaches 31 at its 99th percentile —
+they overlap, so no threshold separates them, and that measurement said the
+view had to be published opaque. But an opaque black rectangle is *darker* than
+this deck's own ground, which carries a grain overlay and never reaches zero;
+it read as a box around the picture. Measured on the crop that is actually
+published rather than the whole source, the backdrop tops out near 5 while the
+black phone runs from 14 up — and a low knee separates them cleanly. The lesson
+is to measure the thing being shipped, not the thing it came from.
 
 ## One device, one shot
 
@@ -88,10 +76,11 @@ makes stepping backwards work: going back is `apply(n-1)`, not an undo log. A
 presenter who over-clicks can always click back.
 
 All four views live in one stack, centred on each other, and crossfading
-between them is what reads as the camera moving around the product. The
-dissolves are slow on purpose: these are four separate photographs at different
-angles, not frames of one turntable, so a fast cut reads as a mistake where a
-long dissolve reads as a camera move.
+between them is what reads as the camera moving around the product — front, to
+rear three-quarter, to the camera system, and then further in. The dissolves
+are slow on purpose: these are separate photographs at different angles, not
+frames of one turntable, so a fast cut reads as a mistake where a long dissolve
+reads as a camera move.
 
 Fade and transform are on separate elements. Sharing them means every push-in
 is composited through a changing opacity, which on a large image is the
@@ -154,21 +143,27 @@ camera, battery, storage, connectivity and IP68 figures matched, and the four
 that had not been verified before — **249 g**, **aluminium unibody**, **iOS
 27** and **120 Hz ProMotion** — were confirmed independently.
 
+The CPU, GPU and battery comparison figures — **up to 20% faster 6-core CPU**,
+**up to 40% faster 7-core GPU**, **up to 6 more hours** video playback against
+iPhone 17 Pro Max — are read directly off Apple's own comparison module in one
+of the source captures. Note that the GPU is **7-core** there; secondary
+reporting had said six, and the capture wins.
+
 **One caveat on sourcing.** `apple.com`, `support.apple.com` and every Apple
 CDN were unreachable from the machine this was built on, blocked by an egress
-policy rather than by Apple, so no official product imagery could be fetched
-and the specifications were taken from reporting that quotes Apple's
-specification pages, cross-checked across several outlets. That is a weaker
-chain than reading the spec sheet. **Check the figures against Apple's own
-tech-spec page before presenting.**
+policy rather than by Apple. The photography came from screen captures of
+Apple's pages supplied directly, and the written specifications were
+cross-checked against reporting that quotes Apple's specification pages. That
+is a weaker chain than reading the spec sheet. **Check the figures against
+Apple's own tech-spec page before presenting.**
 
 ## Files
 
 ```
 index.html                 the thirteen scenes
 SCRIPT.md                  the speaker script, 65 presses, with delivery notes
-tools/build-assets.py      cuts the product views out of the source images
-tools/src/                 the two source photographs
+tools/build-assets.py      cuts the product views out of the source captures
+tools/src/                 the three source captures
 assets/img/                the four cut views, plus a size manifest
 assets/css/keynote.css     cascade layers: tokens → base → stage → phone →
                            slides → scenes → chrome → motion

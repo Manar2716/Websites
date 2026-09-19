@@ -252,6 +252,11 @@
   }
   .shot.is-on { opacity: 1; transform: none; }
 
+  /* The four-finish view is published opaque (see tools/build-assets.py),
+     so it must not take the drop-shadow — the shadow would trace its
+     rectangle rather than the devices. */
+  .shot--finishes img { filter: none !important; }
+
   .shot img {
     display: block;
     height: 620px; width: auto;
@@ -805,8 +810,8 @@
   }
   .ring.is-on { opacity: 1; transform: scale(1); }
 
-  .shot--plateau img { transition: filter var(--t-slow) var(--ease-soft); }
-  .shot--plateau.is-isolating img { filter: drop-shadow(0 28px 44px rgba(0,0,0,.72)) brightness(.62); }
+  .shot--camera img { transition: filter var(--t-slow) var(--ease-soft); }
+  .shot--camera.is-isolating img { filter: drop-shadow(0 28px 44px rgba(0,0,0,.72)) brightness(.55); }
 }
 
 /* ── disclosure ──────────────────────────────────────────────────── */
@@ -821,4 +826,24 @@
     max-width: 70ch;
   }
   .info__disclaim { color: var(--white) !important; font-size: .95rem; }
+}
+
+/* ── the finishes beat ───────────────────────────────────────────── */
+/* The photograph is a view in the product stack, so this beat carries
+   only type — pinned to the top and bottom of the frame so the devices
+   have the middle of it. Stacking these in the normal centred flow put
+   the caption underneath the picture and off the bottom of the screen. */
+@layer scenes {
+  .feat--finishes { place-items: stretch; }
+  .finishes__top {
+    position: absolute; left: 0; right: 0;
+    top: clamp(3rem, 13vh, 8rem);
+    text-align: center;
+  }
+  .finishes__bottom {
+    position: absolute; left: 0; right: 0;
+    bottom: clamp(3rem, 12vh, 7rem);
+    text-align: center;
+    max-width: none;
+  }
 }

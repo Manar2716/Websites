@@ -68,7 +68,7 @@
           <span class="num" style="line-height:.82">45</span>
           <span style="display:grid;gap:.5rem;padding-bottom:clamp(.6rem,1.6vh,1.4rem)">
             <span class="d3">hours of video playback</span>
-            <span class="eyebrow">Apple’s rating · iPhone 18 Pro Max</span>
+            <span class="eyebrow">Apple’s rating · six more than the generation before</span>
           </span>
         </div>
 
@@ -180,14 +180,14 @@
       <span class="eyebrow">Chip</span>
       <span class="feat__k">A20 Pro</span></div></div>
     <div class="feat" data-f="1"><div class="feat__in">
-      <span class="feat__k">It runs everything.</span>
-      <span class="feat__s">Apps open and stay open. Games hold their frame rate instead of sagging.</span></div></div>
+      <span class="feat__k">20% faster CPU</span>
+      <span class="feat__s">Six cores. Apps open and stay open; they aren’t quietly thrown out of memory while you are somewhere else.</span></div></div>
     <div class="feat" data-f="2"><div class="feat__in">
+      <span class="feat__k">40% faster GPU</span>
+      <span class="feat__s">Seven cores. Games hold their frame rate instead of sagging after ten minutes.</span></div></div>
+    <div class="feat" data-f="3"><div class="feat__in">
       <span class="feat__k">It develops every photo.</span>
       <span class="feat__s">Each time you press the shutter the chip merges several exposures into one picture — before you have lifted your thumb.</span></div></div>
-    <div class="feat" data-f="3"><div class="feat__in">
-      <span class="feat__k">It does the heavy work.</span>
-      <span class="feat__s">Editing video, large files, anything that used to mean waiting.</span></div></div>
     <div class="feat" data-f="4"><div class="feat__in">
       <span class="feat__k">And it runs Apple Intelligence.</span>
       <span class="feat__s">On the device itself, rather than by sending everything away first.</span></div></div>
@@ -207,13 +207,10 @@
       <span class="feat__k">IP68</span><span class="feat__s">Rain, a pool, a dropped glass. Rated for water and dust.</span></div></div>
     <div class="feat" data-f="5"><div class="feat__in">
       <span class="feat__k">256 GB – 2 TB</span><span class="feat__s">Four sizes. Two terabytes is a lot of 48‑megapixel photographs.</span></div></div>
-    <div class="feat" data-f="6"><div class="feat__in">
-      <span class="eyebrow">Burgundy and Black</span>
-      <div class="finishes" id="finishes">
-        <img src="assets/img/back-burgundy.png" alt="iPhone 18 Pro Max in Burgundy, rear view" loading="lazy" decoding="async">
-        <img src="assets/img/back-black.png" alt="iPhone 18 Pro Max in Black, rear view" loading="lazy" decoding="async">
-      </div>
-      <span class="feat__s" style="margin-top:1.4rem">Also in Silver and Glacier.</span></div></div>
+    <div class="feat feat--finishes" data-f="6">
+      <span class="eyebrow finishes__top">Four finishes</span>
+      <span class="feat__s finishes__bottom">Black. Silver. Glacier. Burgundy.</span>
+    </div>
   </section>
 
   <!-- ════════════ 10 · A DAY WITH THE PHONE ════════════ -->
@@ -298,6 +295,9 @@
     <ul>
       <li><b>Display</b> 6.9″ OLED Super Retina XDR · ProMotion to <b>120 Hz</b> · up to <b>3000 nits</b> outdoor brightness.</li>
       <li><b>Chip</b> A20 Pro. <b>Software</b> iOS 27, with Apple Intelligence.</li>
+      <li>From Apple’s own comparison against iPhone 17 Pro Max: up to <b>6 more hours</b>
+          video playback, up to <b>20% faster</b> 6-core CPU, up to <b>40% faster</b>
+          7-core GPU.</li>
       <li><b>Cameras</b> 48 MP Main, 48 MP Ultra Wide, 48 MP Telephoto. Main aperture variable, <b>ƒ/1.48–ƒ/4.0</b>. Front camera <b>18 MP</b>.</li>
       <li><b>Battery</b> up to <b>45 hours</b> video playback.</li>
       <li><b>Storage</b> 256 GB · 512 GB · 1 TB · 2 TB.</li>
@@ -314,14 +314,14 @@
 
     <h3>On the photography</h3>
     <ul>
-      <li>The device on screen is <b>real product photography</b>, cut from two supplied source images by <code>tools/build-assets.py</code>. Nothing is drawn and nothing is AI-generated.</li>
-      <li>The <b>front view</b> comes from one source; the <b>back, side profile and camera close-up</b> come from another, which carries the full-width camera plateau.</li>
-      <li>The first source’s <b>back</b> is deliberately unused: it shows a square camera island with the lenses in a triangle, which does not match this generation’s plateau. Putting it on screen in a deck about the camera would show the wrong camera system.</li>
-      <li>The sources are small — the back and side are 204 px tall natively — so each view is capped at the largest size it can be drawn without visibly softening, and anything needing more frame than that is built from type instead.</li>
+      <li>Every device on screen is <b>real product photography</b>, cut from three captures of Apple’s iPhone 18 Pro pages by <code>tools/build-assets.py</code>. Nothing is drawn and nothing is AI-generated.</li>
+      <li>Four views: the <b>front</b> and the <b>rear three-quarter</b>, the <b>camera macro</b>, and <b>all four finishes</b>. One device in one finish carries the run, so it reads as a continuous look at a single object.</li>
+      <li>Two earlier sources were <b>dropped</b>. They showed a square camera island with the lenses in a triangle — 15/16&nbsp;Pro geometry, not this generation’s full-width plateau — so they were a render of a different design, and nothing from them survives here.</li>
+      <li>Which lens is which follows Apple’s conventional Pro layout: Main top-left, Ultra&nbsp;Wide below it, Telephoto centre. The call-out rings are positioned from measurements taken on the photograph itself.</li>
     </ul>
 
     <h3>Sourcing note</h3>
-    <p>apple.com, support.apple.com and every Apple CDN were unreachable from the machine this was built on, so the specifications above were cross-checked against reporting that quotes Apple’s specification pages, and official product imagery could not be fetched. Confirm the figures against Apple’s own tech-spec page before presenting.</p>
+    <p>apple.com, support.apple.com and every Apple CDN were unreachable from the machine this was built on. The product photography came from screen captures of Apple’s pages supplied directly; the written specifications were cross-checked against reporting that quotes Apple’s specification pages. The CPU, GPU and battery comparison figures are read from Apple’s own comparison module in one of those captures. Confirm everything against Apple’s tech-spec page before presenting.</p>
   </div>
 </div>
 

@@ -52,15 +52,15 @@ Six point nine inches. Aluminium unibody. Two hundred and forty-nine grams —
 and I'll say that plainly: this is a heavy phone. The heaviest iPhone that
 folds out of nothing.
 
-[CLICK] → *the side*
+[CLICK] → *around to the back*
 
 [PAUSE]
 
-[CLICK] → *the back*
+[CLICK] → *the camera system*
 
-[PAUSE]
+[WAIT]
 
-[CLICK] → *in to the cameras*
+[CLICK] → *closer*
 
 [WAIT]
 
@@ -115,12 +115,14 @@ That's the whole talk.
 
 [CLICK] → *45*
 
-Forty-five hours of video playback.
+Forty-five hours of video playback. Six hours more than the generation before
+it.
 
 [PAUSE]
 
-That's Apple's figure, from Apple's own test, and I want to be precise about
-what it means — because a number like that is easy to wave around.
+Both of those are Apple's figures, from Apple's own test, and I want to be
+precise about what they mean — because a number like that is easy to wave
+around.
 
 It does **not** mean forty-five hours of use. It means that if the phone did
 nothing but play video, on a full charge, it would run for forty-five hours.
@@ -320,16 +322,16 @@ The chip. A20 Pro.
 I'm not going to tell you it's faster, because "faster" tells you nothing.
 Here's what it actually does.
 
-[CLICK] It runs everything. Apps open and stay open — they aren't quietly
-thrown out of memory while you're in something else. Games hold their frame
-rate instead of sagging after ten minutes.
+[CLICK] Twenty percent faster on the processor — six cores. What that buys you
+is that apps open and stay open. They aren't quietly thrown out of memory while
+you're somewhere else and made to start again when you come back.
+
+[CLICK] Forty percent faster on the graphics — seven cores. Which means a game
+holds its frame rate instead of sagging after ten minutes.
 
 [CLICK] It develops every photograph. Every time you press the shutter, the
 chip merges several exposures into one image — before you've lifted your thumb.
 That's not storage. That's arithmetic, and it's happening constantly.
-
-[CLICK] It does the heavy work. Editing video, large files, anything that used
-to mean waiting and watching a bar.
 
 [CLICK] And it runs Apple Intelligence on the device itself, rather than by
 sending everything away first.
@@ -356,7 +358,7 @@ ever think about Wi-Fi.
 
 [CLICK] → *the finishes*
 
-Burgundy and Black. Also in Silver and Glacier.
+Four finishes. Black, Silver, Glacier and Burgundy.
 
 [PAUSE]
 
@@ -471,9 +473,10 @@ with your voice the whole thing tips into parody. Underplay it. The two places
 to let yourself lift slightly are the cold open and the last frame.
 
 **The honesty beats are not throwaways.** Scene 3 (the 45 hours is a
-video-playback test, not a promise), scene 5 (these are light studies, not
-photographs), scene 10 (that day is invented) and the weight in the cold open
-are the reason everything else you say is believable. Deliver them at full
+video-playback test, not a promise), scene 5 (those six are light studies, not
+photographs — the *product* shots are real, the situations are not), scene 10
+(that day is invented) and the weight in the cold open are the reason
+everything else you say is believable. Deliver them at full
 weight, not as an aside. An audience that catches you overstating one thing
 will quietly discount the rest.
 
