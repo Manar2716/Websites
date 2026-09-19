@@ -1,0 +1,943 @@
+/* ═══════════════════════════════════════════════════════════════════
+   keynote.css — a product keynote in near-black.
+
+   Cascade layers, in order of increasing specificity:
+   tokens → base → stage → phone → slides → scenes → chrome → motion
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer tokens, base, stage, phone, slides, scenes, chrome, motion;
+
+/* ───────────────────────────── TOKENS ───────────────────────────── */
+@layer tokens {
+  :root {
+    /* The whole deck lives between #000 and #f5f5f7. Nothing else
+       emits colour except the photography scenes and the lens glass,
+       and that restraint is what keeps it reading as a stage rather
+       than a web page. */
+    --ink:            #000000;
+    --ink-raised:     #08080a;
+    --white:          #f5f5f7;
+    --white-dim:      rgba(245,245,247,.62);
+    --white-faint:    rgba(245,245,247,.55);
+    --white-ghost:    rgba(245,245,247,.13);
+    --hair:           rgba(245,245,247,.09);
+
+    /* titanium — the only metal ramp, used by the phone body */
+    --ti-hi:          #d8d8dc;
+    --ti-mid:         #8e8e94;
+    --ti-low:         #3a3a3e;
+    --ti-dark:        #1a1a1d;
+
+    /* the single accent in the deck: the battery green, borrowed
+       straight from the system charge indicator. It appears on
+       exactly two slides so that it still means something. */
+    --charge:         #30d158;
+    --charge-dim:     rgba(48,209,88,.28);
+    --warn:           #ff9f0a;
+
+    /* type — system stack only; no font is fetched over the network */
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+            "Helvetica Neue", Inter, system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+    /* Easing. Two curves do almost all the work here.
+       --ease-reveal is an expo-out: it arrives fast and settles slowly,
+       which is what makes a reveal feel like it *lands*.
+       --ease-move is a symmetric in-out for things travelling across
+       the stage. There is deliberately no curve with overshoot in this
+       file — every bounce/elastic curve was removed. */
+    --ease-reveal: cubic-bezier(.16, 1, .3, 1);
+    --ease-move:   cubic-bezier(.65, 0, .35, 1);
+    --ease-soft:   cubic-bezier(.4, 0, .2, 1);
+
+    /* Durations. Major reveals are slow on purpose. */
+    --t-quick:  420ms;
+    --t-mid:    760ms;
+    --t-slow:   1200ms;
+    --t-cine:   2000ms;
+
+    --gutter: clamp(28px, 6vw, 120px);
+  }
+}
+
+/* ───────────────────────────── BASE ─────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    background: var(--ink);
+    color: var(--white);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body { cursor: default; }
+  body.is-idle { cursor: none; }
+
+  h1, h2, h3, p { margin: 0; }
+
+  /* Display type. Tight tracking and a low line-height are most of
+     what separates "huge white text" from "huge white text that looks
+     like a keynote". */
+  .d1, .d2, .d3 {
+    font-weight: 600;
+    letter-spacing: -.035em;
+    line-height: .95;
+    text-wrap: balance;
+  }
+  /* bounded on BOTH axes — a headline sized only in vw overflows the
+     bottom of the frame the moment it wraps to three lines */
+  .d1 { font-size: clamp(2.4rem, min(8.4vw, 12vh), 9rem); }
+  .d2 { font-size: clamp(2rem, min(6.2vw, 9vh), 6.4rem); }
+  .d3 { font-size: clamp(1.25rem, min(3.5vw, 5.2vh), 3.4rem); letter-spacing: -.028em; }
+
+  .num {
+    font-weight: 600;
+    letter-spacing: -.05em;
+    line-height: .86;
+    /* height-bounded like every other display size in this file */
+    font-size: clamp(2.6rem, min(16vw, 21vh), 17rem);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lede {
+    font-size: clamp(1rem, 1.55vw, 1.4rem);
+    line-height: 1.45;
+    letter-spacing: -.012em;
+    color: var(--white-dim);
+    max-width: 30ch;
+    font-weight: 400;
+  }
+
+  /* Micro labels sit at 0.72rem minimum and near 6:1 on black — the
+     same contrast floor the rest of this repository holds to. */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: clamp(.72rem, .82vw, .8rem);
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--white-faint);
+    font-weight: 500;
+  }
+
+  .sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+        overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+}
+
+/* ───────────────────────────── STAGE ────────────────────────────── */
+@layer stage {
+  .deck {
+    position: fixed; inset: 0;
+    perspective: 2400px;
+    perspective-origin: 50% 46%;
+  }
+
+  /* The key light. One soft pool that the whole deck is lit by; its
+     position and intensity are driven per-beat from JS, so the "camera"
+     appears to move through a lit room rather than cutting between
+     lit slides. Built from gradients rather than filter:blur() — a
+     blurred layer whose contents animate re-rasterises every frame,
+     which was the single biggest frame cost in this repo's other site. */
+  .key {
+    position: fixed; inset: -20%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    background:
+      radial-gradient(42% 38% at var(--kx,50%) var(--ky,44%),
+        rgba(255,255,255,.085) 0%,
+        rgba(255,255,255,.042) 32%,
+        rgba(255,255,255,.012) 58%,
+        transparent 76%);
+    transition: opacity var(--t-cine) var(--ease-soft);
+    will-change: opacity;
+  }
+  .key.is-lit { opacity: 1; }
+
+  /* A second, tighter bloom used only for the two cold opens. */
+  .bloom {
+    position: fixed; left: 50%; top: 50%;
+    width: 46vmin; height: 46vmin;
+    margin: -23vmin 0 0 -23vmin;
+    pointer-events: none; z-index: 1;
+    opacity: 0;
+    transform: scale(.18);
+    background: radial-gradient(circle at 50% 50%,
+      rgba(255,255,255,.95) 0%,
+      rgba(255,255,255,.34) 9%,
+      rgba(255,255,255,.10) 22%,
+      rgba(255,255,255,.028) 40%,
+      transparent 66%);
+    transition: opacity 1600ms var(--ease-soft), transform 2600ms var(--ease-reveal);
+    will-change: opacity, transform;
+  }
+  .bloom.is-on  { opacity: .9; transform: scale(1); }
+  .bloom.is-out { opacity: .16; transform: scale(1.5); }
+
+  /* Vignette keeps the frame's corners dark so the eye stays centre. */
+  .vignette {
+    position: fixed; inset: 0; pointer-events: none; z-index: 40;
+    background: radial-gradient(118% 88% at 50% 48%,
+      transparent 42%, rgba(0,0,0,.42) 78%, rgba(0,0,0,.78) 100%);
+  }
+
+  /* Static film grain. A *static* mask, not an animated one: an
+     animated grain overlay costs a full-viewport repaint per frame. */
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; z-index: 41;
+    opacity: .16; mix-blend-mode: overlay;
+    background-image: var(--grain-src);
+    background-size: 180px 180px;
+  }
+}
+
+/* ───────────────────────────── PHONE ────────────────────────────── */
+@layer phone {
+  /* ONE phone exists for the entire deck. It never unmounts. Slides
+     declare where they want it (x/y/scale/rotation) and the rAF loop
+     damps it there, so the device physically travels from the cold
+     open to the final frame. That continuity is the difference
+     between "a deck about a phone" and "one continuous story". */
+  .phoneStage {
+    position: fixed; inset: 0;
+    display: grid; place-items: center;
+    pointer-events: none;
+    z-index: 12;
+    transform-style: preserve-3d;
+  }
+
+  /* The rig is split in two on purpose, and the split is load-bearing.
+     OPACITY AND ROTATION MUST NOT SHARE AN ELEMENT. Any element with
+     opacity < 1 is forced to transform-style: flat, which composites
+     its whole subtree into a single plane — the faces then stop
+     rotating relative to one another, backface-visibility is evaluated
+     as though the device were never turned, and the front of the phone
+     is the only side you can ever see. So:
+
+       .phoneRig   position + fade, flat, and the perspective source
+       .phone      rotation + scale, preserve-3d, never faded
+
+     JS writes the custom properties on the rig; they inherit down. */
+  .phoneRig {
+    transform: translate3d(var(--px, 0px), var(--py, 0px), var(--pz, 0px));
+    opacity: var(--po, 1);
+    perspective: 2200px;
+    will-change: transform, opacity;
+  }
+
+  .phone {
+    position: relative;
+    width: 286px; height: 604px;
+    transform-style: preserve-3d;
+    transform:
+      rotateX(var(--rx, 0deg))
+      rotateY(var(--ry, 0deg))
+      rotateZ(var(--rz, 0deg))
+      scale(var(--ps, 1));
+    will-change: transform;
+  }
+
+  /* ── the body: an extrusion built from stacked rounded slices ──
+     CSS cannot round an edge in 3D, so the body is 19 copies of the
+     same rounded silhouette spread across the device's thickness.
+     From any orbit angle the outline stays correct, and the two
+     outermost slices are inset to read as the chamfer. JS positions
+     each slice on Z. */
+  .phone__slab { position: absolute; inset: 0; transform-style: preserve-3d; }
+  .phone__slice {
+    position: absolute; inset: 0;
+    border-radius: 46px;
+    background: linear-gradient(100deg,
+      var(--ti-dark) 0%, var(--ti-low) 16%, var(--ti-mid) 33%,
+      var(--ti-hi) 42%, var(--ti-mid) 52%, var(--ti-low) 70%,
+      var(--ti-dark) 86%, var(--ti-low) 100%);
+    backface-visibility: hidden;
+  }
+
+  .phone__face {
+    position: absolute; inset: 0;
+    border-radius: 46px;
+    backface-visibility: hidden;
+    overflow: hidden;
+  }
+
+  /* ── front ── */
+  .phone__face--front {
+    background: #020203;
+    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.10);
+  }
+
+  .screen {
+    position: absolute; inset: 5px;
+    border-radius: 42px;
+    overflow: hidden;
+    background:
+      radial-gradient(150% 100% at 50% 0%, #17171c 0%, #0a0a0d 46%, #030304 100%);
+  }
+
+  /* The wallpaper is four soft gradient pools, not an image. */
+  .screen__paper {
+    position: absolute; inset: 0;
+    opacity: var(--wall, 0);
+    transition: opacity var(--t-slow) var(--ease-soft);
+    background:
+      radial-gradient(64% 46% at 26% 18%, rgba(120,140,190,.40), transparent 62%),
+      radial-gradient(56% 42% at 78% 34%, rgba(190,120,140,.30), transparent 60%),
+      radial-gradient(70% 50% at 52% 88%, rgba(70,90,150,.42), transparent 66%),
+      linear-gradient(170deg, #0e1018 0%, #05060a 100%);
+  }
+
+  /* Specular sheen. JS slides its position against rotateY so the
+     screen catches the key light as the device turns — the single
+     cheapest cue that this is a solid object and not a picture. */
+  .screen__glare {
+    position: absolute; inset: -30%;
+    background: linear-gradient(104deg,
+      transparent 32%, rgba(255,255,255,.055) 46%,
+      rgba(255,255,255,.12) 50%, rgba(255,255,255,.045) 55%, transparent 68%);
+    transform: translate3d(var(--glare, 0%), 0, 0);
+  }
+
+  /* Dynamic Island — smaller on this generation, which is a real
+     change and is why it gets its own named element. */
+  .island {
+    position: absolute; top: 13px; left: 50%;
+    width: 78px; height: 25px;
+    margin-left: -39px;
+    border-radius: 14px;
+    background: #000;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+    transition: width var(--t-mid) var(--ease-move);
+  }
+  .island::after {
+    content: ''; position: absolute; right: 7px; top: 50%;
+    width: 8px; height: 8px; margin-top: -4px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #1d2740 0%, #070a12 62%, #000 100%);
+  }
+
+  /* ── back ── */
+  .phone__face--back {
+    transform: rotateY(180deg);
+    background:
+      radial-gradient(120% 80% at 30% 12%, #2a2a2e 0%, #141417 40%, #0a0a0c 100%);
+    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.08);
+  }
+
+  /* the matte-glass window on the lower two-thirds of the back */
+  .phone__glassWin {
+    position: absolute; left: 0; right: 0; top: 33%; bottom: 0;
+    background: linear-gradient(190deg, rgba(255,255,255,.035), transparent 40%);
+  }
+
+  /* ── camera plateau ──
+     Full-width raised plateau with the three lenses at the left and
+     the flash / sensor cluster at the right. */
+  .plateau {
+    position: absolute; top: 15px; left: 13px; right: 13px;
+    height: 132px;
+    border-radius: 34px;
+    background: linear-gradient(165deg, #3a3a3f 0%, #1e1e22 44%, #131316 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.16),
+      inset 0 -1px 0 rgba(0,0,0,.6),
+      0 6px 18px rgba(0,0,0,.5);
+  }
+
+  .lens {
+    position: absolute;
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(150deg, #5a5a60 0%, #2a2a2e 48%, #17171a 100%);
+    box-shadow: 0 2px 8px rgba(0,0,0,.66), inset 0 1px 0 rgba(255,255,255,.2);
+    display: grid; place-items: center;
+  }
+  /* the triangular arrangement */
+  .lens--wide  { left: 16px;  top: 12px; }
+  .lens--ultra { left: 16px;  top: 66px; }
+  .lens--tele  { left: 70px;  top: 39px; }
+
+  .lens__glass {
+    width: 42px; height: 42px; border-radius: 50%;
+    background:
+      radial-gradient(circle at 36% 28%, #3c4a6b 0%, #131a2c 38%, #05070d 72%, #020306 100%);
+    box-shadow: inset 0 0 6px rgba(0,0,0,.9);
+    position: relative;
+    display: grid; place-items: center;
+  }
+  /* the iris: scaled by JS on the aperture beat, because the aperture
+     on the main camera physically moves on this generation */
+  .lens__iris {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: radial-gradient(circle at 42% 34%, #0d1730 0%, #03050c 70%);
+    box-shadow: 0 0 0 1px rgba(150,190,255,.14);
+    transform: scale(var(--iris, 1));
+    transition: transform var(--t-mid) var(--ease-move);
+  }
+  /* specular pinpoint — the thing that makes glass read as glass */
+  .lens__glass::after {
+    content: ''; position: absolute;
+    left: 24%; top: 18%;
+    width: 30%; height: 22%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(210,228,255,.78), transparent 70%);
+  }
+
+  .flash {
+    position: absolute; right: 22px; top: 26px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 36%, #4a4a50, #1b1b1f 70%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+  }
+  .flash::after {
+    content:''; position:absolute; inset: 6px; border-radius: 50%;
+    background: radial-gradient(circle, #f6e6c4 0%, #6b5f46 55%, #23201a 100%);
+    opacity: .5;
+  }
+  .lidar {
+    position: absolute; right: 26px; top: 72px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 34%, #2e2e34, #0c0c0f 72%);
+  }
+
+  /* Highlight ring used when a single lens is called out. Scale and
+     fade only — it never spins. */
+  .lens__ring {
+    position: absolute; inset: -13px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(245,245,247,.82);
+    opacity: 0; transform: scale(.82);
+    transition: opacity var(--t-mid) var(--ease-reveal),
+                transform var(--t-mid) var(--ease-reveal);
+  }
+  .lens.is-called .lens__ring { opacity: 1; transform: scale(1); }
+  .lens { transition: filter var(--t-mid) var(--ease-soft); }
+  .plateau.is-isolating .lens:not(.is-called) { filter: brightness(.34); }
+
+  /* side hardware */
+  .btn {
+    position: absolute;
+    background: linear-gradient(180deg, var(--ti-mid), var(--ti-low));
+    border-radius: 2px;
+  }
+  .btn--vol1 { left: -2.5px; top: 132px; width: 3px; height: 34px; }
+  .btn--vol2 { left: -2.5px; top: 178px; width: 3px; height: 34px; }
+  .btn--act  { left: -2.5px; top: 96px;  width: 3px; height: 24px; }
+  .btn--pwr  { right: -2.5px; top: 150px; width: 3px; height: 58px; }
+  /* Camera Control, on the lower right edge */
+  .btn--cam  { right: -2.5px; top: 250px; width: 3px; height: 30px;
+               background: linear-gradient(180deg, var(--ti-hi), var(--ti-mid)); }
+
+  /* Contact shadow on the floor beneath the device. Sold separately
+     from the phone so it does not rotate with it. */
+  .phoneShadow {
+    position: fixed; left: 50%; top: 50%;
+    width: 340px; height: 46px;
+    pointer-events: none; z-index: 11;
+    background: radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.72), transparent 72%);
+    opacity: var(--shadowO, 0);
+    transform: translate3d(calc(-50% + var(--px,0px)), calc(-50% + var(--py,0px) + 330px), 0)
+               scale(var(--ps, 1));
+    transition: opacity var(--t-slow) var(--ease-soft);
+  }
+}
+
+/* ───────────────────────────── SLIDES ───────────────────────────── */
+@layer slides {
+  .slide {
+    position: fixed; inset: 0;
+    display: grid;
+    padding: var(--gutter);
+    opacity: 0;
+    visibility: hidden;
+    z-index: 10;
+    transition: opacity var(--t-slow) var(--ease-soft),
+                visibility 0s linear var(--t-slow);
+  }
+  .slide.is-live {
+    opacity: 1; visibility: visible;
+    transition: opacity var(--t-slow) var(--ease-soft), visibility 0s;
+  }
+  /* Slides that sit above the phone (text overlays) vs below it. */
+  .slide--over { z-index: 20; }
+
+  /* NOTE: these are deliberately not in `ch`. The ch unit resolves
+     against this element's own font-size (16px), not against the
+     display type inside it, which made every centred headline about
+     190px wide and sent it straight off the side of the frame. */
+  .slide__body { align-self: center; justify-self: start; max-width: min(58vw, 1000px); }
+  .slide--center .slide__body {
+    justify-self: center; text-align: center;
+    max-width: min(88vw, 1150px);
+  }
+
+  /* ── the beat ──
+     Every individually-revealed element on the deck is a .beat. It is
+     translated up 26px and faded; adding .is-in releases both. There
+     is no motion on any other axis and nothing rotates: text does not
+     fly here, it surfaces. */
+  .beat {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0);
+    transition: opacity var(--t-mid) var(--ease-soft),
+                transform var(--t-slow) var(--ease-reveal),
+                filter var(--t-slow) var(--ease-soft);
+    filter: blur(6px);
+    will-change: opacity, transform;
+  }
+  .beat.is-in { opacity: 1; transform: none; filter: blur(0); }
+  /* a beat that has been superseded steps back rather than vanishing */
+  .beat.is-past { opacity: .2; filter: blur(0); transform: none; }
+
+  /* Stacked word reveals (slides 2 and 10) */
+  .stack { display: grid; gap: clamp(.1rem, 1.2vh, .8rem); }
+  .stack .d1 { line-height: 1.02; }
+
+  /* A rule that draws itself — used to underline a claim. */
+  .rule {
+    height: 1px; background: var(--white-ghost);
+    transform: scaleX(0); transform-origin: 0 50%;
+    transition: transform var(--t-slow) var(--ease-move);
+  }
+  .beat.is-in .rule, .rule.is-in { transform: scaleX(1); }
+
+}
+
+/* ───────────────────────────── SCENES ───────────────────────────── */
+@layer scenes {
+  /* ── battery ──
+     One element does the whole slide-3 sequence. It starts as a
+     battery glyph and its width/height/radius are transitioned into a
+     full-width timeline; because it is the same node throughout, the
+     shape genuinely morphs rather than cross-fading between two
+     pictures. */
+  .batt {
+    position: relative;
+    width: var(--bw, 260px);
+    height: var(--bh, 116px);
+    border-radius: var(--br, 26px);
+    border: 2px solid var(--white-faint);
+    padding: 7px;
+    transition:
+      width var(--t-cine) var(--ease-move),
+      height var(--t-cine) var(--ease-move),
+      border-radius var(--t-cine) var(--ease-move),
+      border-color var(--t-slow) var(--ease-soft),
+      padding var(--t-cine) var(--ease-move);
+  }
+  /* the terminal nub, which retracts as the glyph becomes a timeline */
+  .batt::after {
+    content: ''; position: absolute;
+    right: -11px; top: 50%;
+    width: 7px; height: 34px; margin-top: -17px;
+    border-radius: 0 4px 4px 0;
+    background: var(--white-faint);
+    opacity: var(--nub, 1);
+    transform: scaleX(var(--nub, 1));
+    transform-origin: 0 50%;
+    transition: opacity var(--t-mid) var(--ease-soft),
+                transform var(--t-mid) var(--ease-move);
+  }
+  .batt__fill {
+    height: 100%;
+    /* A battery gauge, anchored left and emptying, the way every
+       battery indicator anyone has ever seen behaves. An earlier cut
+       anchored it right so the fill edge could double as a clock, and
+       a bar that grows rightward while the charge falls is a bar that
+       reads as filling. One axis, one variable. */
+    width: var(--level, 8%);
+    border-radius: var(--fr, 18px);
+    background: linear-gradient(90deg, var(--charge) 0%, #4ade7a 100%);
+    box-shadow: 0 0 34px var(--charge-dim);
+    transition: width var(--t-cine) var(--ease-move),
+                border-radius var(--t-cine) var(--ease-move),
+                background var(--t-slow) var(--ease-soft);
+  }
+  .batt.is-low .batt__fill { background: linear-gradient(90deg, #ff453a, #ff6a52); box-shadow: none; }
+
+  /* markers laid along the timeline once the morph completes */
+  .track { position: relative; width: 100%; }
+  /* In flow, NOT absolutely positioned. Taken out of flow its height is
+     invisible to the centring above it, so on any viewport shorter than
+     a desktop the four labels simply hung off the bottom of the frame
+     with nothing to push back against. */
+  .ticks {
+    margin-top: 22px;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+  }
+  .tick { position: relative; padding-top: 18px; }
+  .tick::before {
+    content: ''; position: absolute; left: 0; top: 0;
+    width: 1px; height: 11px; background: var(--white-ghost);
+  }
+  .tick__t { display: block; font-family: var(--mono); font-size: .74rem;
+             letter-spacing: .2em; color: var(--white-faint); text-transform: uppercase; }
+  .tick__pc { display: block; margin-top: .5rem; font-family: var(--mono);
+             font-size: .82rem; letter-spacing: .06em; color: var(--charge); }
+  .tick__d { display: block; margin-top: .45rem; font-size: clamp(.86rem,1vw,1rem);
+             color: var(--white-dim); letter-spacing: -.01em; max-width: 17ch; }
+
+
+  /* ── comparison rig (slides 6 and 7) ──
+     Two columns that arrive one at a time. */
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 6vw, 7rem);
+        align-items: center; width: 100%; max-width: 1180px; justify-self: center; }
+  .vs__col { display: grid; gap: 1.1rem; }
+  .vs__name { font-family: var(--mono); font-size: .76rem; letter-spacing: .28em;
+              text-transform: uppercase; color: var(--white-faint); }
+  .vs__col.is-hero .vs__name { color: var(--white); }
+  .vs__val { font-weight: 600; letter-spacing: -.045em; line-height: .9;
+             font-size: clamp(2.2rem, min(8.2vw, 13vh), 8rem); font-variant-numeric: tabular-nums; }
+  .vs__unit { font-size: .3em; letter-spacing: -.01em; color: var(--white-dim);
+              margin-left: .28em; font-weight: 500; }
+  .vs__note { font-size: clamp(.86rem,1vw,1rem); color: var(--white-dim); max-width: 26ch; }
+
+  /* horizontal battery bars, drawn to scale against a shared maximum */
+  .bar { height: 26px; border-radius: 13px; background: var(--white-ghost); position: relative;
+         overflow: hidden; }
+  .bar__f {
+    position: absolute; inset: 0 auto 0 0;
+    width: 0; border-radius: 13px;
+    background: linear-gradient(90deg, rgba(245,245,247,.34), rgba(245,245,247,.52));
+    transition: width 1700ms var(--ease-move);
+  }
+  .vs__col.is-hero .bar__f {
+    background: linear-gradient(90deg, var(--charge), #56e07c);
+    box-shadow: 0 0 30px var(--charge-dim);
+  }
+  .bar.is-in .bar__f { width: var(--w, 0%); }
+
+  /* the delta callout that arrives after both bars are drawn */
+  .delta { justify-self: center; text-align: center; margin-top: clamp(2rem,5vh,4rem); }
+
+  /* ── photography (slides 4 and 5) ──
+     Full-bleed scenes. Not a grid — one is always on top and they
+     cross-dissolve with a slow push, the way a film cuts between
+     plates. Every one is drawn from gradients; there is no photograph
+     in this project. */
+  .plates { position: fixed; inset: 0; z-index: 8; pointer-events: none; }
+  .plate {
+    position: absolute; inset: 0;
+    opacity: 0;
+    transform: scale(1.14);
+    transition: opacity 1500ms var(--ease-soft), transform 5200ms linear;
+    will-change: opacity, transform;
+  }
+  .plate.is-on { opacity: 1; transform: scale(1.0); }
+  .plate canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* caption rail for the photography sequence */
+  /* A scrim under the caption. The plates are lit scenes and the copy
+     has to sit on top of whichever one is up — over the night plate's
+     street glow, white text on its own was close to unreadable. Same
+     lesson as the rest of this repo: anything carrying copy gets its
+     own ground. */
+  .plateScrim {
+    position: fixed; inset: auto 0 0 0; height: 46vh;
+    z-index: 21; pointer-events: none;
+    background: linear-gradient(to top,
+      rgba(0,0,0,.90) 0%, rgba(0,0,0,.72) 26%, rgba(0,0,0,.36) 58%, transparent 100%);
+    opacity: 0; transition: opacity var(--t-mid) var(--ease-soft);
+  }
+  .plateScrim.is-in { opacity: 1; }
+
+  .plateCap {
+    position: fixed; left: var(--gutter); bottom: var(--gutter);
+    z-index: 22; display: grid; gap: .5rem; max-width: min(46ch, 56vw);
+    opacity: 0; transform: translate3d(0,18px,0);
+    transition: opacity var(--t-mid) var(--ease-soft), transform var(--t-mid) var(--ease-reveal);
+  }
+  .plateCap.is-in { opacity: 1; transform: none; }
+  .plateCap__h { font-size: clamp(1.15rem, min(2.6vw, 4.4vh), 2.3rem); font-weight: 600; letter-spacing: -.03em; }
+  .plateCap__p { font-size: clamp(.88rem, 1.05vw, 1.02rem); color: var(--white-dim); max-width: 34ch; }
+
+  /* Honesty label. These scenes are built from gradients in code —
+     they are illustrations of a lighting situation, not camera
+     samples — and the deck says so on the slide rather than only in
+     the notes. */
+  .render-note {
+    position: fixed; right: var(--gutter); bottom: var(--gutter);
+    z-index: 22;
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .16em;
+    text-transform: uppercase; color: rgba(245,245,247,.30);
+    opacity: 0; transition: opacity var(--t-mid) var(--ease-soft);
+  }
+  .render-note.is-in { opacity: 1; }
+
+  /* ── feature chain (slide 8) ──
+     One feature at a time, each transforming into the next. */
+  .feat { position: absolute; inset: 0; display: grid; place-items: center;
+          opacity: 0; transform: scale(.94); filter: blur(8px);
+          transition: opacity var(--t-mid) var(--ease-soft),
+                      transform var(--t-slow) var(--ease-reveal),
+                      filter var(--t-mid) var(--ease-soft); }
+  .feat.is-on { opacity: 1; transform: none; filter: blur(0); }
+  .feat.is-gone { opacity: 0; transform: scale(1.08); filter: blur(8px); }
+  .feat__in { display: grid; gap: 1rem; justify-items: center; text-align: center; }
+  .feat__k { font-size: clamp(2rem, min(6.8vw, 11vh), 6.4rem); font-weight: 600; letter-spacing: -.045em; line-height: .95; }
+  .feat__s { font-size: clamp(.95rem, 1.2vw, 1.15rem); color: var(--white-dim); max-width: 32ch; }
+
+  /* ── day timeline (slide 9) ── */
+  .day { position: relative; width: 100%; max-width: 1240px; justify-self: center; align-self: center; }
+  .day__line { height: 1px; background: linear-gradient(90deg,
+      transparent, var(--white-ghost) 12%, var(--white-ghost) 88%, transparent); }
+  .day__sun {
+    position: absolute; left: 0; right: 0; top: -2px; height: 5px;
+    border-radius: 3px;
+    background: linear-gradient(90deg,
+      rgba(255,190,90,0) 0%, rgba(255,190,90,.55) 22%,
+      rgba(255,236,190,.75) 46%, rgba(120,150,255,.5) 74%, rgba(60,80,180,0) 100%);
+    opacity: var(--sun, 0);
+    transition: opacity var(--t-cine) var(--ease-soft);
+  }
+  .day__marks { display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 26px; }
+  .day__m { opacity: 0; transform: translate3d(0,14px,0);
+            transition: opacity var(--t-mid) var(--ease-soft), transform var(--t-mid) var(--ease-reveal); }
+  .day__m.is-in { opacity: 1; transform: none; }
+  .day__m.is-past { opacity: .32; transform: none; }
+  .day__m    { padding-right: 1.4rem; }
+  .day__time { display: block; font-family: var(--mono); font-size: .72rem; letter-spacing: .22em;
+               color: var(--white-faint); text-transform: uppercase; }
+  .day__act  { display: block; margin-top: .55rem; font-size: clamp(.88rem,1.02vw,1.02rem);
+               color: var(--white-dim); max-width: 16ch; line-height: 1.4; }
+  /* the running battery readout that travels with the device */
+  .day__batt { display: block; margin-top: .7rem; font-family: var(--mono); font-size: .78rem;
+               color: var(--charge); letter-spacing: .1em; }
+}
+
+/* ───────────────────────────── CHROME ───────────────────────────── */
+@layer chrome {
+  /* Progress. Deliberately almost invisible: a 1px hairline across the
+     very bottom of the frame. It is information for the presenter, not
+     decoration for the audience. */
+  .prog {
+    position: fixed; left: 0; right: 0; bottom: 0; height: 1px;
+    background: var(--hair); z-index: 50; pointer-events: none;
+  }
+  .prog__f {
+    height: 100%; width: 0%;
+    background: rgba(245,245,247,.5);
+    transform-origin: 0 50%;
+    transition: width 700ms var(--ease-move);
+  }
+
+  /* Chapter pips, shown only while the pointer is active. */
+  .pips {
+    position: fixed; right: var(--gutter); top: 50%; z-index: 50;
+    display: grid; gap: 9px; transform: translateY(-50%);
+    opacity: 0; transition: opacity var(--t-mid) var(--ease-soft);
+    pointer-events: none;
+  }
+  body:not(.is-idle) .pips { opacity: .5; }
+  .pip { width: 4px; height: 4px; border-radius: 50%; background: var(--white-ghost);
+         transition: background var(--t-quick) var(--ease-soft), transform var(--t-quick) var(--ease-soft); }
+  .pip.is-here { background: var(--white); transform: scale(1.5); }
+  .pip.is-done { background: var(--white-faint); }
+
+  .hint {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    z-index: 50; font-family: var(--mono); font-size: .68rem; letter-spacing: .2em;
+    text-transform: uppercase; color: rgba(245,245,247,.42);
+    opacity: 0; transition: opacity var(--t-slow) var(--ease-soft);
+    pointer-events: none; text-align: center;
+  }
+  .hint.is-on { opacity: 1; }
+
+  /* Sources panel — keyboard 'i'. Every number on the deck is listed
+     with where it came from. Kept off-stage so it never interrupts
+     the run, but one key away so a claim can be checked live. */
+  .info {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(0,0,0,.94);
+    padding: var(--gutter);
+    overflow-y: auto;
+    opacity: 0; visibility: hidden;
+    transition: opacity var(--t-mid) var(--ease-soft), visibility 0s linear var(--t-mid);
+  }
+  .info.is-open { opacity: 1; visibility: visible; transition: opacity var(--t-mid) var(--ease-soft), visibility 0s; }
+  .info__grid { max-width: 1100px; margin: 0 auto; display: grid; gap: 1.4rem; }
+  .info h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: -.02em; }
+  .info h3 { font-size: .74rem; font-family: var(--mono); letter-spacing: .24em;
+             text-transform: uppercase; color: var(--white-faint); margin-top: .8rem; }
+  .info p, .info li { font-size: .93rem; line-height: 1.6; color: var(--white-dim); }
+  .info ul { margin: .4rem 0; padding-left: 1.1rem; display: grid; gap: .35rem; }
+  .info b { color: var(--white); font-weight: 600; }
+  .info code { font-family: var(--mono); font-size: .86em; color: var(--white); }
+
+  /* Click targets: left third goes back, right two-thirds advance. */
+  .tap { position: fixed; top: 0; bottom: 0; z-index: 45; }
+  .tap--prev { left: 0; width: 22%; cursor: w-resize; }
+  .tap--next { left: 22%; right: 0; cursor: e-resize; }
+}
+
+/* ───────────────────────────── MOTION ───────────────────────────── */
+@layer motion {
+  /* Respecting the setting means the deck still *works* — every beat
+     lands in its final state — it simply stops travelling to get
+     there. Durations collapse rather than animations being disabled,
+     so a presenter with reduced motion set sees the same slides in the
+     same order and can still present from it. */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --t-quick: 1ms; --t-mid: 1ms; --t-slow: 1ms; --t-cine: 1ms;
+    }
+    .beat { filter: none; transform: none; }
+    .plate { transition: opacity 180ms linear; transform: none; }
+    .plate.is-on { transform: none; }
+    .bloom { transition: opacity 180ms linear; }
+    *, *::before, *::after { animation-duration: .01ms !important; }
+  }
+
+  /* ── responsive ──
+     The deck is designed for a projector but has to survive a laptop
+     and a phone screen, because that is where it gets rehearsed. */
+  @media (max-width: 900px) {
+    .phone { width: 216px; height: 456px; }
+    .plateau { height: 100px; border-radius: 26px; }
+    .lens { width: 44px; height: 44px; }
+    .lens__glass { width: 32px; height: 32px; }
+    .lens__iris { width: 18px; height: 18px; }
+    .lens--wide { left: 12px; top: 9px; }
+    .lens--ultra { left: 12px; top: 50px; }
+    .lens--tele { left: 53px; top: 30px; }
+    .flash { right: 16px; top: 20px; width: 20px; height: 20px; }
+    .lidar { right: 19px; top: 56px; width: 14px; height: 14px; }
+    .screen { border-radius: 32px; }
+    .phone__face, .phone__slice { border-radius: 34px; }
+    .island { width: 62px; height: 20px; margin-left: -31px; top: 10px; }
+    .vs { grid-template-columns: 1fr; gap: 2.2rem; }
+    .ticks { grid-template-columns: repeat(2, 1fr); gap: 1.2rem 0; }
+    .day__marks { grid-template-columns: repeat(2, 1fr); gap: 1.4rem 0; }
+    .slide__body { max-width: 100%; }
+  }
+
+  /* On a phone these stay at two columns. Collapsing them to one put
+     four (and five) stacked blocks well past the bottom of the frame —
+     the deck is rehearsed on a handset even though it is presented on
+     a projector, so it has to hold together here too. */
+  @media (max-width: 560px) {
+    .day__marks, .ticks { grid-template-columns: repeat(2, 1fr); gap: 1.1rem 1rem; }
+    .tick__d, .day__act { max-width: none; font-size: .82rem; line-height: 1.35; }
+    .tick { padding-top: 14px; }
+    .day__m { padding-right: .6rem; }
+  }
+
+  /* Short AND narrow — a phone in landscape — drops the supporting copy
+     and keeps the numbers, which is what the speaker is reading from. */
+  @media (max-height: 520px) and (max-width: 900px) {
+    .tick__d, .day__act { display: none; }
+  }
+
+  /* Very short — a handset held sideways, which is where this gets
+     rehearsed rather than presented. Keep the claim, drop the sentence
+     under it; the speaker says that line out loud anyway, and every
+     number stays on screen. */
+  @media (max-height: 470px) {
+    .delta .lede { display: none; }
+    .delta { margin-top: .6rem; }
+    .tick__d { display: none; }
+    /* the header block under the big number */
+    #s3 .eyebrow { display: none; }
+    .num { font-size: clamp(2.2rem, min(14vw, 15vh), 17rem); }
+    #s3 .slide__body > div { gap: clamp(.7rem, 3vh, 1.4rem) !important; }
+    .batt { padding: 4px; }
+    .ticks { margin-top: 10px; }
+    .tick { padding-top: 9px; }
+    .tick::before { height: 7px; }
+  }
+
+  /* Short viewports full stop: tighten the two slides that carry the
+     most vertical content. */
+  @media (max-height: 620px) {
+    .delta { margin-top: clamp(.8rem, 2.4vh, 1.6rem); }
+    .delta .lede { font-size: .9rem; }
+    .vs { gap: clamp(1rem, 4vw, 3rem); }
+    .vs__col { gap: .55rem; }
+    .bar { height: 16px; border-radius: 8px; }
+    .bar__f { border-radius: 8px; }
+    .ticks { margin-top: 14px; }
+    .tick__pc { margin-top: .3rem; }
+    .tick__d { margin-top: .3rem; }
+  }
+
+  /* A short viewport (a laptop in fullscreen is often 1440×780) needs
+     the phone smaller or it collides with the type. */
+  @media (max-height: 820px) {
+    .phone { width: 232px; height: 490px; }
+  }
+  @media (max-height: 660px) {
+    .phone { width: 190px; height: 400px; }
+  }
+}
+
+/* ── slide 4 lens call-outs ──────────────────────────────────────── */
+/* Three blocks occupying one patch of frame. They are stacked rather
+   than laid out in a row because only one is ever meant to be readable:
+   revealing them cumulatively produced three overlapping paragraphs
+   fighting the headline for the same corner. */
+@layer scenes {
+  .callouts {
+    position: absolute;
+    left: var(--gutter); bottom: var(--gutter);
+    width: min(38ch, 42vw); height: clamp(190px, 26vh, 260px);
+  }
+  .callout {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: grid; gap: .55rem; align-content: end;
+    opacity: 0; transform: translate3d(0, 20px, 0); filter: blur(5px);
+    transition: opacity var(--t-mid) var(--ease-soft),
+                transform var(--t-slow) var(--ease-reveal),
+                filter var(--t-mid) var(--ease-soft);
+    pointer-events: none;
+  }
+  .callout.is-in { opacity: 1; transform: none; filter: blur(0); }
+  .callout .lede { max-width: none; }
+
+  /* the headline steps aside once the push-in starts */
+  #s4Head {
+    transition: opacity var(--t-mid) var(--ease-soft),
+                transform var(--t-slow) var(--ease-reveal),
+                filter var(--t-mid) var(--ease-soft);
+  }
+  #s4Head.is-out { opacity: 0; transform: translate3d(0,-22px,0); filter: blur(6px); }
+
+  @media (max-width: 900px) {
+    .callouts { width: calc(100% - var(--gutter) * 2); height: auto; min-height: 220px; }
+  }
+}
+
+/* ── the last frame ──────────────────────────────────────────────── */
+/* The device sits high and the name sits under it. An earlier cut
+   centred both, and the title wrapped to four lines straight across
+   the screen. */
+@layer slides {
+  #s11Body {
+    align-self: end;
+    justify-self: center;
+    text-align: center;
+    max-width: none;
+    padding-bottom: clamp(1rem, 6vh, 4.5rem);
+  }
+}
+
+/* ── the big picture ─────────────────────────────────────────────── */
+/* The three lines are the slide, and then they get out of the way: the
+   device is the payoff, and the two of them centred at once put 9rem
+   type straight across the screen. */
+@layer slides {
+  #s10Body {
+    transition: opacity var(--t-slow) var(--ease-soft),
+                transform var(--t-cine) var(--ease-reveal),
+                filter var(--t-slow) var(--ease-soft);
+  }
+  #s10Body.is-cleared {
+    opacity: 0;
+    transform: scale(.94);
+    filter: blur(7px);
+  }
+}
