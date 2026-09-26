@@ -38,10 +38,26 @@ respected.
 
 ## Content rules
 
-The copy only uses what the business has confirmed: name, location, phone,
-email, hours, and general service categories. There are **no** prices,
-testimonials, reviews, statistics, awards, staff names, or founding dates.
-Anything added later should follow the same rule.
+The copy only uses details that are published about the shop. There are
+**no** prices, testimonials, reviews, statistics, awards, staff names, or
+founding dates. Anything added later should follow the same rule.
+
+Where each detail comes from:
+
+| Detail on the site | Source |
+| --- | --- |
+| Name, Ground Floor location, phone, email, category | [Emaar Malls store listing](https://www.emaarmalls.ae/malls-shop-details/the-meadows-souk/foto-fun-color-lab-llc/) |
+| Daily 10 AM – 10 PM, family portraits, card and cash, parking | [2GIS listing](https://2gis.ae/dubai/firm/70000001018409617) |
+| Passport and visa photos taken in store | Customer reviews of the Meadows branch ([Nicelocal](https://nicelocal.ae/dubai/utility_service/fotofun_color_lab_meadows_souk/)) and directory listings ([HaiUAE](https://www.haiuae.com/company/fotofun-color-lab-vocational-services-art-photography-services-passport-size-photos-photo-center-photographs-photo-printing-framed-photos)) |
+| Framed photos, albums, cameras, personalised items | [Dubai Shopping Guide](https://www.dubaishoppingguide.com/item/fotofun-color-lab-kodak-express/), HaiUAE |
+| Canvas, mosaic and collage canvases, photobooks, photo tiles ("Also from Fotofun") | Fotofun's own shop, [planetfotofun.com](https://www.planetfotofun.com/shop) |
+| Corner of Meadows Drive and Springs Drive | [Property Finder guide to The Meadows Souk](https://www.propertyfinder.ae/blog/the-meadows-souk/) |
+| Instagram and Facebook links | [@fotofundubai](https://www.instagram.com/fotofundubai/), [facebook.com/fotofundubai](https://www.facebook.com/fotofundubai/) |
+
+**To confirm with the owner:** that the Meadows shop and the wider Fotofun
+brand (planetfotofun.com, @fotofundubai) are the same business; which
+"Also from Fotofun" products the Meadows branch actually offers; and that
+card payments and parking are still accurate.
 
 The "Open now" status is worked out from the regular hours (daily 10:00 to
 22:00, Dubai time). If the shop starts keeping different hours, update
@@ -72,6 +88,9 @@ To replace one:
    the gallery and in the footer) and the `preconnect` to `images.unsplash.com`
    in the `<head>`.
 
+The Passport & Visa Photos card is drawn in CSS (a sheet of ID-photo
+silhouettes), so it needs no photograph.
+
 Every image slot crops with `object-fit: cover`, so any orientation works.
 Keep the subject near the centre.
 
@@ -80,10 +99,9 @@ Keep the subject near the centre.
 | Hero, large print | *(decorative)* | [7T0JileziTE](https://unsplash.com/photos/7T0JileziTE) | Boba Jovanovic |
 | Hero, small print | *(decorative)* | [sd-34z9t13g](https://unsplash.com/photos/sd-34z9t13g) | David Law |
 | Hero, wide print | *(decorative)* | [9gz3wfHr65U](https://unsplash.com/photos/9gz3wfHr65U) | Krista Mangulsone |
-| Services · Photography | A woman holding an instant camera… | [fLPDz_sPY2U](https://unsplash.com/photos/fLPDz_sPY2U) | Diego Vedita |
+| Services · Studio Photography | A woman holding an instant camera… | [fLPDz_sPY2U](https://unsplash.com/photos/fLPDz_sPY2U) | Diego Vedita |
 | Services · Printing (3 prints) | *(decorative)* | [JLkhiWpBSSs](https://unsplash.com/photos/JLkhiWpBSSs), [R5rVLQZ8hG8](https://unsplash.com/photos/R5rVLQZ8hG8), [HwZQGB-ZjG4](https://unsplash.com/photos/HwZQGB-ZjG4) | David Straight, Jason Mavrommatis, Daiga Ellaby |
-| Services · Photo Services | A camera, laptop and phone… | [-WPdgomuLT4](https://unsplash.com/photos/-WPdgomuLT4) | Howard Bouchevereau |
-| Services · Custom Products | Wooden picture frames on a wall | [19IdBsV5ofg](https://unsplash.com/photos/19IdBsV5ofg) | Steve Long |
+| Services · Canvas, Framing & Gifts | Wooden picture frames on a wall | [19IdBsV5ofg](https://unsplash.com/photos/19IdBsV5ofg) | Steve Long |
 | Gallery 01 · Childhood | A child holding a candle lantern | [HwZQGB-ZjG4](https://unsplash.com/photos/HwZQGB-ZjG4) | Daiga Ellaby |
 | Gallery 02 · Pets | A black-and-white portrait of a dog | [3nQhyFuwUkk](https://unsplash.com/photos/3nQhyFuwUkk) | Fabian Gieske |
 | Gallery 03 · Desert days | A desert safari in Dubai at sunset | [WaUcTYPfiCU](https://unsplash.com/photos/WaUcTYPfiCU) | K T |
